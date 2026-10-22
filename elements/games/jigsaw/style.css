@@ -1,0 +1,38 @@
+/* jigsaw - STRUCTURE (normal selectors) then DEFAULT PAINT (:where, zero specificity, token-driven). */
+
+[data-element="jigsaw"] { display: flex; flex-direction: column; align-items: center; gap: var(--gk-gap); padding: var(--gk-gap); }
+[data-element="jigsaw"] [data-part="bar"] { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: min(100%, 480px); flex-wrap: wrap; }
+[data-element="jigsaw"] [data-part="preview"] { flex: none; width: 56px; aspect-ratio: var(--gk-aspect, 4 / 3); background-size: cover; background-position: center; }
+[data-element="jigsaw"] [data-part="stage"] { position: relative; width: min(100%, 480px); aspect-ratio: var(--gk-aspect, 4 / 3); }
+[data-element="jigsaw"] [data-part="board"] { position: absolute; inset: 0; display: grid; grid-template-columns: repeat(var(--gk-cols), 1fr); grid-template-rows: repeat(var(--gk-rows), 1fr); gap: 3px; touch-action: manipulation; }
+[data-element="jigsaw"] [data-part="board"][data-state="solved"] { gap: 0; }
+[data-element="jigsaw"] [data-part="piece"] { min-width: 0; min-height: 0; padding: 0; background-repeat: no-repeat; touch-action: none; user-select: none; -webkit-user-select: none; }
+[data-element="jigsaw"] [data-part="piece"][data-state="dragging"] { position: relative; z-index: 5; transition: none; cursor: grabbing; }
+[data-element="jigsaw"] [data-part="peek"] { position: absolute; inset: 0; z-index: 6; background-size: cover; background-position: center; pointer-events: none; opacity: 0; transition: opacity var(--gk-dur-med) var(--gk-ease); }
+[data-element="jigsaw"] [data-part="peek"][data-state="shown"] { opacity: 1; }
+[data-element="jigsaw"] [data-part="message"] { min-height: 1.5em; text-align: center; }
+
+/* default paint */
+:where([data-element="jigsaw"] [data-part="piece"]) { border: 1px solid var(--gk-border); border-radius: var(--gk-radius-s); box-shadow: var(--gk-shadow-1); cursor: grab; }
+:where([data-element="jigsaw"] [data-part="piece"][data-state="selected"]) { outline: 3px solid var(--gk-accent); outline-offset: -3px; box-shadow: var(--gk-glow); }
+:where([data-element="jigsaw"] [data-part="piece"][data-state="dragging"]) { box-shadow: var(--gk-shadow-2); opacity: 0.92; }
+:where([data-element="jigsaw"] [data-part="piece"][data-state="placed"]) { border-color: var(--gk-success); }
+:where([data-element="jigsaw"] [data-part="board"][data-state="solved"] [data-part="piece"]) { border-color: transparent; border-radius: 0; box-shadow: none; cursor: default; }
+:where([data-element="jigsaw"] [data-part="peek"]) { border-radius: var(--gk-radius-s); box-shadow: var(--gk-shadow-2); }
+:where([data-element="jigsaw"] [data-part="preview"]) { border: 1px solid var(--gk-border); border-radius: var(--gk-radius-s); }
+:where([data-element="jigsaw"] [data-part="counter"]) { color: var(--gk-text-muted); }
+:where([data-element="jigsaw"] [data-part="message"]) { color: var(--gk-text); }
+:where([data-element="jigsaw"] [data-part="hint"]) { background: var(--gk-surface-2); }
+:where([data-element="jigsaw"] [data-part="retry"]) { background: var(--gk-accent); color: var(--gk-accent-text); border-color: transparent; }
+
+/* FIT (inside a sheet): the stage is a size container filling the height left under the bar; the board (and the peek overlay)
+   take the largest rectangle of the photo's aspect ratio that fits it. cqw/cqh resolve against the stage. */
+[data-part="sheet-body"] > [data-element="jigsaw"] { gap: 8px; padding: 8px 12px; }
+[data-part="sheet-body"] > [data-element="jigsaw"] [data-part="bar"] { flex: none; flex-wrap: nowrap; }
+[data-part="sheet-body"] > [data-element="jigsaw"] [data-part="message"] { flex: none; min-height: 1.25em; }
+[data-part="sheet-body"] > [data-element="jigsaw"] [data-part="stage"] { flex: 1 1 0; min-height: 120px; width: 100%; max-width: 480px; aspect-ratio: auto; container-type: size; }
+[data-part="sheet-body"] > [data-element="jigsaw"] [data-part="board"],
+[data-part="sheet-body"] > [data-element="jigsaw"] [data-part="peek"] {
+  inset: auto; left: 50%; top: 50%; translate: -50% -50%;
+  width: min(100cqw, calc(100cqh * var(--gk-aspect, 1.3333))); height: min(100cqh, calc(100cqw / var(--gk-aspect, 1.3333)));
+}

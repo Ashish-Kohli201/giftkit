@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex">
+  <title>giftkit playground</title>
+  <link rel="stylesheet" href="./playground.css">
+</head>
+<body>
+  <header class="pg-bar">
+    <strong>giftkit playground</strong>
+    <label>Theme <select id="theme"></select></label>
+    <label>Skin <select id="skin"></select></label>
+    <nav class="pg-tabs" role="tablist">
+      <button role="tab" id="tab-elements" aria-selected="true">Elements</button>
+      <button role="tab" id="tab-gift" aria-selected="false">Full gift</button>
+    </nav>
+  </header>
+
+  <!-- Elements tab: every element mounted standalone, with editable params and an event log -->
+  <main id="elements-view">
+    <p class="pg-hint">Each card mounts one element with its <code>placeholderParams</code>. Edit the JSON and press Remount. Events show what the element reports through <code>ctx</code>.</p>
+    <div id="elements-root"></div>
+  </main>
+
+  <!-- Full gift tab: reference runtime running sample/config.json inside a phone-sized frame -->
+  <main id="gift-view" hidden>
+    <div class="pg-controls">
+      <label>Tier <select id="tier"></select></label>
+      <label>Schedule
+        <select id="mode"><option value="sequential">sequential</option><option value="all">all open</option><option value="date">by date</option></select>
+      </label>
+      <label>Pretend today <input type="date" id="today" value="2026-12-03"></label>
+      <label><input type="checkbox" id="unlock"> unlock all</label>
+      <button id="reset" type="button">Reset progress</button>
+      <label>Frame
+        <select id="frame"><option value="phone">phone 390x780</option><option value="se">small 360x640</option><option value="wide">wide 1000x640</option></select>
+      </label>
+      <a id="live-link" href="./gift.html" target="_blank" rel="noopener">open full-screen</a>
+      <output id="codeout"></output>
+    </div>
+    <div id="gift-frame" class="pg-frame" data-size="phone"><div id="gift-root" class="gift-root"></div></div>
+  </main>
+
+  <script type="module" src="./playground.js"></script>
+</body>
+</html>

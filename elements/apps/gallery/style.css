@@ -1,0 +1,37 @@
+/* gallery - STRUCTURE (normal selectors) then DEFAULT PAINT (:where, zero specificity, token-driven). */
+
+[data-element="gallery"] { position: relative; display: flex; flex-direction: column; padding: var(--gk-gap); max-width: 640px; margin-inline: auto; }
+[data-element="gallery"] [data-part="thumbs"] { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 8px; overflow-y: auto; overscroll-behavior: contain; }
+[data-element="gallery"] [data-part="thumb"] { position: relative; aspect-ratio: 1; min-height: var(--gk-tap); padding: 0; overflow: hidden; }
+[data-element="gallery"] [data-part="thumb-photo"] { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity var(--gk-dur-med) var(--gk-ease); }
+[data-element="gallery"] [data-part="thumb"][data-state="ready"] [data-part="thumb-photo"] { opacity: 1; }
+
+/* viewer: covers the whole element; photo fitted into the space between the top and bottom bars */
+[data-element="gallery"] [data-part="viewer"] { position: absolute; inset: 0; z-index: 2; display: grid; grid-template-rows: 1fr auto auto; padding: 8px; }
+[data-element="gallery"] [data-part="viewer-stage"] { position: relative; min-height: 0; display: grid; place-items: center; touch-action: pan-y; user-select: none; }
+[data-element="gallery"] [data-part="viewer-photo"] { max-width: 100%; max-height: 100%; width: auto; height: auto; object-fit: contain; pointer-events: none; transition: transform var(--gk-dur-fast) var(--gk-ease); }
+[data-element="gallery"] [data-part="viewer-stage"]:not([data-state="ready"]) [data-part="viewer-photo"] { visibility: hidden; }
+[data-element="gallery"] [data-part="message"] { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; padding: 16px; pointer-events: none; }
+[data-element="gallery"] [data-part="viewer-caption"] { min-height: 1.4em; text-align: center; margin: 6px 56px 0; }
+[data-element="gallery"] [data-part="viewer-counter"] { text-align: center; font-size: 0.85rem; margin: 2px 0 4px; font-variant-numeric: tabular-nums; }
+[data-element="gallery"] [data-part="viewer-prev"],
+[data-element="gallery"] [data-part="viewer-next"] { position: absolute; top: 50%; width: var(--gk-tap); height: var(--gk-tap); padding: 0; font-size: 1.6rem; line-height: 1; transform: translateY(-50%); border-radius: 50%; }
+[data-element="gallery"] [data-part="viewer-prev"] { left: 8px; }
+[data-element="gallery"] [data-part="viewer-next"] { right: 8px; }
+[data-element="gallery"] [data-part="viewer-close"] { position: absolute; top: 8px; right: 8px; width: var(--gk-tap); height: var(--gk-tap); padding: 0; font-size: 1.5rem; line-height: 1; border-radius: 50%; }
+
+/* FIT (inside a sheet): the grid scrolls on its own; the viewer overlays exactly the room the sheet gives. */
+[data-part="sheet-body"] > [data-element="gallery"] { flex: 1 1 var(--gk-fit-basis, 600px); min-height: 0; width: 100%; }
+[data-part="sheet-body"] > [data-element="gallery"] [data-part="thumbs"] { flex: 1 1 0; min-height: 0; align-content: start; }
+
+/* default paint */
+:where([data-element="gallery"] [data-part="thumb"]) { background: var(--gk-surface); border: 1px solid var(--gk-border); border-radius: var(--gk-radius-m); }
+:where([data-element="gallery"] [data-part="thumb"][data-state="error"]) { border-style: dashed; }
+:where([data-element="gallery"] [data-part="viewer"]) { background: var(--gk-bg); }
+:where([data-element="gallery"] [data-part="viewer-photo"]) { border-radius: var(--gk-radius-s); box-shadow: var(--gk-shadow-2); }
+:where([data-element="gallery"] [data-part="viewer-caption"]) { font-family: var(--gk-font-display); font-style: italic; color: var(--gk-text); }
+:where([data-element="gallery"] [data-part="viewer-counter"]) { color: var(--gk-text-muted); }
+:where([data-element="gallery"] [data-part="message"]) { color: var(--gk-text-muted); }
+:where([data-element="gallery"] [data-part="viewer-prev"]) { background: var(--gk-surface-2); }
+:where([data-element="gallery"] [data-part="viewer-next"]) { background: var(--gk-surface-2); }
+:where([data-element="gallery"] [data-part="viewer-close"]) { background: var(--gk-surface-2); }

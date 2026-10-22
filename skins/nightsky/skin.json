@@ -1,0 +1,34 @@
+{
+  "id": "nightsky",
+  "name": "Night Sky",
+  "version": "1.0.0",
+  "contractVersion": 1,
+  "description": "Each day is a star in a constellation. Finish a day and it lights up; light them all and the vault opens under an aurora.",
+  "mood": [
+    "romantic",
+    "dreamy",
+    "quiet"
+  ],
+  "entry": "index.js",
+  "styles": [
+    "tokens.css",
+    "parts.css"
+  ],
+  "worlds": {
+    "desk": {
+      "styles": [
+        "paint-desk.css"
+      ],
+      "module": "decorate-desk.js"
+    },
+    "outdoors": {
+      "styles": [
+        "paint-outdoors.css",
+        "paint-outdoors-roles.css"
+      ],
+      "module": "decorate-outdoors.js"
+    }
+  },
+  "preview": "assets/preview.svg",
+  "license": "original"
+}

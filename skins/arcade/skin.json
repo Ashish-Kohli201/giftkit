@@ -1,0 +1,37 @@
+{
+  "id": "arcade",
+  "name": "Arcade",
+  "version": "1.0.0",
+  "contractVersion": 1,
+  "description": "A neon arcade after hours. A lone cabinet blinks PRESS START; a game room desk hides a prize case; a full arcade has a jukebox, a claw machine and a ghost that follows you around. Playful, nostalgic, a little loud.",
+  "mood": [
+    "playful",
+    "neon",
+    "nostalgic"
+  ],
+  "entry": "index.js",
+  "styles": [
+    "tokens.css",
+    "parts.css"
+  ],
+  "worlds": {
+    "desk": {
+      "styles": [
+        "paint-desk.css",
+        "paint-props.css",
+        "paint-spark.css"
+      ],
+      "module": "decorate-desk.js"
+    },
+    "outdoors": {
+      "styles": [
+        "paint-outdoors.css",
+        "paint-outdoors-roles.css",
+        "paint-outdoors-hero.css"
+      ],
+      "module": "decorate-outdoors.js"
+    }
+  },
+  "preview": "assets/preview.svg",
+  "license": "original"
+}

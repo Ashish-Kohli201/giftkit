@@ -1,0 +1,52 @@
+/* LAYER 1 - TOKENS. Neon on near-black: magenta accent, cyan and gold as tier moods, hard pixel shadows.
+   Fonts: the display stack prefers a pixel face if one is ever self-hosted under assets/fonts/, and falls back to a
+   bold monospace today, so the theme is zero-download. Never a CDN. */
+
+[data-skin="arcade"] {
+  /* colors */
+  --gk-bg: #0b0420;
+  --gk-bg-2: #14082e;
+  --gk-surface: #1d0f45;
+  --gk-surface-2: #2b1766;
+  --gk-text: #f6f2ff;
+  --gk-text-muted: #b8a7e6;
+  --gk-accent: #ff4fb0;
+  --gk-accent-text: #1a0420;
+  --gk-success: #3dffa0;
+  --gk-danger: #ff5d7a;
+  --gk-border: #6a3bc4;
+
+  /* type */
+  --gk-font-display: "Press Start 2P", ui-monospace, "SF Mono", Menlo, Consolas, "Courier New", monospace;
+  --gk-font-body: ui-monospace, "SF Mono", Menlo, Consolas, "Courier New", monospace;
+  --gk-font-mono: ui-monospace, "SF Mono", Menlo, Consolas, "Courier New", monospace;
+
+  /* shape: small, square-ish corners and hard offset shadows like sprites */
+  --gk-radius-s: 2px;
+  --gk-radius-m: 4px;
+  --gk-radius-l: 6px;
+  --gk-shadow-1: 3px 3px 0 #000;
+  --gk-shadow-2: 6px 6px 0 #000;
+  --gk-glow: 0 0 18px rgba(255, 79, 176, 0.6);
+
+  /* motion: quick and snappy */
+  --gk-ease: cubic-bezier(0.2, 0, 0, 1);
+  --gk-dur-fast: 100ms;
+  --gk-dur-med: 220ms;
+  --gk-dur-slow: 480ms;
+
+  /* space */
+  --gk-tap: 44px;
+  --gk-gap: 16px;
+}
+
+/* TIER NUANCE - the same arcade, a different mood per tier (a palette shift, not a new theme).
+   Spark is attract mode: cool cyan. Countdown is the base magenta. Signature is high-score gold. */
+[data-skin="arcade"][data-tier="spark"] {
+  --gk-accent: #4df3ff;
+  --gk-glow: 0 0 18px rgba(77, 243, 255, 0.6);
+}
+[data-skin="arcade"][data-tier="signature"] {
+  --gk-accent: #ffd447;
+  --gk-glow: 0 0 18px rgba(255, 212, 71, 0.6);
+}

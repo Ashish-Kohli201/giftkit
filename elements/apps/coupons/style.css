@@ -1,0 +1,16 @@
+/* coupons - STRUCTURE then DEFAULT PAINT */
+
+[data-element="coupons"] { padding: var(--gk-gap); }
+[data-element="coupons"] [data-part="list"] { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; max-width: 480px; margin-inline: auto; }
+[data-element="coupons"] [data-part="coupon"] { position: relative; display: grid; gap: 6px; padding: 16px; overflow: hidden; }
+[data-element="coupons"] [data-part="redeem"] { justify-self: start; margin-top: 6px; }
+[data-element="coupons"] [data-part="stamp"] { position: absolute; right: 14px; top: 50%; display: none; transform: translateY(-50%) rotate(-12deg); padding: 4px 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; }
+[data-element="coupons"] [data-part="coupon"][data-state="redeemed"] [data-part="stamp"] { display: block; animation: gk-stamp var(--gk-dur-med) var(--gk-ease) both; }
+[data-element="coupons"] [data-part="coupon"][data-state="redeemed"] > :not([data-part="stamp"]) { opacity: 0.5; }
+@keyframes gk-stamp { from { transform: translateY(-50%) rotate(-12deg) scale(2); opacity: 0; } to { transform: translateY(-50%) rotate(-12deg) scale(1); opacity: 1; } }
+
+/* default paint */
+:where([data-element="coupons"] [data-part="coupon"]) { background: var(--gk-surface); border: 2px dashed var(--gk-border); border-radius: var(--gk-radius-m); }
+:where([data-element="coupons"] [data-part="coupon-title"]) { font-family: var(--gk-font-display); font-size: 1.1rem; font-weight: 600; }
+:where([data-element="coupons"] [data-part="coupon-detail"]) { color: var(--gk-text-muted); }
+:where([data-element="coupons"] [data-part="stamp"]) { border: 3px solid var(--gk-accent); color: var(--gk-accent); border-radius: var(--gk-radius-s); }

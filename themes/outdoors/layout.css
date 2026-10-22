@@ -1,0 +1,46 @@
+/* OUTDOORS world - layout. A clearing at night: sky above, a horizon, a tent or booth in the middle, and a few
+   things scattered on the ground. See docs/WORLD_CONTRACT.md. Geometry variables only; structure and default paint live in
+   core/world.css. Each role has --<role>-x / -y (top-left corner), -w and -ar (width / height), in cqw (1% of the stage
+   width). Two compositions: portrait phones (stage 9:16) and everything else (stage 16:10).
+   --horizon-y is the line where sky meets ground and --ground-y the line the roles stand on, so skins can draw both. */
+
+/* ------------------------------------------------------------------ role boxes, portrait */
+[data-theme="outdoors"] [data-part="room-stage"] {
+  --horizon-y: 62cqw; --ground-y: 120cqw;
+  --hero-x: 30cqw;        --hero-y: 70cqw;        --hero-w: 40cqw;  --hero-ar: 1;
+  --scenic-x: 8cqw;       --scenic-y: 8cqw;       --scenic-w: 84cqw; --scenic-ar: 2.1;
+  --board-x: 55cqw;       --board-y: 42cqw;       --board-w: 40cqw; --board-ar: 1.4;
+  --tally-x: 5cqw;        --tally-y: 44cqw;       --tally-w: 17cqw; --tally-ar: 0.85;
+  --vault-x: 62cqw;       --vault-y: 88cqw;       --vault-w: 20cqw; --vault-ar: 1.1;
+  --hub-x: 8cqw;          --hub-y: 82cqw;         --hub-w: 46cqw;   --hub-ar: 1.2;
+  --jar-x: 56cqw;         --jar-y: 112cqw;        --jar-w: 12cqw;   --jar-ar: 0.741;
+  --light-x: 86cqw;       --light-y: 72cqw;       --light-w: 11cqw; --light-ar: 0.4;
+  --app-notes-x: 70cqw;   --app-notes-y: 112cqw;  --app-notes-w: 14cqw; --app-notes-ar: 1.2;
+  --app-music-x: 4cqw;    --app-music-y: 136cqw;  --app-music-w: 24cqw;  --app-music-ar: 0.63;
+  --app-gallery-x: 31cqw; --app-gallery-y: 138cqw; --app-gallery-w: 22cqw; --app-gallery-ar: 0.61;
+  --toy-x: 57cqw;         --toy-y: 150cqw;        --toy-w: 23cqw;   --toy-ar: 1.15;
+  --pet-x: 83cqw;         --pet-y: 156cqw;        --pet-w: 14cqw;   --pet-ar: 1.17;
+  --ambient-a-x: 0cqw;    --ambient-a-y: 0cqw;    --ambient-a-w: 100cqw; --ambient-a-ar: 7.14;
+  --ambient-b-x: 36cqw;   --ambient-b-y: 120cqw;  --ambient-b-w: 20cqw;  --ambient-b-ar: 1.18;
+}
+/* ------------------------------------------------------------------ role boxes, landscape */
+@media (orientation: landscape) {
+  [data-theme="outdoors"] [data-part="room-stage"] {
+    --horizon-y: 30cqw; --ground-y: 48cqw;
+    --hero-x: 40cqw;        --hero-y: 10cqw;        --hero-w: 20cqw;  --hero-ar: 1;
+    --scenic-x: 15cqw;      --scenic-y: 2cqw;       --scenic-w: 70cqw; --scenic-ar: 3.18;
+    --board-x: 58cqw;       --board-y: 18cqw;       --board-w: 30cqw; --board-ar: 1.5;
+    --tally-x: 6cqw;        --tally-y: 18cqw;       --tally-w: 9cqw;  --tally-ar: 0.85;
+    --vault-x: 49cqw;       --vault-y: 36cqw;       --vault-w: 8cqw;  --vault-ar: 1.1;
+    --hub-x: 20cqw;         --hub-y: 26cqw;         --hub-w: 26cqw;   --hub-ar: 1.2;
+    --jar-x: 66cqw;         --jar-y: 40cqw;         --jar-w: 6cqw;    --jar-ar: 0.741;
+    --light-x: 90cqw;       --light-y: 22cqw;       --light-w: 6cqw;  --light-ar: 0.4;
+    --app-notes-x: 74cqw;   --app-notes-y: 43cqw;   --app-notes-w: 8cqw; --app-notes-ar: 1.2;
+    --app-music-x: 3cqw;    --app-music-y: 40cqw;   --app-music-w: 8cqw;  --app-music-ar: 0.55;
+    --app-gallery-x: 12cqw; --app-gallery-y: 42cqw; --app-gallery-w: 7.5cqw; --app-gallery-ar: 0.55;
+    --toy-x: 60cqw;         --toy-y: 50cqw;         --toy-w: 12cqw;   --toy-ar: 1.2;
+    --pet-x: 85cqw;         --pet-y: 52cqw;         --pet-w: 8cqw;    --pet-ar: 1.1;
+    --ambient-a-x: 0cqw;    --ambient-a-y: 0cqw;    --ambient-a-w: 100cqw; --ambient-a-ar: 14.3;
+    --ambient-b-x: 47cqw;   --ambient-b-y: 49cqw;   --ambient-b-w: 9cqw;   --ambient-b-ar: 1;
+  }
+}

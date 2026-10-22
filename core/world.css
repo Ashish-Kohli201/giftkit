@@ -1,0 +1,117 @@
+/* WORLD BASE - structure and default paint shared by every theme (desk room, outdoors, ...). See docs/WORLD_CONTRACT.md.
+   A theme's layout.css supplies only the GEOMETRY VARIABLES (--<role>-x/-y/-w/-ar per orientation, --desk-y / --horizon-y ...);
+   this file turns them into positions, owns the role stacking order and tap targets, the ambience layers and the hub sheet
+   structure, and ships a token-driven default paint (zero specificity) so a skin with only tokens still shows every role.
+   Skins paint on top and may override a role's box variables. All sizes are cqw: 1% of the stage width. */
+
+/* ------------------------------------------------------------------ the room and the stage */
+[data-theme] [data-part="room"] { position: absolute; inset: 0; overflow: hidden; container-type: size; }
+[data-theme] [data-part="room-back"],
+[data-theme] [data-part="room-over"] { position: absolute; inset: 0; pointer-events: none; }
+[data-theme] [data-part="room-floor"] { position: absolute; left: 0; right: 0; bottom: 0; height: 38%; pointer-events: none; }
+[data-theme] [data-part="room-stage"] {
+  position: absolute; top: 0; left: 50%; transform: translateX(-50%); container-type: size;
+  width: min(100cqw, 100cqh * 9 / 16); aspect-ratio: 9 / 16;
+}
+@media (orientation: landscape) {
+  [data-theme] [data-part="room-stage"] { width: min(100cqw, 100cqh * 16 / 10); aspect-ratio: 16 / 10; }
+}
+
+/* ------------------------------------------------------------------ positioning, shared by every role */
+[data-theme] [data-part="room-stage"] [data-part="hero"],
+[data-theme] [data-part="room-stage"] [data-part="scenic"],
+[data-theme] [data-part="room-stage"] [data-part="board"],
+[data-theme] [data-part="room-stage"] [data-part="tally"],
+[data-theme] [data-part="room-stage"] [data-part="vault"],
+[data-theme] [data-part="room-stage"] [data-part="hub"],
+[data-theme] [data-part="room-stage"] [data-part="jar"],
+[data-theme] [data-part="room-stage"] [data-part="light"],
+[data-theme] [data-part="room-stage"] [data-part="app-notes"],
+[data-theme] [data-part="room-stage"] [data-part="app-music"],
+[data-theme] [data-part="room-stage"] [data-part="app-gallery"],
+[data-theme] [data-part="room-stage"] [data-part="toy"],
+[data-theme] [data-part="room-stage"] [data-part="pet"],
+[data-theme] [data-part="room-stage"] [data-part="ambient-a"],
+[data-theme] [data-part="room-stage"] [data-part="ambient-b"] {
+  position: absolute; z-index: 6; margin: 0; padding: 0; background: none; border: 0; min-height: 44px; min-width: 44px;
+  font: inherit; color: inherit; text-align: inherit;
+}
+[data-theme] [data-part="room-stage"] [data-part="hero"] { left: var(--hero-x); top: var(--hero-y); width: var(--hero-w); aspect-ratio: var(--hero-ar); }
+[data-theme] [data-part="room-stage"] [data-part="scenic"] { left: var(--scenic-x); top: var(--scenic-y); width: var(--scenic-w); aspect-ratio: var(--scenic-ar); z-index: 3; }
+[data-theme] [data-part="room-stage"] [data-part="board"] { left: var(--board-x); top: var(--board-y); width: var(--board-w); aspect-ratio: var(--board-ar); z-index: 4; }
+[data-theme] [data-part="room-stage"] [data-part="tally"] { left: var(--tally-x); top: var(--tally-y); width: var(--tally-w); aspect-ratio: var(--tally-ar); z-index: 4; min-height: 0; min-width: 0; pointer-events: none; }
+[data-theme] [data-part="room-stage"] [data-part="vault"] { left: var(--vault-x); top: var(--vault-y); width: var(--vault-w); aspect-ratio: var(--vault-ar); z-index: 7; }
+[data-theme] [data-part="room-stage"] [data-part="hub"] { left: var(--hub-x); top: var(--hub-y); width: var(--hub-w); aspect-ratio: var(--hub-ar); }
+[data-theme] [data-part="room-stage"] [data-part="jar"] { left: var(--jar-x); top: var(--jar-y); width: var(--jar-w); aspect-ratio: var(--jar-ar); }
+[data-theme] [data-part="room-stage"] [data-part="light"] { left: var(--light-x); top: var(--light-y); width: var(--light-w); aspect-ratio: var(--light-ar); }
+[data-theme] [data-part="room-stage"] [data-part="app-notes"] { left: var(--app-notes-x); top: var(--app-notes-y); width: var(--app-notes-w); aspect-ratio: var(--app-notes-ar); }
+[data-theme] [data-part="room-stage"] [data-part="app-music"] { left: var(--app-music-x); top: var(--app-music-y); width: var(--app-music-w); aspect-ratio: var(--app-music-ar); }
+[data-theme] [data-part="room-stage"] [data-part="app-gallery"] { left: var(--app-gallery-x); top: var(--app-gallery-y); width: var(--app-gallery-w); aspect-ratio: var(--app-gallery-ar); }
+[data-theme] [data-part="room-stage"] [data-part="toy"] { left: var(--toy-x); top: var(--toy-y); width: var(--toy-w); aspect-ratio: var(--toy-ar); }
+[data-theme] [data-part="room-stage"] [data-part="pet"] { left: var(--pet-x); top: var(--pet-y); width: var(--pet-w); aspect-ratio: var(--pet-ar); }
+[data-theme] [data-part="room-stage"] [data-part="ambient-a"] { left: var(--ambient-a-x); top: var(--ambient-a-y); width: var(--ambient-a-w); aspect-ratio: var(--ambient-a-ar); z-index: 3; }
+[data-theme] [data-part="room-stage"] [data-part="ambient-b"] { left: var(--ambient-b-x); top: var(--ambient-b-y); width: var(--ambient-b-w); aspect-ratio: var(--ambient-b-ar); z-index: 3; }
+[data-theme] [data-part="room-stage"] [data-part^="slot-"] { position: absolute; display: block; }
+[data-theme] [data-part="room-stage"] [data-part="board-notes"] { position: absolute; left: 4%; right: 4%; bottom: 6%; display: flex; flex-wrap: wrap; justify-content: center; gap: 1cqw; pointer-events: none; }
+[data-theme] [data-part="room-stage"] [data-part="tally"] { display: grid; grid-template-columns: repeat(5, 1fr); align-content: start; gap: 0.8cqw; padding: 0.8cqw; }
+[data-theme] button:focus-visible { outline: 3px solid var(--gk-accent); outline-offset: 3px; }
+[data-theme] [data-part="room-stage"] [data-part="hero"][data-state="pressed"] { pointer-events: none; }
+
+/* ambience layers: they overscan the whole room, sit above the scenery and below the roles */
+[data-theme] [data-part="dim"],
+[data-theme] [data-part="glow"] { position: absolute; inset: -100cqh -100cqw; pointer-events: none; transition: opacity var(--gk-dur-slow) var(--gk-ease); }
+[data-theme] [data-part="dim"] { z-index: 5; opacity: 0; }
+[data-theme] [data-part="glow"] { z-index: 4; }
+[data-theme] [data-part="room"][data-ambient="off"] [data-part="dim"] { opacity: 0.55; }
+[data-theme] [data-part="room"][data-ambient="off"] [data-part="glow"] { opacity: 0; }
+
+/* ------------------------------------------------------------------ hub sheet (the laptop's desktop) - structure */
+[data-theme] [data-part="desktop"] { min-height: 100%; padding: 18px 14px; display: flex; flex-direction: column; gap: 18px; }
+[data-theme] [data-part="apps"] { width: 100%; flex: 1; display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 14px 8px; align-content: start; }
+[data-theme] [data-part="app"] { display: grid; justify-items: center; align-content: start; gap: 4px; padding: 8px 4px; min-height: 92px; }
+[data-theme] [data-part="app-glyph"] { display: grid; place-items: center; width: 56px; height: 56px; font-size: 1.7rem; }
+[data-theme] [data-part="app-label"] { font-size: 0.85rem; }
+[data-theme] [data-part="taskbar"] { display: flex; justify-content: center; gap: 10px; padding: 8px 12px; margin: 0 auto; }
+[data-theme] [data-part="taskbar"] [data-part="app"] { min-height: 72px; min-width: 72px; }
+
+/* ================================================================== DEFAULT PAINT (zero specificity, tokens only) */
+:where([data-theme] [data-part="room-back"]) { background: linear-gradient(180deg, var(--gk-bg-2), var(--gk-bg)); }
+:where([data-theme] [data-part="room-floor"]) { background: var(--gk-surface); border-top: 2px solid var(--gk-border); }
+:where([data-theme] [data-part="dim"]) { background: var(--gk-bg); }
+:where([data-theme] [data-part="glow"]) { background: radial-gradient(circle at calc(100cqw + var(--light-x) + var(--light-w) / 2) calc(100cqh + var(--light-y) + 4cqw), color-mix(in srgb, var(--gk-accent) 30%, transparent), transparent 40cqw); }
+
+/* every role shows as a rounded token with a glyph, so any skin renders something usable */
+:where([data-theme] [data-part="room-stage"] [data-part="hero"], [data-theme] [data-part="room-stage"] [data-part="scenic"], [data-theme] [data-part="room-stage"] [data-part="board"], [data-theme] [data-part="room-stage"] [data-part="tally"],
+  [data-theme] [data-part="room-stage"] [data-part="vault"], [data-theme] [data-part="room-stage"] [data-part="hub"], [data-theme] [data-part="room-stage"] [data-part="jar"], [data-theme] [data-part="room-stage"] [data-part="light"],
+  [data-theme] [data-part="room-stage"] [data-part="app-notes"], [data-theme] [data-part="room-stage"] [data-part="app-music"], [data-theme] [data-part="room-stage"] [data-part="app-gallery"],
+  [data-theme] [data-part="room-stage"] [data-part="toy"], [data-theme] [data-part="room-stage"] [data-part="pet"], [data-theme] [data-part="room-stage"] [data-part="ambient-a"], [data-theme] [data-part="room-stage"] [data-part="ambient-b"]) {
+  display: grid; place-items: center; background: var(--gk-surface); border: 2px solid var(--gk-border); border-radius: var(--gk-radius-m); box-shadow: var(--gk-shadow-1);
+  color: var(--gk-text); font-size: clamp(1rem, 6cqw, 2rem); line-height: 1;
+}
+:where([data-theme] [data-part="room-stage"] [data-part="hero"])::before { content: "\2605"; }
+:where([data-theme] [data-part="room-stage"] [data-part="scenic"])::before { content: "\2726"; }
+:where([data-theme] [data-part="room-stage"] [data-part="board"])::before { content: "\25a4"; }
+:where([data-theme] [data-part="room-stage"] [data-part="vault"])::before { content: "\25c6"; }
+:where([data-theme] [data-part="room-stage"] [data-part="hub"])::before { content: "\25a3"; }
+:where([data-theme] [data-part="room-stage"] [data-part="jar"])::before { content: "\25cd"; }
+:where([data-theme] [data-part="room-stage"] [data-part="light"])::before { content: "\25d0"; }
+:where([data-theme] [data-part="room-stage"] [data-part="app-notes"])::before { content: "\270e"; }
+:where([data-theme] [data-part="room-stage"] [data-part="app-music"])::before { content: "\266a"; }
+:where([data-theme] [data-part="room-stage"] [data-part="app-gallery"])::before { content: "\25a3"; }
+:where([data-theme] [data-part="room-stage"] [data-part="toy"])::before { content: "\25ce"; }
+:where([data-theme] [data-part="room-stage"] [data-part="pet"])::before { content: "\263a"; }
+:where([data-theme] [data-part="room-stage"] [data-part="ambient-a"])::before { content: "\2727"; }
+:where([data-theme] [data-part="room-stage"] [data-part="ambient-b"])::before { content: "\25ab"; }
+:where([data-theme] [data-part="room-stage"] [data-part="vault"][data-hint="yes"]) { border-color: var(--gk-accent); box-shadow: var(--gk-glow); }
+:where([data-theme] [data-part="room-stage"] [data-part="hub"][data-hint="yes"]) { border-color: var(--gk-accent); box-shadow: var(--gk-glow); }
+:where([data-theme] [data-part="room-stage"] [data-part="note"]) { display: grid; place-items: center; min-width: 4cqw; min-height: 4.6cqw; background: var(--gk-accent); color: var(--gk-accent-text); font-size: 2.6cqw; font-weight: 700; }
+:where([data-theme] [data-part="room-stage"] [data-part="note"][data-state="empty"]) { background: var(--gk-border); color: transparent; }
+:where([data-theme] [data-part="room-stage"] [data-part="tally-mark"]) { width: 100%; aspect-ratio: 1; border-radius: 30%; background: var(--gk-border); }
+:where([data-theme] [data-part="room-stage"] [data-part="tally-mark"][data-status="open"]) { background: var(--gk-surface-2); }
+:where([data-theme] [data-part="room-stage"] [data-part="tally-mark"][data-status="done"]) { background: var(--gk-accent); }
+:where([data-theme] [data-part="desktop"]) { background: radial-gradient(120% 90% at 50% 0%, var(--gk-surface-2) 0%, var(--gk-bg) 70%); }
+:where([data-theme] [data-part="app"]) { background: none; border: 0; color: var(--gk-text); border-radius: var(--gk-radius-m); }
+:where([data-theme] [data-part="app-glyph"]) { border-radius: var(--gk-radius-m); background: var(--gk-surface-2); border: 2px solid var(--gk-border); }
+:where([data-theme] [data-part="app"][data-status="done"] [data-part="app-glyph"]) { background: var(--gk-accent); color: var(--gk-accent-text); }
+:where([data-theme] [data-part="app"][data-status="locked"] [data-part="app-glyph"]) { opacity: 0.45; }
+:where([data-theme] [data-part="taskbar"]) { border: 2px solid var(--gk-border); border-radius: var(--gk-radius-l); background: var(--gk-surface); }

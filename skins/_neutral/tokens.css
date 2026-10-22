@@ -1,0 +1,35 @@
+/* STEP 1 of a new theme: tokens. With only this file + a shell, every element already looks coherent
+   (core.css paints them from these tokens). Change the palette and you have a different mood. */
+
+[data-skin="_neutral"] {
+  --gk-bg: #f6f3ee;
+  --gk-bg-2: #ffffff;
+  --gk-surface: #ffffff;
+  --gk-surface-2: #ece7df;
+  --gk-text: #1f1b16;
+  --gk-text-muted: #5f574d;
+  --gk-accent: #b4452f;
+  --gk-accent-text: #ffffff;
+  --gk-success: #1f7a4d;
+  --gk-danger: #b3261e;
+  --gk-border: #cfc7ba;
+
+  --gk-font-display: ui-serif, Georgia, serif;
+  --gk-font-body: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --gk-font-mono: ui-monospace, Menlo, Consolas, monospace;
+
+  --gk-radius-s: 8px;
+  --gk-radius-m: 12px;
+  --gk-radius-l: 20px;
+  --gk-shadow-1: 0 2px 8px rgba(0, 0, 0, 0.12);
+  --gk-shadow-2: 0 12px 36px rgba(0, 0, 0, 0.2);
+  --gk-glow: 0 0 0 3px rgba(180, 69, 47, 0.2);
+
+  --gk-ease: cubic-bezier(0.22, 0.8, 0.3, 1);
+  --gk-dur-fast: 120ms;
+  --gk-dur-med: 260ms;
+  --gk-dur-slow: 600ms;
+
+  --gk-tap: 44px;
+  --gk-gap: 16px;
+}

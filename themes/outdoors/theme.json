@@ -1,0 +1,12 @@
+{
+  "id": "outdoors",
+  "name": "Outdoors",
+  "version": "1.0.0",
+  "contractVersion": 1,
+  "description": "A clearing at night. A tent or booth holds the days, a chest waits near a lantern, memories hang on a line, and the ground is full of small things to touch.",
+  "metaphor": "an open-air place at night -> tap the tent to open a day -> notes and tickets pin themselves to the hanging line -> the chest gives",
+  "mood": ["open", "adventurous", "shared"],
+  "entry": "index.js",
+  "styles": ["layout.css"],
+  "license": "original"
+}

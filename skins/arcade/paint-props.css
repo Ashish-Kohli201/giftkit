@@ -1,0 +1,97 @@
+/* ARCADE x DESK - Signature's machines and toys, painted onto the roles app-music (jukebox), app-gallery (claw machine),
+   app-notes (terminal), toy (pinball), pet (ghost), ambient-b (disco ball). Boxes are set in paint-desk.css; DOM in decorate-desk.js.
+   Marquee bulbs (ambient-a) and the neon sign (light) are painted in paint-desk.css. */
+
+[data-skin="arcade"][data-theme="desk"][data-tier="signature"] [data-part="app-music"], [data-skin="arcade"][data-theme="desk"][data-tier="signature"] [data-part="app-gallery"], [data-skin="arcade"][data-theme="desk"][data-tier="signature"] [data-part="app-notes"], [data-skin="arcade"][data-theme="desk"][data-tier="signature"] [data-part="toy"], [data-skin="arcade"][data-theme="desk"][data-tier="signature"] [data-part="pet"], [data-skin="arcade"][data-theme="desk"][data-tier="signature"] [data-part="ambient-b"] { min-width: 44px; }
+
+/* ---------------------------------------------------------------- jukebox */
+[data-skin="arcade"][data-theme="desk"] [data-part="app-music"] { background: linear-gradient(180deg, #5a35a8, #2b1766); border: 0.8cqw solid var(--gk-accent); border-bottom-width: 0; border-radius: 50% 50% 0 0 / 22% 22% 0 0; box-shadow: var(--gk-shadow-1), 0 0 3cqw rgba(255, 79, 176, 0.45); }
+[data-skin="arcade"][data-theme="desk"] [data-part="juke-top"] { position: absolute; left: 10%; right: 10%; top: 6%; height: 36%; display: block; border-radius: 50% 50% 0 0 / 70% 70% 0 0; background: #14082e; border: 0.5cqw solid #ffd447; overflow: hidden; }
+[data-skin="arcade"][data-theme="desk"] [data-part="juke-record"] { position: absolute; left: 22%; right: 22%; top: 18%; aspect-ratio: 1; display: block; border-radius: 50%; background: radial-gradient(circle, #ff4fb0 0 14%, #0c0626 15% 100%); box-shadow: 0 0 0 0.4cqw #4a2a8c; animation: arcade-spin 3.2s linear infinite; }
+[data-skin="arcade"][data-theme="desk"] [data-part="juke-record"]::after { content: ""; position: absolute; inset: 24%; border-radius: 50%; border: 0.3cqw solid rgba(255, 255, 255, 0.35); }
+@keyframes arcade-spin { to { transform: rotate(360deg); } }
+[data-skin="arcade"][data-theme="desk"] [data-part="juke-dial"] { position: absolute; left: 16%; right: 16%; top: 48%; height: 8%; display: block; background: repeating-linear-gradient(90deg, #4df3ff 0 22%, transparent 22% 33%); }
+[data-skin="arcade"][data-theme="desk"] [data-part="juke-grill"] { position: absolute; left: 12%; right: 12%; bottom: 4%; height: 32%; display: block; background: repeating-linear-gradient(90deg, #14082e 0 16%, #4a2a8c 16% 24%); border: 0.4cqw solid #14082e; }
+
+/* ---------------------------------------------------------------- claw machine */
+[data-skin="arcade"][data-theme="desk"] [data-part="app-gallery"] { background: linear-gradient(180deg, #2b1766, #170a38); border: 0.8cqw solid #4df3ff; border-bottom-width: 0; box-shadow: var(--gk-shadow-1), 0 0 3cqw rgba(77, 243, 255, 0.4); }
+[data-skin="arcade"][data-theme="desk"] [data-part="claw-glass"] { position: absolute; left: 8%; right: 8%; top: 6%; height: 62%; display: block; background: rgba(77, 243, 255, 0.1); border: 0.5cqw solid rgba(255, 255, 255, 0.35); overflow: hidden; }
+[data-skin="arcade"][data-theme="desk"] [data-part="claw-arm"] { position: absolute; left: 46%; top: 12%; width: 8%; height: 40%; z-index: 1; display: block; background: #c6c2e6; transform-origin: 50% 0; animation: arcade-sway 3.6s ease-in-out infinite alternate; }
+[data-skin="arcade"][data-theme="desk"] [data-part="claw-arm"]::after { content: ""; position: absolute; left: -90%; right: -90%; bottom: -8%; height: 22%; border: 0.6cqw solid #c6c2e6; border-top: 0; border-radius: 0 0 50% 50%; }
+@keyframes arcade-sway { from { transform: translateX(-120%) rotate(-4deg); } to { transform: translateX(120%) rotate(4deg); } }
+[data-skin="arcade"][data-theme="desk"] [data-part="claw-prize"] { position: absolute; bottom: 4%; width: 24%; aspect-ratio: 1; display: block; background: #ff4fb0; box-shadow: inset 0 -0.5cqw 0 rgba(0, 0, 0, 0.25); }
+[data-skin="arcade"][data-theme="desk"] [data-part="claw-prize"][data-n="1"] { left: 6%; }
+[data-skin="arcade"][data-theme="desk"] [data-part="claw-prize"][data-n="2"] { left: 38%; background: #ffd447; width: 20%; }
+[data-skin="arcade"][data-theme="desk"] [data-part="claw-prize"][data-n="3"] { right: 6%; background: #3dffa0; }
+[data-skin="arcade"][data-theme="desk"] [data-part="claw-panel"] { position: absolute; left: 8%; right: 8%; bottom: 5%; height: 22%; display: block; background: #14082e; border-top: 0.5cqw solid #4df3ff; }
+[data-skin="arcade"][data-theme="desk"] [data-part="claw-panel"]::before { content: ""; position: absolute; left: 18%; top: 28%; width: 16%; aspect-ratio: 1; border-radius: 50%; background: #ff4fb0; }
+[data-skin="arcade"][data-theme="desk"] [data-part="claw-panel"]::after { content: ""; position: absolute; right: 18%; top: 28%; width: 16%; aspect-ratio: 1; border-radius: 50%; background: #ffd447; }
+
+/* ---------------------------------------------------------------- terminal (on the desk) */
+[data-skin="arcade"][data-theme="desk"] [data-part="term-screen"] { position: absolute; left: 0; right: 0; top: 0; height: 84%; display: block; padding: 12%; background: #04140c; border: 1cqw solid #302a52; border-radius: 1.4cqw; box-shadow: 0 0 3cqw rgba(61, 255, 160, 0.4), inset 0 0 2cqw rgba(0, 0, 0, 0.6); }
+[data-skin="arcade"][data-theme="desk"] [data-part="term-line"] { display: block; height: 10%; margin-bottom: 9%; background: #3dffa0; opacity: 0.85; }
+[data-skin="arcade"][data-theme="desk"] [data-part="term-line"][data-n="1"] { width: 78%; }
+[data-skin="arcade"][data-theme="desk"] [data-part="term-line"][data-n="2"] { width: 52%; }
+[data-skin="arcade"][data-theme="desk"] [data-part="term-line"][data-n="3"] { width: 66%; }
+[data-skin="arcade"][data-theme="desk"] [data-part="term-cursor"] { display: block; width: 12%; height: 12%; background: #3dffa0; animation: arcade-chase 1s steps(2, jump-none) infinite; }
+[data-skin="arcade"][data-theme="desk"] [data-part="term-base"] { position: absolute; left: 18%; right: 18%; bottom: 0; height: 12%; display: block; background: #5a567a; box-shadow: var(--gk-shadow-1); }
+
+/* ---------------------------------------------------------------- pinball: a low cabinet; a tap fires the flipper */
+[data-skin="arcade"][data-theme="desk"] [data-part="pin-table"] { position: absolute; inset: 0 0 10% 0; display: block; background: linear-gradient(180deg, #3a1f7a, #170a38); border: 0.8cqw solid var(--gk-accent); border-bottom: 0; border-radius: 3cqw 3cqw 0 0; box-shadow: var(--gk-shadow-1), 0 0 3cqw rgba(255, 79, 176, 0.35); overflow: hidden; }
+[data-skin="arcade"][data-theme="desk"] [data-part="pin-bumper"] { position: absolute; width: 16%; aspect-ratio: 1; display: block; border-radius: 50%; background: #ffd447; box-shadow: 0 0 1.6cqw #ffd447, inset 0 -0.5cqw 0 rgba(0, 0, 0, 0.25); }
+[data-skin="arcade"][data-theme="desk"] [data-part="pin-bumper"][data-n="1"] { left: 22%; top: 18%; }
+[data-skin="arcade"][data-theme="desk"] [data-part="pin-bumper"][data-n="2"] { left: 60%; top: 14%; background: #4df3ff; box-shadow: 0 0 1.6cqw #4df3ff, inset 0 -0.5cqw 0 rgba(0, 0, 0, 0.25); }
+[data-skin="arcade"][data-theme="desk"] [data-part="pin-bumper"][data-n="3"] { left: 42%; top: 40%; background: #ff4fb0; box-shadow: 0 0 1.6cqw #ff4fb0, inset 0 -0.5cqw 0 rgba(0, 0, 0, 0.25); }
+[data-skin="arcade"][data-theme="desk"] [data-part="pin-ball"] { position: absolute; left: 46%; bottom: 8%; width: 7%; aspect-ratio: 1; display: block; border-radius: 50%; background: #fff; box-shadow: 0 0 1cqw #fff; }
+[data-skin="arcade"][data-theme="desk"] [data-part="pin-flipper"] { position: absolute; bottom: 12%; width: 22%; height: 5%; display: block; background: #4df3ff; transform-origin: 0 50%; z-index: 1; }
+[data-skin="arcade"][data-theme="desk"] [data-part="pin-flipper"][data-n="1"] { left: 26%; transform: rotate(18deg); }
+[data-skin="arcade"][data-theme="desk"] [data-part="pin-flipper"][data-n="2"] { right: 26%; transform-origin: 100% 50%; transform: rotate(-18deg); }
+[data-skin="arcade"][data-theme="desk"] [data-part="toy"][data-state="play"] [data-part="pin-ball"] { animation: arcade-ball 1.3s ease-out both; }
+[data-skin="arcade"][data-theme="desk"] [data-part="toy"][data-state="play"] [data-part="pin-flipper"][data-n="1"] { animation: arcade-flip-l 0.3s ease-out 0.15s 2 alternate; }
+[data-skin="arcade"][data-theme="desk"] [data-part="toy"][data-state="play"] [data-part="pin-flipper"][data-n="2"] { animation: arcade-flip-r 0.3s ease-out 0.15s 2 alternate; }
+@keyframes arcade-ball { 0% { transform: translate(0, 0); } 30% { transform: translate(-140%, -480%); } 55% { transform: translate(120%, -720%); } 80% { transform: translate(-60%, -300%); } 100% { transform: translate(0, 0); } }
+@keyframes arcade-flip-l { to { transform: rotate(-26deg); } }
+@keyframes arcade-flip-r { to { transform: rotate(26deg); } }
+
+/* ---------------------------------------------------------------- the ghost: floats; a tap says boo and sends up hearts */
+[data-skin="arcade"][data-theme="desk"] [data-part="pet"] { animation: arcade-float 3s ease-in-out infinite alternate; }
+@keyframes arcade-float { to { transform: translateY(-14%); } }
+[data-skin="arcade"][data-theme="desk"] [data-part="ghost-body"] { position: absolute; inset: 0; display: block; background: #f6f2ff; border-radius: 50% 50% 0 0 / 60% 60% 0 0; clip-path: polygon(0 0, 100% 0, 100% 100%, 83% 84%, 66% 100%, 50% 84%, 33% 100%, 17% 84%, 0 100%); }
+[data-skin="arcade"][data-theme="desk"] [data-part="ghost-eye"] { position: absolute; top: 32%; width: 14%; height: 18%; display: block; background: #14082e; }
+[data-skin="arcade"][data-theme="desk"] [data-part="ghost-eye"][data-n="1"] { left: 26%; }
+[data-skin="arcade"][data-theme="desk"] [data-part="ghost-eye"][data-n="2"] { right: 26%; }
+[data-skin="arcade"][data-theme="desk"] [data-part="ghost-mouth"] { position: absolute; left: 40%; width: 20%; top: 60%; height: 8%; display: block; background: #14082e; }
+[data-skin="arcade"][data-theme="desk"] [data-part="ghost-heart"] { position: absolute; left: 20%; top: 10%; display: block; font-size: clamp(14px, 4cqw, 26px); line-height: 1; color: #ff4fb0; opacity: 0; }
+[data-skin="arcade"][data-theme="desk"] [data-part="ghost-heart"]::before { content: "\2665"; }
+[data-skin="arcade"][data-theme="desk"] [data-part="ghost-heart"][data-n="2"] { left: 50%; }
+[data-skin="arcade"][data-theme="desk"] [data-part="ghost-heart"][data-n="3"] { left: 70%; }
+[data-skin="arcade"][data-theme="desk"] [data-part="pet"][data-state="happy"] [data-part="ghost-heart"] { animation: arcade-heart 1.8s steps(8, end) both; }
+[data-skin="arcade"][data-theme="desk"] [data-part="pet"][data-state="happy"] [data-part="ghost-heart"][data-n="2"] { animation-delay: 0.3s; }
+[data-skin="arcade"][data-theme="desk"] [data-part="pet"][data-state="happy"] [data-part="ghost-heart"][data-n="3"] { animation-delay: 0.6s; }
+[data-skin="arcade"][data-theme="desk"] [data-part="pet"][data-state="happy"] [data-part="ghost-mouth"] { height: 18%; top: 56%; }
+@keyframes arcade-heart { 0% { opacity: 0; transform: translateY(0) scale(0.6); } 20% { opacity: 1; } 100% { opacity: 0; transform: translateY(-340%) scale(1.2); } }
+
+/* ---------------------------------------------------------------- disco ball (ambient-b): off = a dull ball on a string; on = it spins and throws coloured beams across the wall */
+[data-skin="arcade"][data-theme="desk"] [data-part="disco-string"] { position: absolute; left: 50%; top: 0; width: 1px; height: 28%; display: block; background: rgba(246, 242, 255, 0.5); }
+[data-skin="arcade"][data-theme="desk"] [data-part="disco-ball"] { position: absolute; left: 10%; right: 10%; bottom: 8%; aspect-ratio: 1; display: block; border-radius: 50%; background: repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.35) 0 12%, transparent 12% 25%), repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.35) 0 12%, transparent 12% 25%), radial-gradient(circle at 35% 30%, #c6c2e6, #4a4670 70%); box-shadow: 0 0 1.4cqw rgba(0, 0, 0, 0.5); transition: filter var(--gk-dur-slow); }
+[data-skin="arcade"][data-theme="desk"] [data-part="room"][data-ambient-b="on"] [data-part="disco-ball"] { background-position: 0 0, 0 0, 0 0; animation: arcade-glitter 0.9s steps(3, end) infinite; box-shadow: 0 0 3cqw rgba(255, 255, 255, 0.7); }
+@keyframes arcade-glitter { 0% { filter: brightness(1); } 50% { filter: brightness(1.5) hue-rotate(40deg); } 100% { filter: brightness(1); } }
+[data-skin="arcade"][data-theme="desk"] [data-part="disco-beams"] {
+  position: absolute; z-index: 2; pointer-events: none; opacity: 0; transition: opacity var(--gk-dur-slow) var(--gk-ease);
+  left: calc(var(--ambient-b-x) + var(--ambient-b-w) / 2 - 90cqw); top: calc(var(--ambient-b-y) + var(--ambient-b-w) - 90cqw); width: 180cqw; aspect-ratio: 1; border-radius: 50%;
+  background: conic-gradient(from 0deg, transparent 0 6%, rgba(77, 243, 255, 0.28) 6% 9%, transparent 9% 22%, rgba(255, 79, 176, 0.28) 22% 25%, transparent 25% 40%, rgba(255, 212, 71, 0.26) 40% 43%, transparent 43% 58%, rgba(61, 255, 160, 0.26) 58% 61%, transparent 61% 76%, rgba(255, 79, 176, 0.28) 76% 79%, transparent 79% 100%);
+  -webkit-mask-image: radial-gradient(circle, #000 0, transparent 62%); mask-image: radial-gradient(circle, #000 0, transparent 62%);
+}
+[data-skin="arcade"][data-theme="desk"] [data-part="room"][data-ambient-b="on"] [data-part="disco-beams"] { opacity: 1; animation: arcade-spin 9s linear infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  [data-skin="arcade"][data-theme="desk"] [data-part="juke-record"],
+  [data-skin="arcade"][data-theme="desk"] [data-part="claw-arm"],
+  [data-skin="arcade"][data-theme="desk"] [data-part="term-cursor"],
+  [data-skin="arcade"][data-theme="desk"] [data-part="pet"],
+  [data-skin="arcade"][data-theme="desk"] [data-part="pet"][data-state="happy"] [data-part="ghost-heart"],
+  [data-skin="arcade"][data-theme="desk"] [data-part="toy"][data-state="play"] [data-part="pin-ball"],
+  [data-skin="arcade"][data-theme="desk"] [data-part="toy"][data-state="play"] [data-part="pin-flipper"],
+  [data-skin="arcade"][data-theme="desk"] [data-part="room"][data-ambient-b="on"] [data-part="disco-ball"],
+  [data-skin="arcade"][data-theme="desk"] [data-part="room"][data-ambient-b="on"] [data-part="disco-beams"] { animation: none !important; }
+}

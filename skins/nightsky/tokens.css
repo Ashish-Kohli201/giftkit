@@ -1,0 +1,53 @@
+/* LAYER 1 - TOKENS. The theme's palette, type, shape and motion. All 26 required tokens live here.
+   Fonts: system stacks keep this theme zero-download. To self-host a font, drop files in assets/fonts/
+   and add an @font-face here (relative url) - never a CDN. */
+
+[data-skin="nightsky"] {
+  /* colors */
+  --gk-bg: #070b1f;
+  --gk-bg-2: #0e1434;
+  --gk-surface: #141b45;
+  --gk-surface-2: #1d2660;
+  --gk-text: #eef1ff;
+  --gk-text-muted: #a9b2e8;
+  --gk-accent: #ffd479;
+  --gk-accent-text: #1a1440;
+  --gk-success: #7cf0c0;
+  --gk-danger: #ff8a9e;
+  --gk-border: #3a4590;
+
+  /* type */
+  --gk-font-display: ui-serif, "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+  --gk-font-body: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --gk-font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+  /* shape */
+  --gk-radius-s: 10px;
+  --gk-radius-m: 16px;
+  --gk-radius-l: 24px;
+  --gk-shadow-1: 0 4px 14px rgba(0, 0, 8, 0.45);
+  --gk-shadow-2: 0 16px 48px rgba(0, 0, 8, 0.6);
+  --gk-glow: 0 0 22px rgba(255, 212, 121, 0.45);
+
+  /* motion */
+  --gk-ease: cubic-bezier(0.22, 0.8, 0.3, 1);
+  --gk-dur-fast: 140ms;
+  --gk-dur-med: 320ms;
+  --gk-dur-slow: 700ms;
+
+  /* space */
+  --gk-tap: 44px;
+  --gk-gap: 16px;
+}
+
+/* TIER NUANCE - the same world, a slightly different mood per tier (a small palette shift, not a new theme).
+   Spark is softer and rosier; Countdown is the base palette above; Signature is warmer, like lamplight. */
+[data-skin="nightsky"][data-tier="spark"] {
+  --gk-accent: #ffb3c7;
+  --gk-accent-text: #2a0f24;
+  --gk-glow: 0 0 22px rgba(255, 179, 199, 0.45);
+}
+[data-skin="nightsky"][data-tier="signature"] {
+  --gk-accent: #ffc27a;
+  --gk-glow: 0 0 22px rgba(255, 194, 122, 0.5);
+}

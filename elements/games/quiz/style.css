@@ -1,0 +1,27 @@
+/* quiz - STRUCTURE then DEFAULT PAINT */
+
+[data-element="quiz"] { display: flex; flex-direction: column; gap: var(--gk-gap); padding: var(--gk-gap); max-width: 520px; margin: 0 auto; }
+[data-element="quiz"] [data-part="options"] { display: grid; gap: 10px; }
+[data-element="quiz"] [data-part="option"] { min-height: var(--gk-tap); padding: 12px 16px; text-align: left; }
+[data-element="quiz"] [data-part="next"],
+[data-element="quiz"] [data-part="retry"] { align-self: stretch; }
+[data-element="quiz"] [data-part="question"] { font-size: 1.15rem; line-height: 1.35; }
+[data-element="quiz"] [data-part="feedback"] { min-height: 1.4em; }
+[data-element="quiz"] [data-part="result"] { display: grid; gap: 8px; text-align: center; padding: 24px 0; }
+
+/* default paint */
+:where([data-element="quiz"] [data-part="progress"]) { color: var(--gk-text-muted); font-size: 0.85rem; }
+:where([data-element="quiz"] [data-part="question"]) { font-family: var(--gk-font-display); font-weight: 600; }
+:where([data-element="quiz"] [data-part="option"][data-state="selected"]) { border-color: var(--gk-accent); background: var(--gk-surface); }
+:where([data-element="quiz"] [data-part="option"][data-state="correct"]) { border-color: var(--gk-success); background: var(--gk-surface); color: var(--gk-success); opacity: 1; }
+:where([data-element="quiz"] [data-part="option"][data-state="wrong"]) { border-color: var(--gk-danger); color: var(--gk-danger); opacity: 1; }
+:where([data-element="quiz"] [data-part="feedback"]) { color: var(--gk-text-muted); }
+:where([data-element="quiz"] [data-part="result"][data-state="pass"]) { color: var(--gk-success); }
+:where([data-element="quiz"] [data-part="result"][data-state="fail"]) { color: var(--gk-danger); }
+
+/* FIT (inside a sheet): tighter spacing so a question with four options fits a small phone. */
+[data-part="sheet-body"] > [data-element="quiz"] { gap: 8px; padding: 8px 14px; }
+[data-part="sheet-body"] > [data-element="quiz"] [data-part="options"] { gap: 8px; }
+[data-part="sheet-body"] > [data-element="quiz"] [data-part="option"] { padding: 8px 14px; }
+[data-part="sheet-body"] > [data-element="quiz"] [data-part="question"] { font-size: 1.05rem; }
+[data-part="sheet-body"] > [data-element="quiz"] [data-part="result"] { padding: 12px 0; }

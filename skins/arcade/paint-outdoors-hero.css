@@ -1,0 +1,70 @@
+/* ARCADE x OUTDOORS - the Spark tier: the hero role is one lit arcade cabinet standing on the midway. DOM in decorate-outdoors.js (decorateSpark).
+   The whole cabinet is the tap target (it is far bigger than 44px); the pixel heart is built from square "pixels" of --px using
+   box-shadow, so it stays crisp at any size. Sizes are cqw (1% of the stage width). Derived from paint-spark.css (the desk version). */
+
+[data-skin="arcade"][data-theme="outdoors"][data-tier="spark"] [data-part="room-stage"] {
+  --px: calc(var(--hero-w) * 0.028);
+}
+
+/* the cabinet is the hero */
+[data-skin="arcade"][data-theme="outdoors"][data-tier="spark"] [data-part="hero"] {
+  background: linear-gradient(90deg, #170a3a 0%, #2b1766 12%, #231055 88%, #170a3a 100%);
+  border: 0.7cqw solid #000; border-radius: 3cqw 3cqw 0.8cqw 0.8cqw; cursor: pointer;
+  box-shadow: 0 0 0 0.5cqw #ff4fb0, 0 0 4cqw rgba(255, 79, 176, 0.55), 1.6cqw 1.6cqw 0 0.5cqw rgba(0, 0, 0, 0.6);
+}
+[data-skin="arcade"][data-theme="outdoors"][data-tier="spark"] [data-part="hero"] > span { display: block; }
+[data-skin="arcade"][data-theme="outdoors"][data-tier="spark"] [data-part="cab-marquee"] { position: absolute; left: 6%; right: 6%; top: 3%; height: 8%; display: grid; place-items: center; overflow: hidden; background: #14082e; border: 0.4cqw solid #ffd447; border-radius: 1cqw; box-shadow: 0 0 2cqw rgba(255, 212, 71, 0.55); }
+[data-skin="arcade"][data-theme="outdoors"][data-tier="spark"] [data-part="cab-marquee-text"] { max-width: 100%; padding: 0 3%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-transform: uppercase; letter-spacing: 0.12em; font: 700 clamp(7px, 2cqw, 13px) / 1 var(--gk-font-mono); color: #ffd447; text-shadow: 0 0 1cqw #ffd447; }
+
+/* screen: dark CRT with a pixel heart bobbing in attract mode, and the "press start" text the engine provides */
+[data-skin="arcade"][data-theme="outdoors"][data-tier="spark"] [data-part="cab-screen"] { position: absolute; left: 9%; right: 9%; top: 14%; height: 34%; overflow: hidden; background: radial-gradient(120% 100% at 50% 40%, #0a2a3a 0%, #04121a 70%); border: 0.9cqw solid #0c0420; border-radius: 3cqw / 2.4cqw; box-shadow: inset 0 0 3cqw rgba(77, 243, 255, 0.5), 0 0 0 0.4cqw #4df3ff; }
+[data-skin="arcade"][data-theme="outdoors"][data-tier="spark"] [data-part="cab-screen"]::after { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(180deg, rgba(0, 0, 0, 0.3) 0 1px, transparent 1px 3px); }
+[data-skin="arcade"][data-theme="outdoors"][data-tier="spark"] [data-part="cab-glow"] { position: absolute; inset: 0; background: radial-gradient(circle at 50% 45%, rgba(77, 243, 255, 0.28), transparent 62%); }
+[data-skin="arcade"][data-theme="outdoors"][data-tier="spark"] [data-part="cab-sprite"] {
+  position: absolute; left: calc(50% - var(--px) * 3.5); top: calc(36% - var(--px) * 3); width: var(--px); height: var(--px); background: transparent;
+  /* a 7x6 pixel heart, one shadow per lit pixel */
+  box-shadow:
+    calc(var(--px) * 1) 0 #ff4fb0, calc(var(--px) * 2) 0 #ff4fb0, calc(var(--px) * 4) 0 #ff4fb0, calc(var(--px) * 5) 0 #ff4fb0,
+    0 var(--px) #ff4fb0, calc(var(--px) * 1) var(--px) #ff4fb0, calc(var(--px) * 2) var(--px) #ff4fb0, calc(var(--px) * 3) var(--px) #ff4fb0, calc(var(--px) * 4) var(--px) #ff4fb0, calc(var(--px) * 5) var(--px) #ff4fb0, calc(var(--px) * 6) var(--px) #ff4fb0,
+    0 calc(var(--px) * 2) #ff4fb0, calc(var(--px) * 1) calc(var(--px) * 2) #ff4fb0, calc(var(--px) * 2) calc(var(--px) * 2) #ff4fb0, calc(var(--px) * 3) calc(var(--px) * 2) #ff4fb0, calc(var(--px) * 4) calc(var(--px) * 2) #ff4fb0, calc(var(--px) * 5) calc(var(--px) * 2) #ff4fb0, calc(var(--px) * 6) calc(var(--px) * 2) #ff4fb0,
+    calc(var(--px) * 1) calc(var(--px) * 3) #ff4fb0, calc(var(--px) * 2) calc(var(--px) * 3) #ff4fb0, calc(var(--px) * 3) calc(var(--px) * 3) #ff4fb0, calc(var(--px) * 4) calc(var(--px) * 3) #ff4fb0, calc(var(--px) * 5) calc(var(--px) * 3) #ff4fb0,
+    calc(var(--px) * 2) calc(var(--px) * 4) #ff4fb0, calc(var(--px) * 3) calc(var(--px) * 4) #ff4fb0, calc(var(--px) * 4) calc(var(--px) * 4) #ff4fb0,
+    calc(var(--px) * 3) calc(var(--px) * 5) #ff4fb0;
+  animation: arcade-bob 1.2s steps(2) infinite;
+}
+@keyframes arcade-bob { 50% { transform: translateY(calc(var(--px) * -1)); } }
+[data-skin="arcade"][data-theme="outdoors"][data-tier="spark"] [data-part="hero-label"] { position: absolute; z-index: 3; left: 9%; right: 9%; top: 38.5%; text-align: center; text-transform: uppercase; letter-spacing: 0.14em; font: 700 clamp(8px, 2.6cqw, 15px) / 1 var(--gk-font-mono); color: #f6f2ff; text-shadow: 0 0 1cqw #4df3ff; animation: arcade-blink 1s steps(1) infinite; pointer-events: none; }
+@keyframes arcade-blink { 50% { opacity: 0; } }
+
+/* control panel: joystick, two keys, and the big start button */
+[data-skin="arcade"][data-theme="outdoors"][data-tier="spark"] [data-part="cab-panel"] { position: absolute; left: 4%; right: 4%; top: 52%; height: 17%; background: linear-gradient(180deg, #3a1f86, #231055); border: 0.5cqw solid #000; border-radius: 1cqw; box-shadow: inset 0 0.6cqw 0 rgba(255, 255, 255, 0.18); }
+[data-skin="arcade"][data-theme="outdoors"][data-tier="spark"] [data-part="cab-stick"] { position: absolute; left: 12%; top: 18%; width: 14%; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #ff8aa8, #d11a56); box-shadow: 0 0.8cqw 0 #5a0f3a; }
+[data-skin="arcade"][data-theme="outdoors"][data-tier="spark"] [data-part="cab-stick"]::after { content: ""; position: absolute; left: 44%; top: 90%; width: 12%; height: 80%; background: #14082e; }
+[data-skin="arcade"][data-theme="outdoors"][data-tier="spark"] [data-part="cab-key"] { position: absolute; top: 34%; width: 9%; aspect-ratio: 1; border-radius: 50%; border: 0.4cqw solid #000; }
+[data-skin="arcade"][data-theme="outdoors"][data-tier="spark"] [data-part="cab-key"][data-n="1"] { right: 22%; background: #3dffa0; box-shadow: 0 0.5cqw 0 #137a4a; }
+[data-skin="arcade"][data-theme="outdoors"][data-tier="spark"] [data-part="cab-key"][data-n="2"] { right: 8%; background: #ffd447; box-shadow: 0 0.5cqw 0 #8c6f10; }
+[data-skin="arcade"][data-theme="outdoors"][data-tier="spark"] [data-part="cab-button"] { position: absolute; left: 50%; top: 60.5%; width: 17%; aspect-ratio: 1; transform: translate(-50%, -50%); border: 0.6cqw solid #000; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #ff9ad0, #ff4fb0 55%, #b01870); box-shadow: 0 1cqw 0 #5a0f3a, 0 0 3cqw rgba(255, 79, 176, 0.85); animation: arcade-pulse 1s steps(2) infinite; }
+[data-skin="arcade"][data-theme="outdoors"][data-tier="spark"] [data-part="cab-cap"] { position: absolute; left: 22%; top: 16%; width: 30%; height: 22%; border-radius: 50%; background: rgba(255, 255, 255, 0.55); }
+@keyframes arcade-pulse { 50% { box-shadow: 0 1cqw 0 #5a0f3a, 0 0 5cqw rgba(255, 79, 176, 1); } }
+[data-skin="arcade"][data-theme="outdoors"][data-tier="spark"] [data-part="hero"]:focus-visible { outline: 3px solid #fff; outline-offset: 6px; }
+
+/* base with the coin door */
+[data-skin="arcade"][data-theme="outdoors"][data-tier="spark"] [data-part="cab-base"] { position: absolute; left: 6%; right: 6%; bottom: 3%; height: 22%; background: #14082e; border: 0.5cqw solid #000; border-radius: 0.8cqw; }
+[data-skin="arcade"][data-theme="outdoors"][data-tier="spark"] [data-part="cab-base"]::before, [data-skin="arcade"][data-theme="outdoors"][data-tier="spark"] [data-part="cab-base"]::after { content: ""; position: absolute; top: 24%; width: 18%; height: 52%; background: #0b0420; border: 0.4cqw solid #ffd447; border-radius: 0.6cqw; box-shadow: 0 0 1.4cqw rgba(255, 212, 71, 0.6), inset 0 0 0.8cqw rgba(255, 212, 71, 0.4); }
+[data-skin="arcade"][data-theme="outdoors"][data-tier="spark"] [data-part="cab-base"]::before { left: 22%; }
+[data-skin="arcade"][data-theme="outdoors"][data-tier="spark"] [data-part="cab-base"]::after { right: 22%; }
+
+/* pressed: the screen flashes, the heart bursts, the button sinks */
+[data-skin="arcade"][data-theme="outdoors"][data-tier="spark"] [data-part="hero"][data-state="pressed"] [data-part="cab-glow"] { background: #4df3ff; animation: arcade-flash 0.8s steps(4) 1; }
+[data-skin="arcade"][data-theme="outdoors"][data-tier="spark"] [data-part="hero"][data-state="pressed"] [data-part="cab-sprite"] { animation: arcade-burst 0.8s steps(4) 1 forwards; }
+[data-skin="arcade"][data-theme="outdoors"][data-tier="spark"] [data-part="hero"][data-state="pressed"] [data-part="hero-label"] { animation: none; }
+[data-skin="arcade"][data-theme="outdoors"][data-tier="spark"] [data-part="hero"][data-state="pressed"] [data-part="cab-button"] { animation: none; transform: translate(-50%, calc(-50% + 0.8cqw)); box-shadow: 0 0.2cqw 0 #5a0f3a, 0 0 5cqw rgba(255, 79, 176, 1); }
+@keyframes arcade-flash { 0%, 50% { opacity: 1; } 25%, 75% { opacity: 0.2; } 100% { opacity: 0.4; } }
+@keyframes arcade-burst { 0% { transform: scale(1); } 60% { transform: scale(1.8); } 100% { transform: scale(2.4); opacity: 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  [data-skin="arcade"][data-theme="outdoors"][data-tier="spark"] [data-part="cab-sprite"],
+  [data-skin="arcade"][data-theme="outdoors"][data-tier="spark"] [data-part="hero-label"],
+  [data-skin="arcade"][data-theme="outdoors"][data-tier="spark"] [data-part="cab-button"],
+  [data-skin="arcade"][data-theme="outdoors"][data-tier="spark"] [data-part="hero"][data-state="pressed"] [data-part="cab-glow"] { animation: none !important; }
+}
