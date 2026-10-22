@@ -16,7 +16,7 @@
   --hero-x: 48.4cqw; --hero-y: 77.5cqw; --hero-w: 26cqw; --hero-ar: 1.053;
 }
 @media (orientation: landscape) {
-  [data-skin="nightsky"][data-theme="desk"]:not([data-tier="spark"]) [data-part="room-stage"] { --curtain-w: 6cqw; --curtain-h: 48cqw; }
+  [data-skin="nightsky"][data-theme="desk"]:not([data-tier="spark"]) [data-part="room-stage"] { --curtain-w: 6cqw; --curtain-h: 48cqw; --ambient-b-w: 8cqw; --ambient-b-ar: 0.14; }
   [data-skin="nightsky"][data-theme="desk"][data-tier="spark"] [data-part="room-stage"] {
     --win-w: 32cqw; --win-h: 40cqw; --win-top: 7cqw; --curtain-w: 12cqw; --curtain-h: 58cqw;
     --hero-x: 49.3cqw; --hero-y: 35.4cqw; --hero-w: 12cqw; --hero-ar: 1.053;

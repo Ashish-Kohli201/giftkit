@@ -1,25 +1,76 @@
-// Reveal - the finale: headline, optional video, letter, photos. Letter fades in after the video ends (or Skip),
-// then gently auto-scrolls until the viewer touches/scrolls. All text is inserted as text nodes (never HTML).
-import { part, reducedMotion } from '../../../core/util.js';
+// Reveal - the finale. One element, four endings ("variants over new modules"): the content is always the same blocks
+// (headline, video, letter, photos), the variant decides how they arrive.
+//   scroll     the original: headline, then letter and photos fade in and the page drifts like end credits
+//   envelope   a sealed envelope to open; the letter is read a paragraph at a time, then the photos fan out
+//   slideshow  a memory film: Ken Burns photos with crossfades, then the letter over the last frame
+//   cake       make a wish: blow out the candles, confetti, then the letter and photos
+// Each variant lives in variants/<name>.js. All text is inserted as text nodes (never HTML).
+import mountScroll from './variants/scroll.js';
+import mountEnvelope from './variants/envelope.js';
+import mountSlideshow from './variants/slideshow.js';
+import mountCake from './variants/cake.js';
+
+const VARIANTS = { scroll: mountScroll, envelope: mountEnvelope, slideshow: mountSlideshow, cake: mountCake };
 
 export default {
   id: 'reveal',
   kind: 'finale',
-  version: 1,
+  version: 2,
   layout: new URL('./style.css', import.meta.url).href,
-  parts: ['scroll', 'headline', 'video-frame', 'video', 'skip', 'notice', 'letter', 'letter-line', 'photos', 'photo', 'restart'],
-  layoutParts: ['scroll', 'video-frame', 'photos'],
+  parts: [
+    // shared by several variants
+    'headline', 'video-frame', 'video', 'skip', 'notice', 'letter', 'letter-line', 'photos', 'photo', 'restart',
+    // scroll
+    'scroll',
+    // envelope
+    'env-stage', 'env-envelope', 'env-back', 'env-address', 'env-pocket', 'env-flap', 'env-seal', 'env-hint',
+    'env-card', 'env-lines', 'env-next', 'env-photos', 'env-polaroid', 'env-caption',
+    // slideshow
+    'film-stage', 'film-slides', 'film-slide', 'film-caption', 'film-dim', 'film-lines', 'film-progress', 'film-tick',
+    'film-controls', 'film-prev', 'film-pause', 'film-next',
+    // cake
+    'cake-stage', 'cake-cake', 'cake-tier', 'cake-icing', 'cake-candles', 'cake-candle', 'cake-flame', 'cake-blow',
+    'cake-hint', 'cake-confetti', 'cake-bit', 'cake-after',
+  ],
+  // structural wrappers; themes rarely need to style them (excluded from coverage)
+  layoutParts: ['scroll', 'video-frame', 'photos', 'env-stage', 'env-lines', 'env-photos', 'film-stage', 'film-slides', 'film-lines', 'film-progress', 'film-controls', 'cake-stage', 'cake-candles', 'cake-confetti', 'cake-after'],
   copy: {
     skip: 'Skip video',
     videoMissing: 'The video could not be loaded.',
     restart: 'Back to start',
+    photo: 'Photo',
+    // envelope
+    envTo: 'For {{recipient}}',
+    envHint: 'Tap the envelope to open it',
+    envOpen: 'Open the envelope',
+    envOpened: 'Envelope opened',
+    envNext: 'Tap to continue',
+    envPhotos: 'See the photos',
+    envDone: 'Finish',
+    // slideshow
+    filmLabel: 'Memory film. Tap to pause, tap the edges to go back or forward.',
+    filmSkip: 'Skip to the end',
+    filmPause: 'Pause',
+    filmPlay: 'Play',
+    filmPrev: 'Previous',
+    filmNext: 'Next',
+    filmProgress: 'Part {{n}} of {{total}}',
+    // cake
+    cakeHint: 'Make a wish, then blow out the candles',
+    cakeLeft: '{{n}} left',
+    cakeDone: 'Your wish is on its way...',
+    cakeBlow: 'Blow',
+    cakeCandle: 'Candle {{n}}',
   },
   paramsSchema: {
     type: 'object',
     required: ['blocks'],
     properties: {
-      autoScroll: { type: 'boolean' },
-      scrollSpeed: { type: 'number', minimum: 5, maximum: 80 }, // px per second
+      variant: { type: 'string', enum: Object.keys(VARIANTS) },   // default "scroll"
+      autoScroll: { type: 'boolean' },                            // scroll only
+      scrollSpeed: { type: 'number', minimum: 5, maximum: 80 },   // scroll only: px per second
+      slideMs: { type: 'integer', minimum: 2000, maximum: 12000 }, // slideshow only: time per photo
+      candles: { type: 'integer', minimum: 1, maximum: 9 },       // cake only: number of candles
       blocks: {
         type: 'array', minItems: 1, maxItems: 12,
         items: {
@@ -28,7 +79,8 @@ export default {
             type: { type: 'string', enum: ['headline', 'video', 'letter', 'photos'] },
             text: { type: 'string' },
             ref: { type: 'string' },   // video asset slot
-            items: { type: 'array', items: { type: 'string' }, maxItems: 8 }, // photo slots
+            items: { type: 'array', items: { type: 'string' }, maxItems: 8 },    // photo slots
+            captions: { type: 'array', items: { type: 'string' }, maxItems: 8 }, // optional, one per photo (envelope, slideshow)
           },
         },
       },
@@ -39,88 +91,13 @@ export default {
     blocks: [
       { type: 'headline', text: 'Happy Birthday, {{recipient}}!' },
       { type: 'letter', text: 'Dear {{recipient}},\n\nThis is a placeholder letter. In a real gift, this is where your words go - the ones you have been saving up.\n\nEvery star you collected led here.\n\nLove,\n{{sender}}' },
-      { type: 'photos', items: ['@photo_01', '@photo_02'] },
+      { type: 'photos', items: ['@photo_01', '@photo_02'], captions: ['A day to remember', 'Just us'] },
     ],
   },
 
   mount(container, ctx) {
-    const timers = [];
-    let raf = 0, started = false, scrollStopped = false;
-    const scroll = part('div', 'scroll', { tabindex: '0' });
-    const gated = [];       // everything after the first video waits until the video ends / is skipped
-    let seenVideo = false;
-
-    for (const b of ctx.params.blocks) {
-      let node;
-      if (b.type === 'headline') {
-        node = part('h2', 'headline', { 'data-state': 'hidden' }, b.text ?? '');
-      } else if (b.type === 'video') {
-        seenVideo = true;
-        node = buildVideo(b);
-      } else if (b.type === 'letter') {
-        node = part('div', 'letter', { 'data-state': 'hidden' },
-          String(b.text ?? '').split(/\n{2,}/).map((para, i) => part('p', 'letter-line', { style: `--i:${i}` }, para)));
-      } else if (b.type === 'photos') {
-        node = part('div', 'photos', { 'data-state': 'hidden' }, (b.items ?? []).map((ref) => {
-          const img = document.createElement('img');
-          img.decoding = 'async'; img.loading = 'lazy'; img.alt = '';
-          ctx.assets.resolve(ref).then((a) => { img.src = a.url; img.alt = a.alt || 'Photo'; }).catch(() => img.remove());
-          return part('figure', 'photo', {}, img);
-        }));
-      }
-      scroll.append(node);
-      // Letter + photos wait for the video to end (or be skipped). With no video they appear after a short beat.
-      if (b.type === 'letter' || b.type === 'photos') gated.push(node);
-    }
-    const restart = part('button', 'restart', { type: 'button', hidden: true }, ctx.t('restart'));
-    restart.addEventListener('click', () => ctx.onExit());
-    scroll.append(restart);
-    container.append(scroll);
-
-    function buildVideo(b) {
-      const video = part('video', 'video', { controls: true, playsinline: true, preload: 'metadata' });
-      const notice = part('p', 'notice', { hidden: true }, ctx.t('videoMissing'));
-      const skip = part('button', 'skip', { type: 'button' }, ctx.t('skip'));
-      const fail = () => { notice.hidden = false; };
-      ctx.assets.resolve(b.ref).then((a) => { video.src = a.url; if (a.poster) video.poster = a.poster; }).catch(fail);
-      video.addEventListener('error', fail);
-      video.addEventListener('ended', unlockRest);
-      skip.addEventListener('click', () => { video.pause?.(); unlockRest(); });
-      return part('div', 'video-frame', {}, video, notice, skip);
-    }
-
-    function unlockRest() {
-      if (started) return;
-      started = true;
-      ctx.fx.reveal();
-      gated.forEach((n) => { n.dataset.state = 'visible'; });
-      restart.hidden = false;
-      ctx.onComplete({});
-      timers.push(setTimeout(startAutoScroll, 1400));
-    }
-
-    function startAutoScroll() {
-      if (ctx.params.autoScroll === false || reducedMotion()) return;
-      const stop = () => { scrollStopped = true; cancelAnimationFrame(raf); };
-      ['wheel', 'touchstart', 'pointerdown', 'keydown'].forEach((ev) => scroll.addEventListener(ev, stop, { passive: true, once: true }));
-      const speed = ctx.params.scrollSpeed ?? 22;
-      let last = performance.now(), pos = scroll.scrollTop;
-      const tick = (now) => {
-        if (scrollStopped) return;
-        pos += speed * ((now - last) / 1000);
-        last = now;
-        scroll.scrollTop = pos;
-        if (scroll.scrollTop + scroll.clientHeight >= scroll.scrollHeight - 2) return;
-        raf = requestAnimationFrame(tick);
-      };
-      raf = requestAnimationFrame(tick);
-    }
-
-    // headline appears first; with no video, everything else follows
-    const headline = scroll.querySelector('[data-part="headline"]');
-    timers.push(setTimeout(() => { if (headline) headline.dataset.state = 'visible'; }, 250));
-    if (!seenVideo) timers.push(setTimeout(unlockRest, 1100));
-
-    return { destroy() { timers.forEach(clearTimeout); cancelAnimationFrame(raf); } };
+    const variant = ctx.params.variant ?? 'scroll';
+    container.dataset.variant = variant;
+    return VARIANTS[variant](container, ctx);
   },
 };

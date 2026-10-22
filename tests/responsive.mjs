@@ -1,6 +1,6 @@
 // Responsive check (Playwright). Two sections:
 //
-// 1. WORLD: for every THEME x SKIN x TIER (the matrix) and a spread of device sizes, load the full-screen gift page and verify
+// 1. WORLD: for every THEME x SKIN x TIER (the matrix) and a spread of LANDSCAPE device sizes, load the full-screen gift page and verify
 //    - the page never scrolls sideways
 //    - every role is fully on screen and at least 44px (curtains-like edge strips are exempt from the sideways rule)
 //    - no two roles overlap each other (scenic, ambient-a, ambient-b are backdrop-ish and may overlap)
@@ -8,9 +8,9 @@
 //    Roles are the stable contract between worlds and skins (docs/WORLD_CONTRACT.md), so the same checks run for every combination.
 //
 // 2. ELEMENT FIT: every game / finale element is opened in a real sheet (playground/gift.js ?element=<id>, with a sample day note)
-//    and must FIT the screen: on portrait phones nothing scrolls vertically (sheet body or element), nowhere does anything
+//    and must FIT the screen: on landscape phones nothing scrolls vertically (sheet body or element), nowhere does anything
 //    scroll sideways, and every button is a 44px tap target (wordle keys are only required to be 44px tall: ten keys cannot be
-//    44px wide on a 320px screen). Landscape phones may scroll vertically for now but keep the tap-target rule.
+//    44px wide on a 320px screen). 
 //
 // Run: npm run test:responsive
 //      (SHOTS=1 saves screenshots to tests/shots; THEMES=outdoors SKINS=arcade TIERS=signature narrow the matrix)
@@ -33,15 +33,17 @@ const TIER_ROLES = {
 };
 const MAY_OVERLAP = new Set(['scenic', 'ambient-a', 'ambient-b', 'tally', 'board']);
 const MAY_BE_OFFSCREEN_X = new Set(['ambient-b']);
+// Gifts are made for LANDSCAPE (a portrait phone is asked to turn sideways; see tests/smoke.mjs). `phone: true` marks the short
+// landscape phones where every game must fit without scrolling.
 const DEVICES = [
-  { name: 'small-phone', width: 320, height: 568, touch: true, portraitPhone: true },
-  { name: 'se', width: 360, height: 640, touch: true, portraitPhone: true },
-  { name: 'iphone', width: 390, height: 844, touch: true, portraitPhone: true },
-  { name: 'large-phone', width: 430, height: 932, touch: true, portraitPhone: true },
-  { name: 'phone-landscape', width: 844, height: 390, touch: true },
-  { name: 'tablet', width: 768, height: 1024, touch: true },
+  { name: 'phone-small', width: 667, height: 375, touch: true, phone: true },
+  { name: 'phone-android', width: 740, height: 360, touch: true, phone: true },
+  { name: 'phone', width: 844, height: 390, touch: true, phone: true },
+  { name: 'phone-large', width: 932, height: 430, touch: true, phone: true },
+  { name: 'tablet', width: 1024, height: 768, touch: true },
   { name: 'laptop', width: 1280, height: 800, touch: false },
   { name: 'desktop', width: 1920, height: 1080, touch: false },
+  { name: 'ultrawide', width: 2560, height: 1080, touch: false },
 ];
 // Worst-case-ish params per fit-required element (placeholders are merged underneath by the gift page).
 const FIT_CASES = [
@@ -57,6 +59,7 @@ const FIT_CASES = [
   { id: 'music', label: 'music-3', params: {} },
   { id: 'gallery', label: 'gallery-6', params: {} },
   { id: 'notes', label: 'notes-3', params: {} },
+  { id: 'polaroid', label: 'polaroid', params: {} },
 ];
 
 const server = spawn('node', ['scripts/serve.mjs'], { env: { ...process.env, PORT: String(PORT) }, stdio: 'ignore' });
@@ -85,8 +88,10 @@ try {
         const { ctx, page, problems } = await newPage(browser, dev);
         const label = `${theme}/${skin}/${tier}@${dev.name} ${dev.width}x${dev.height}`;
 
-        await page.goto(`${BASE}/playground/gift.html?tier=${tier}&theme=${theme}&skin=${skin}&mode=all`);
+        await page.goto(`${BASE}/playground/gift.html?tier=${tier}&theme=${theme}&skin=${skin}&unlock=1`);
         await page.waitForSelector('[data-part="room"]');
+        // Signature opens with the story intro; dismiss it so the room can be touched
+        if (await page.locator('[data-part="dialog-button"]').count()) await page.locator('[data-part="dialog-button"]').click();
         await page.waitForTimeout(300);
 
         const m = await page.evaluate(({ roles, mayOverlap, mayOffX }) => {
@@ -179,7 +184,7 @@ try {
             smallTaps: buttons.filter((b) => b.h < 43.5 || (b.w < 43.5 && !(id === 'wordle' && b.part === 'key'))).map((b) => `${b.part} ${Math.round(b.w)}x${Math.round(b.h)}`),
           };
         }, c.id);
-        if (dev.portraitPhone) {
+        if (dev.phone) {
           check(m.bodyOverflowY <= 1, `${label}: sheet scrolls vertically by ${m.bodyOverflowY}px`);
           check(m.elOverflowY <= 1, `${label}: element scrolls vertically by ${m.elOverflowY}px`);
         }
@@ -192,6 +197,41 @@ try {
         }
       }
       check(problems.length === 0, `element fit @${dev.name}: console errors ${problems.join(' | ')}`);
+      await ctx.close();
+    }
+
+    // ---------------------------------------------------------------- 3. dialog with a long story card + the hub sheet
+    console.log(`[responsive] skin=${skin} dialog and hub sheet`);
+    for (const dev of DEVICES) {
+      const { ctx, page, problems } = await newPage(browser, dev);
+      const label = `${dev.name} ${dev.width}x${dev.height}`;
+      await page.goto(`${BASE}/playground/gift.html?tier=signature&theme=${theme}&skin=${skin}&unlock=1`);
+      // the Signature story intro is a long dialog: it scrolls inside itself and its OK button is always reachable
+      await page.locator('[data-part="dialog-button"]').waitFor();
+      await page.waitForTimeout(400);
+      const dlg = await page.evaluate(() => {
+        const vh = window.innerHeight, vw = window.innerWidth;
+        const b = document.querySelector('[data-part="dialog-button"]').getBoundingClientRect();
+        const d = document.querySelector('[data-part="dialog"]').getBoundingClientRect();
+        return { buttonOn: b.top >= -1 && b.bottom <= vh + 1 && b.left >= -1 && b.right <= vw + 1, dialogOn: d.top >= -1 && d.bottom <= vh + 1 };
+      });
+      check(dlg.buttonOn, `dialog@${label}: the OK button is not fully on screen`);
+      check(dlg.dialogOn, `dialog@${label}: the dialog does not fit the screen`);
+      await page.locator('[data-part="dialog-button"]').click();
+
+      // the hub sheet: day icons (their own area scrolls) with the taskbar always in view
+      await page.locator('[data-part="hub"]').click();
+      await page.locator('[data-part="taskbar"]').waitFor();
+      await page.waitForTimeout(500);
+      const hub = await page.evaluate(() => {
+        const vh = window.innerHeight, vw = window.innerWidth;
+        const bar = document.querySelector('[data-part="taskbar"]').getBoundingClientRect();
+        const sheet = document.querySelector('[data-part="sheet"]').getBoundingClientRect();
+        return { taskbarOn: bar.top >= 0 && bar.bottom <= vh + 1, sheetOn: sheet.bottom <= vh + 1 && sheet.right <= vw + 1, sideways: document.documentElement.scrollWidth > vw };
+      });
+      if (dev.phone) check(hub.taskbarOn, `hub@${label}: the taskbar is not in view`);
+      check(hub.sheetOn && !hub.sideways, `hub@${label}: the sheet does not fit the screen`);
+      check(problems.length === 0, `dialog/hub@${dev.name}: console errors ${problems.join(' | ')}`);
       await ctx.close();
     }
   }

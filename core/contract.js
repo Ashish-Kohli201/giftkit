@@ -52,6 +52,7 @@ export const DEFAULT_SHELL_COPY = {
   music: 'Music',
   gallery: 'Photos',
   notes: 'Notes',
+  rotateHint: 'Turn your phone sideways',
   coupons: 'Coupons',
   memories: 'Memories',
   'status.locked': 'Locked',

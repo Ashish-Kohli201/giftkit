@@ -3,6 +3,7 @@
 //  - for every THEME x SKIN combination (the matrix): plays a whole Countdown gift on a phone viewport
 //    (wordle -> memory -> quiz -> quiz -> wordle -> vault -> reveal), taps the Spark hero, and exercises every Signature role
 //  - verifies no third-party requests and no native dialogs
+// Gifts are made for LANDSCAPE: phone tests run at 844x390; a portrait phone must see the rotate hint instead.
 // Roles (hub, vault, board, light, pet, ...) are the stable contract between worlds and skins (docs/WORLD_CONTRACT.md),
 // so the same test runs unchanged for every world and every skin.
 // Run: npm i && npx playwright install chromium && npm run test:browser
@@ -24,7 +25,7 @@ let failures = 0;
 const check = (cond, msg) => { console.log(`  ${cond ? 'ok  ' : 'FAIL'} ${msg}`); if (!cond) failures++; };
 
 /** A page with console / dialog / request watchers. */
-async function newPage(browser, viewport = { width: 390, height: 844 }, touch = true) {
+async function newPage(browser, viewport = { width: 844, height: 390 }, touch = true) {
   const ctx = await browser.newContext({ viewport, hasTouch: touch });
   const page = await ctx.newPage();
   const problems = [];
@@ -61,7 +62,7 @@ try {
     // ------------------------------------------------------ 2. Countdown, played end to end
     console.log(`\n[full gift] ${combo}, countdown, sequential, phone`);
     {
-      const { ctx, page, problems } = await newPage(browser);
+      const { ctx, page, problems } = await newPage(browser, { width: 1280, height: 900 });
       await page.goto(`${BASE}/playground/?${q}&tab=gift`);
       await page.locator('#frame').selectOption('phone');
       await page.waitForSelector('[data-part="hub"]');
@@ -166,9 +167,13 @@ try {
     console.log(`\n[full gift] ${combo}, signature (apps + things to touch)`);
     {
       const { ctx, page, problems } = await newPage(browser);
-      await page.goto(`${BASE}/playground/gift.html?tier=signature&mode=all&${q}`);
+      await page.goto(`${BASE}/playground/gift.html?tier=signature&unlock=1&${q}`);
       const g = page.locator('#gift-root');
       await g.locator('[data-part="hub"]').waitFor();
+      // the story intro opens first; it is the sender's framing of the ten nights
+      await page.locator('[data-part="dialog"]').waitFor();
+      check(/ten nights/i.test(await page.locator('[data-part="dialog-title"]').innerText()), 'the story intro opens first');
+      await page.locator('[data-part="dialog-button"]').click();
       const room = g.locator('[data-part="room"]');
       check(!/fragment|star \d/i.test(await g.innerText()), 'signature room never says "fragment" or "star N"');
       check((await g.locator('[data-part="tally-mark"]').count()) === 10, 'the tally has 10 marks');
@@ -220,6 +225,97 @@ try {
       check(problems.length === 0, `no console errors in signature run ${problems.join(' | ')}`);
       await ctx.close();
     }
+
+    // ------------------------------------------------------ 5. Signature reveals itself day by day
+    console.log(`\n[full gift] ${combo}, signature (the room grows with every finished night)`);
+    {
+      const { ctx, page, problems } = await newPage(browser);
+      await page.goto(`${BASE}/playground/gift.html?tier=signature&mode=sequential&${q}`);
+      const g = page.locator('#gift-root');
+      await g.locator('[data-part="hub"]').waitFor();
+      await page.locator('[data-part="dialog-button"]').click(); // story intro
+      const visible = async (role) => (await g.locator(`[data-part="${role}"]`).count()) > 0 && !(await g.locator(`[data-part="${role}"]`).evaluate((el) => el.hidden));
+      const later = ['board', 'light', 'jar', 'app-music', 'pet', 'app-gallery', 'toy', 'app-notes', 'ambient-a', 'ambient-b'];
+      check((await visible('hub')) && (await visible('vault')), 'night one: the hub and the locked vault are there');
+      check((await Promise.all(later.map(visible))).every((v) => !v), 'night one: nothing else is in the room yet');
+      await g.locator('[data-part="hub"]').click();
+      await g.locator('[data-part="apps"] [data-part="app"]').first().waitFor();
+      check((await g.locator('[data-part="apps"] [data-part="app"]').count()) === 2, 'the hub shows tonight and one locked teaser, not all ten nights');
+      await g.locator('[data-part="apps"] [data-part="app"]').first().click();
+      await g.locator('[data-element="wordle"]').waitFor();
+      for (const c of 'LIGHT') await g.locator(`[data-part="key"][data-key="${c}"]`).click();
+      await g.locator('[data-part="key"][data-key="Enter"]').click();
+      await page.locator('[data-part="dialog"]').waitFor();
+      check(/night 1/i.test(await page.locator('[data-part="dialog-title"]').innerText()), "the night's story card appears");
+      await page.locator('[data-part="dialog-button"]').click();
+      await page.waitForFunction(() => document.querySelectorAll('#gift-root [data-part="sheet"]').length <= 1);
+      check((await g.locator('[data-part="apps"] [data-part="app"]').count()) === 3, 'finishing a night shows the next night in the hub');
+      await g.locator('[data-part="sheet-close"]').click();
+      await g.locator('[data-part="sheet"]').waitFor({ state: 'detached' });
+      check(await visible('board'), 'night one adds one new thing to the room (the board)');
+      check(!(await visible('light')) && !(await visible('pet')), 'and only one');
+      check((await g.locator('[data-part="board"]').getAttribute('data-hint')) === 'new', 'the new thing glows until it is touched');
+      await g.locator('[data-part="board"]').click();
+      await g.locator('[data-part="sheet-close"]').last().click();
+      await g.locator('[data-part="sheet"]').waitFor({ state: 'detached' });
+      check((await g.locator('[data-part="board"]').getAttribute('data-hint')) === null, 'touching it stops the glow');
+      check(problems.length === 0, `no console errors in the reveal run ${problems.join(' | ')}`);
+      await ctx.close();
+    }
+
+    // ------------------------------------------------------ 5b. a gift can leave roles out
+    console.log(`
+[full gift] ${combo}, signature without a pet and a toy`);
+    {
+      const { ctx, page, problems } = await newPage(browser);
+      await page.goto(`${BASE}/playground/gift.html?tier=signature&unlock=1&exclude=pet,toy&${q}`);
+      const g = page.locator('#gift-root');
+      await g.locator('[data-part="hub"]').waitFor();
+      await page.locator('[data-part="dialog-button"]').click();
+      check((await g.locator('[data-part="pet"]').evaluate((el) => el.hidden)) && (await g.locator('[data-part="toy"]').evaluate((el) => el.hidden)), 'excluded roles (pet, toy) are left out of the room');
+      check(!(await g.locator('[data-part="app-music"]').evaluate((el) => el.hidden)), 'the roles that were not excluded are still there');
+      check(problems.length === 0, `no console errors in the excluded-roles run ${problems.join(' | ')}`);
+      await ctx.close();
+    }
+
+    // ------------------------------------------------------ 6. portrait: ask to turn the phone
+    console.log(`\n[full gift] ${combo}, portrait phone`);
+    {
+      const { ctx, page, problems } = await newPage(browser, { width: 390, height: 844 });
+      await page.goto(`${BASE}/playground/gift.html?tier=countdown&${q}`);
+      await page.locator('[data-part="rotate-hint"]').waitFor({ state: 'visible' });
+      check(/sideways/i.test(await page.locator('[data-part="rotate-hint"]').innerText()), 'a portrait phone is asked to turn sideways');
+      check(problems.length === 0, `no console errors in the portrait run ${problems.join(' | ')}`);
+      await ctx.close();
+    }
+  }
+
+  // ---------------------------------------------------------- 7. every finale variant plays to its end (desk x nightsky)
+  console.log('\n[finale] every ending style, played to the end');
+  for (const variant of ['scroll', 'envelope', 'slideshow', 'cake']) {
+    const { ctx, page, problems } = await newPage(browser);
+    await page.goto(`${BASE}/playground/gift.html?tier=spark&theme=desk&skin=nightsky&finale=${variant}`);
+    await page.locator('[data-part="hero"]').waitFor();
+    await page.locator('[data-part="hero"]').tap();
+    const reveal = page.locator(`[data-element="reveal"][data-variant="${variant}"]`);
+    await reveal.waitFor();
+    if (variant === 'envelope') {
+      await page.locator('[data-part="env-envelope"]').click();
+      await page.locator('[data-part="env-card"][data-state="out"]').waitFor();
+      for (let i = 0; i < 6 && (await page.locator('[data-part="env-next"]').isVisible()); i++) { await page.locator('[data-part="env-next"]').click(); await page.waitForTimeout(300); }
+      await page.locator('[data-part="env-photos"][data-state="visible"]').waitFor();
+    } else if (variant === 'slideshow') {
+      await page.locator('[data-part="film-stage"] > [data-part="skip"]').click();
+    } else if (variant === 'cake') {
+      await page.locator('[data-part="cake-blow"]').click();
+      await page.locator('[data-part="cake-after"][data-state="visible"]').waitFor({ timeout: 6000 });
+    }
+    await page.locator('[data-part="restart"]:not([hidden])').waitFor({ timeout: 8000 });
+    const text = await reveal.innerText();
+    check(/for you, aria/i.test(text) && /dear aria/i.test(text), `${variant}: the headline and the letter are shown`);
+    check(!(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)), `${variant}: no sideways scroll`);
+    check(problems.length === 0, `${variant}: no console errors ${problems.join(' | ')}`);
+    await ctx.close();
   }
 } finally {
   await browser.close();

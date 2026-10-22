@@ -51,6 +51,12 @@
 /* The optional note above a day's game stays slim: two lines on a phone, one when the screen is short. */
 [data-part="day-note"] { flex: none; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; line-height: 1.3; font-size: 0.85rem; }
 @media (max-height: 500px) { [data-part="day-note"] { -webkit-line-clamp: 1; } }
+/* Short landscape phones (under ~420px tall): the header is just the 44px close button, the title shrinks, nothing else spare. */
+@media (orientation: landscape) and (max-height: 420px) {
+  [data-part="sheet-header"] { padding-top: env(safe-area-inset-top); padding-bottom: 0; padding-left: 14px; }
+  [data-part="sheet-title"] { font-size: 0.95rem; }
+  [data-part="day-note"] { font-size: 0.78rem; line-height: 1.2; }
+}
 /* Desktop and tablet: a centered card. Short wide screens (landscape phones) stay full-screen so no height is wasted. */
 @media (min-width: 720px) and (min-height: 560px) {
   [data-part="sheet-backdrop"]:has([data-part="sheet"]) { align-items: center; padding: 24px; }
@@ -64,7 +70,8 @@
 
 /* ---- dialogs (structure + default paint) ---- */
 [data-part="dialog-backdrop"] { position: fixed; inset: 0; z-index: 1000; display: grid; place-items: center; padding: 16px; }
-[data-part="dialog"] { width: min(92vw, 380px); padding: 20px; display: grid; gap: 12px; }
+[data-part="dialog"] { width: min(92vw, 380px); max-height: calc(100dvh - 32px); overflow-y: auto; padding: 20px; display: grid; gap: 12px; }
+[data-part="dialog-message"] { white-space: pre-line; }
 [data-part="dialog-actions"] { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
 :where([data-part="dialog-backdrop"]) { background: rgba(0, 0, 0, 0.6); }
 :where([data-part="dialog"]) { background: var(--gk-surface); border: 1px solid var(--gk-border); border-radius: var(--gk-radius-l); box-shadow: var(--gk-shadow-2); }
@@ -84,4 +91,14 @@
 @media (prefers-reduced-motion: reduce) {
   [data-theme] *, [data-theme] *::before, [data-theme] *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; scroll-behavior: auto !important; }
   [data-part="particle"] { display: none; }
+}
+
+/* ---- hub sheet on short landscape phones: the day icons scroll in their own area and the taskbar stays in view.
+   (The hub's structure lives in world.css; this sits here with the other sheet chrome and out-ranks it on specificity.) */
+@media (orientation: landscape) and (max-height: 500px) {
+  [data-part="sheet"] [data-part="sheet-body"] > [data-part="desktop"] { height: 100%; min-height: 0; padding: 8px 12px; gap: 6px; box-sizing: border-box; }
+  [data-part="sheet"] [data-part="desktop"] [data-part="apps"] { flex: 1 1 0; min-height: 0; overflow-y: auto; overscroll-behavior: contain; gap: 6px 8px; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); }
+  [data-part="sheet"] [data-part="desktop"] [data-part="app"] { min-height: 72px; padding: 4px; }
+  [data-part="sheet"] [data-part="desktop"] [data-part="taskbar"] { flex: none; padding: 4px 10px; }
+  [data-part="sheet"] [data-part="desktop"] [data-part="taskbar"] [data-part="app"] { min-height: 64px; }
 }

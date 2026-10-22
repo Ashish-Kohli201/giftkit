@@ -2,7 +2,7 @@
 //   node scripts/check.mjs                 -> check every element, every skin (skins/skins.json) and every theme (themes/themes.json)
 //   node scripts/check.mjs skin nightsky   -> one skin   |   theme desk -> one theme   |   element wordle -> one element
 // Exit code 1 on any ERROR. Warnings (WARN) never fail the run.
-import { readFile } from 'node:fs/promises';
+import { readFile, readdir } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { join } from 'node:path';
@@ -40,7 +40,14 @@ async function checkElement(id, el) {
   const srcPath = join(dir, 'index.js');
   if (!existsSync(cssPath)) { err(s, 'style.css missing'); return; }
   const css = stripComments(await readFile(cssPath, 'utf8'));
-  const src = await readFile(srcPath, 'utf8');
+  // an element may split its code into files next to index.js (e.g. variants/*.js): every one is held to the same rules
+  let src = await readFile(srcPath, 'utf8');
+  for (const sub of ['.', 'variants']) {
+    const folder = join(dir, sub);
+    if (!existsSync(folder)) continue;
+    for (const f of await readdir(folder)) if (f.endsWith('.js') && !(sub === '.' && f === 'index.js')) src += `
+${await readFile(join(folder, f), 'utf8')}`;
+  }
 
   // every declared part must exist in style.css (structure or default paint) -> every element has a fallback look
   for (const p of el.parts || []) if (!css.includes(`data-part="${p}"`)) err(s, `style.css has no rule for part "${p}"`);

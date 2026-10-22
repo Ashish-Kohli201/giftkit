@@ -213,3 +213,51 @@
 [data-skin="nightsky"] [data-element="gallery"] [data-part="thumb-photo"] { filter: saturate(1.05) contrast(1.02); }
 [data-skin="nightsky"] [data-element="notes"] [data-part="note-row-title"] { letter-spacing: 0.01em; }
 [data-skin="nightsky"] [data-element="notes"] [data-part="note-row-date"] { font-style: italic; }
+
+/* ---------- reveal variants: envelope, memory film, cake ---------- */
+/* envelope: a starry night-blue envelope with a gold wax seal */
+[data-skin="nightsky"] [data-element="reveal"] [data-part="env-back"] { background: radial-gradient(1.5px 1.5px at 20% 30%, #fff 50%, transparent 55%), radial-gradient(1px 1px at 70% 60%, #cfd6ff 50%, transparent 55%), linear-gradient(160deg, #1d2563, #0e1434); border: 2px solid #3a4590; border-radius: 12px; box-shadow: var(--gk-shadow-2), 0 0 40px rgba(120, 140, 255, 0.25); }
+[data-skin="nightsky"] [data-element="reveal"] [data-part="env-pocket"] { background: linear-gradient(160deg, #26308a, #151c50); border-radius: 12px; filter: drop-shadow(0 -2px 6px rgba(0, 0, 8, 0.5)); }
+[data-skin="nightsky"] [data-element="reveal"] [data-part="env-flap"] { background: linear-gradient(180deg, #34409f, #1f2868); }
+[data-skin="nightsky"] [data-element="reveal"] [data-part="env-seal"] { background: radial-gradient(circle at 35% 30%, #ffeab0, #ffd479 50%, #c99a3a); box-shadow: 0 4px 10px rgba(0, 0, 8, 0.55), inset 0 -3px 5px rgba(120, 80, 10, 0.35); display: grid; place-items: center; }
+[data-skin="nightsky"] [data-element="reveal"] [data-part="env-seal"]::after { content: "\2726"; color: #7a5a12; font-size: clamp(0.9rem, 6cqh, 1.8rem); text-shadow: 0 1px 0 rgba(255, 255, 255, 0.4); }
+[data-skin="nightsky"] [data-element="reveal"] [data-part="env-address"] { color: #ffe9b0; font-style: italic; text-shadow: 0 0 14px rgba(255, 212, 121, 0.45); }
+[data-skin="nightsky"] [data-element="reveal"] [data-part="env-hint"] { font-style: italic; letter-spacing: 0.03em; animation: nightsky-env-hint 2.6s ease-in-out infinite; }
+[data-skin="nightsky"] [data-element="reveal"] [data-part="env-card"] { background: linear-gradient(180deg, #171f5a, #0e1434); border: 1px solid #4a56ad; border-radius: 16px; box-shadow: var(--gk-shadow-2), var(--gk-glow); }
+[data-skin="nightsky"] [data-element="reveal"] [data-part="env-next"] { border-radius: 999px; padding: 0 22px; }
+[data-skin="nightsky"] [data-element="reveal"] [data-part="env-polaroid"] { background: #f7f4ee; color: #2a2347; border-radius: 3px; box-shadow: var(--gk-shadow-1), 0 0 24px rgba(255, 212, 121, 0.14); }
+[data-skin="nightsky"] [data-element="reveal"] [data-part="env-caption"] { font-style: italic; color: #3a2a6a; }
+@keyframes nightsky-env-hint { 50% { opacity: 0.45; } }
+
+/* memory film: a night-blue frame with a soft vignette and star-gold progress */
+[data-skin="nightsky"] [data-element="reveal"] [data-part="film-slide"] { background: #070b1f; box-shadow: inset 0 0 12cqw rgba(7, 11, 31, 0.85); }
+[data-skin="nightsky"] [data-element="reveal"] [data-part="film-caption"] { font-style: italic; text-shadow: 0 1px 8px #000; background: linear-gradient(transparent, rgba(7, 11, 31, 0.85)); }
+[data-skin="nightsky"] [data-element="reveal"] [data-part="film-dim"] { background: radial-gradient(90% 90% at 50% 50%, rgba(7, 11, 31, 0.7), rgba(7, 11, 31, 0.92)); }
+[data-skin="nightsky"] [data-element="reveal"] [data-part="film-tick"] { background: rgba(255, 255, 255, 0.22); }
+[data-skin="nightsky"] [data-element="reveal"] [data-part="film-tick"][data-state="past"] { background: rgba(255, 212, 121, 0.55); }
+[data-skin="nightsky"] [data-element="reveal"] [data-part="film-tick"][data-state="current"] { background: var(--gk-accent); box-shadow: 0 0 8px rgba(255, 212, 121, 0.7); }
+[data-skin="nightsky"] [data-element="reveal"] [data-part="film-prev"],
+[data-skin="nightsky"] [data-element="reveal"] [data-part="film-pause"],
+[data-skin="nightsky"] [data-element="reveal"] [data-part="film-next"] { background: rgba(20, 27, 69, 0.8); border-color: #3a4590; backdrop-filter: blur(4px); }
+
+/* cake: a rose-and-cream cake lit by little gold stars */
+[data-skin="nightsky"] [data-element="reveal"] [data-part="cake-cake"] { filter: drop-shadow(0 12px 18px rgba(0, 0, 8, 0.55)); }
+[data-skin="nightsky"] [data-element="reveal"] [data-part="cake-tier"] { background: linear-gradient(180deg, #ffe3ec, #f4b6cc); border: 0; border-radius: 10px 10px 6px 6px; box-shadow: inset 0 -6px 0 rgba(180, 90, 130, 0.25); }
+[data-skin="nightsky"] [data-element="reveal"] [data-part="cake-tier"][data-level="top"] { background: linear-gradient(180deg, #fff3f6, #ffd0df); }
+[data-skin="nightsky"] [data-element="reveal"] [data-part="cake-icing"] { background: repeating-radial-gradient(circle at 10% 0, #fff 0 14%, transparent 15% 100%) 0 0 / 14% 100%, #fff; height: calc(var(--u) * 1.2); border-radius: 999px; }
+[data-skin="nightsky"] [data-element="reveal"] [data-part="cake-candle"]::before { background: linear-gradient(90deg, #e6edff, #9fb0ff); border-radius: 2px; }
+[data-skin="nightsky"] [data-element="reveal"] [data-part="cake-flame"] { width: calc(var(--u) * 3); height: calc(var(--u) * 3); top: calc(var(--u) * 0.1); background: radial-gradient(circle, #fffbe0, #ffd479 55%, #e0a63a); clip-path: polygon(50% 0, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); border-radius: 0; animation: nightsky-star-twinkle 1.1s ease-in-out infinite alternate; }
+[data-skin="nightsky"] [data-element="reveal"] [data-part="cake-blow"] { border-radius: 999px; padding: 0 26px; box-shadow: var(--gk-glow); }
+[data-skin="nightsky"] [data-element="reveal"] [data-part="cake-hint"] { font-style: italic; color: #ffe9b0; text-shadow: 0 0 14px rgba(255, 212, 121, 0.4); }
+[data-skin="nightsky"] [data-element="reveal"] [data-part="cake-bit"] { border-radius: 2px; background: var(--gk-accent); }
+[data-skin="nightsky"] [data-element="reveal"] [data-part="cake-bit"][style*="--k:1"] { background: #fff; }
+[data-skin="nightsky"] [data-element="reveal"] [data-part="cake-bit"][style*="--k:2"] { background: #b9c4ff; }
+[data-skin="nightsky"] [data-element="reveal"] [data-part="cake-bit"][style*="--k:3"] { background: #ffb7d5; }
+[data-skin="nightsky"] [data-element="reveal"] [data-part="cake-bit"][style*="--k:4"] { background: #7cf0c0; }
+@keyframes nightsky-star-twinkle { from { transform: translateX(-50%) scale(1) rotate(-4deg); } to { transform: translateX(-50%) scale(1.12) rotate(4deg); } }
+
+@media (prefers-reduced-motion: reduce) {
+  [data-skin="nightsky"] [data-element="reveal"] [data-part="env-hint"],
+  [data-skin="nightsky"] [data-element="reveal"] [data-part="cake-flame"] { animation: none !important; }
+}
+[data-skin="nightsky"] [data-element="reveal"] [data-part="env-envelope"] { filter: drop-shadow(0 0 18px rgba(120, 140, 255, 0.3)); }

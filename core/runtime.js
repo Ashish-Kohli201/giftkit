@@ -9,7 +9,7 @@ import { createStore } from './store.js';
 import { createResolver } from './resolver.js';
 import { assignFragments, deriveCode } from './fragments.js';
 import { itemStatus, todayIn, formatDate } from './schedule.js';
-import { part, seededRandom } from './util.js';
+import { part, seededRandom, template } from './util.js';
 
 /**
  * @param opts.root       element that will get data-theme + data-skin and host the gift
@@ -17,9 +17,10 @@ import { part, seededRandom } from './util.js';
  * @param opts.config     gift config (see sample/config.json)
  * @param opts.preview    true = placeholder assets + no persistence
  * @param opts.unlockAll  ignore the schedule (preview scrubber)
+ * @param opts.finishedDays preview only: pretend the first N days are done
  * @param opts.now        () => Date, so tests/demos can fake "today"
  */
-export async function startGift({ root, config, themeId = config.meta.theme, skinId = config.meta.skin, base, preview = false, unlockAll = false, now = () => new Date() }) {
+export async function startGift({ root, config, themeId = config.meta.theme, skinId = config.meta.skin, base, preview = false, unlockAll = false, finishedDays = 0, now = () => new Date() }) {
   const store = createStore(config.meta.giftId, { persist: !preview });
   const theme = await loadTheme(themeId, { skinId, root, store });
   const assets = createResolver({ assets: config.assets, base, placeholders: preview });
@@ -33,6 +34,8 @@ export async function startGift({ root, config, themeId = config.meta.theme, ski
   // finale.type "vault" (default) gates the reveal behind the fragment code; "reveal" opens it directly (small tiers).
   const useVault = (config.finale?.type ?? 'vault') === 'vault';
   let done = store.get('done', {});
+  // preview only: start as if the first N days were already finished (to review how the room looks on night N+1)
+  if (preview && finishedDays > 0) done = Object.fromEntries(days.slice(0, finishedDays).map((d) => [d.day, true]));
   const flags = () => days.map((d) => !!done[d.day]);
   const collected = () => days.map((d, i) => (done[d.day] ? fragments[i] : null));
 
@@ -70,6 +73,10 @@ export async function startGift({ root, config, themeId = config.meta.theme, ski
     copy: theme.shellCopy,
     tier: config.meta.tier,
     vars,
+    // Signature reveals the room day by day (config roles.progressive: false turns it off); roles can be left out or re-timed
+    progressive: !unlockAll && config.roles?.progressive !== false,
+    roleConfig: config.roles ?? {},
+    store: store.scope('world'),
   });
   const refresh = () => { shell.setItems(buildItems()); shell.setFragments({ collected: collected(), total: useVault ? days.length : 0 }); };
   refresh();
@@ -98,10 +105,12 @@ export async function startGift({ root, config, themeId = config.meta.theme, ski
           refresh();
           theme.fx.unlock();
           await new Promise((r) => setTimeout(r, 900));
-          if (useVault) {
+          // the day's story beat (what happened that night), then, if there is a vault, the little note that slipped out
+          const note = useVault ? theme.shellCopy('fragmentFound', { fragment: fragments[days.indexOf(day)] }) : '';
+          if (day.story || note) {
             await theme.dialogs.alert({
-              title: theme.shellCopy('fragmentTitle'),
-              message: theme.shellCopy('fragmentFound', { fragment: fragments[days.indexOf(day)] }),
+              title: day.story?.title ? template(day.story.title, vars) : theme.shellCopy('fragmentTitle'),
+              message: [day.story?.text, note].filter(Boolean).join('\n\n'),
             });
           }
           sheet.close();
@@ -114,7 +123,7 @@ export async function startGift({ root, config, themeId = config.meta.theme, ski
     const fin = shell.presentFinale({ title: 'Finale' });
     try {
       theme.fx.reveal();
-      await open(fin, 'reveal', { blocks: config.finale.reveal }, { onExit: () => fin.close() }, 'finale');
+      await open(fin, 'reveal', { blocks: config.finale.reveal, ...(config.finale.variant ? { variant: config.finale.variant } : {}) }, { onExit: () => fin.close() }, 'finale');
     } catch (e) { fin.close(); fail(e); }
   }
 
@@ -161,6 +170,12 @@ export async function startGift({ root, config, themeId = config.meta.theme, ski
     if (id === 'finale') return runFinale();
     return runDay(days.find((d) => `day-${d.day}` === id));
   });
+
+  // The story's first line, shown once per gift: it frames what the recipient is about to discover, in the sender's words.
+  if (config.story?.intro && !store.get('introSeen', false)) {
+    store.set('introSeen', true);
+    theme.dialogs.alert({ title: template(config.story.intro.title, vars), message: template(config.story.intro.text, vars) });
+  }
 
   return {
     theme, shell, code, fragments,

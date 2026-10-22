@@ -92,4 +92,13 @@ test('placeholder audio: valid mono 16-bit WAV, about 10s, deterministic per slo
   n++; console.log('  ok  resolver: audio placeholders only in preview, real files and images unchanged');
 }
 
+test('reveal: every finale variant validates, a bad variant or candle count is rejected', () => {
+  const { paramsSchema, placeholderParams } = registry.reveal;
+  for (const variant of ['scroll', 'envelope', 'slideshow', 'cake']) assert.deepEqual(validate(paramsSchema, { ...placeholderParams, variant }), [], variant);
+  assert.ok(validate(paramsSchema, { ...placeholderParams, variant: 'confetti' }).length > 0);
+  assert.ok(validate(paramsSchema, { ...placeholderParams, variant: 'cake', candles: 12 }).length > 0);
+  assert.ok(validate(paramsSchema, { ...placeholderParams, variant: 'slideshow', slideMs: 500 }).length > 0);
+  assert.deepEqual(validate(paramsSchema, { ...placeholderParams, variant: 'cake', candles: 7 }), []);
+});
+
 console.log(`\n${n} tests passed`);

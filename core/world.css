@@ -115,3 +115,20 @@
 :where([data-theme] [data-part="app"][data-status="done"] [data-part="app-glyph"]) { background: var(--gk-accent); color: var(--gk-accent-text); }
 :where([data-theme] [data-part="app"][data-status="locked"] [data-part="app-glyph"]) { opacity: 0.45; }
 :where([data-theme] [data-part="taskbar"]) { border: 2px solid var(--gk-border); border-radius: var(--gk-radius-l); background: var(--gk-surface); }
+
+/* ================================================================== NEW THINGS ANNOUNCE THEMSELVES (default paint; skins may restyle) */
+/* a role that appears after a finished day pops in, and keeps a soft glow until the recipient touches it */
+@keyframes gk-pop-in { 0% { opacity: 0; transform: scale(0.6); } 60% { transform: scale(1.12); } 100% { opacity: 1; transform: none; } }
+@keyframes gk-new-glow { 50% { filter: drop-shadow(0 0 0.9cqw var(--gk-accent)) brightness(1.15); } }
+[data-theme] [data-part="room-stage"] [data-reveal="in"] { animation: gk-pop-in 0.9s var(--gk-ease) both; }
+[data-theme] [data-part="room-stage"] [data-hint="new"] { animation: gk-new-glow 2.2s ease-in-out infinite; }
+[data-theme] [data-part="room-stage"] [data-reveal="in"][data-hint="new"] { animation: gk-pop-in 0.9s var(--gk-ease) both, gk-new-glow 2.2s ease-in-out 0.9s infinite; }
+
+/* ================================================================== LANDSCAPE ONLY: ask to turn the phone */
+[data-theme] [data-part="rotate-hint"] { display: none; position: fixed; inset: 0; z-index: 2000; place-items: center; align-content: center; gap: 24px; padding: 24px; text-align: center; }
+@media (orientation: portrait) { [data-theme] [data-part="rotate-hint"] { display: grid; } }
+[data-theme] [data-part="rotate-icon"] { display: block; width: 56px; height: 96px; border: 4px solid currentColor; border-radius: 10px; animation: gk-rotate 2.4s ease-in-out infinite; }
+[data-theme] [data-part="rotate-icon"]::after { content: ""; display: block; width: 14px; height: 4px; margin: 8px auto 0; border-radius: 2px; background: currentColor; opacity: 0.6; }
+@keyframes gk-rotate { 0%, 20% { transform: rotate(0deg); } 60%, 100% { transform: rotate(-90deg); } }
+@media (prefers-reduced-motion: reduce) { [data-theme] [data-part="rotate-icon"] { animation: none; transform: rotate(-90deg); } }
+:where([data-theme] [data-part="rotate-hint"]) { background: var(--gk-bg); color: var(--gk-text); font-family: var(--gk-font-display); font-size: 1.1rem; line-height: 1.4; }

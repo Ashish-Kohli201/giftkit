@@ -371,3 +371,53 @@
   [data-skin="arcade"] [data-element="music"] [data-part="player"][data-state="playing"] [data-part="cover"],
   [data-skin="arcade"] [data-element="notes"] [data-part="note-dot"] { animation: none !important; }
 }
+
+/* ---------- reveal variants: envelope, memory film, cake (neon pixel) ---------- */
+/* envelope: a chunky pixel envelope with hard shadows and a coin for a seal */
+[data-skin="arcade"] [data-element="reveal"] [data-part="env-back"] { background: repeating-linear-gradient(90deg, #2b1766 0 8%, #321a78 8% 16%); border: 3px solid #000; border-radius: 0; box-shadow: 6px 6px 0 #000, 0 0 0 3px #4df3ff; }
+[data-skin="arcade"] [data-element="reveal"] [data-part="env-pocket"] { background: #3a1f86; border-radius: 0; filter: drop-shadow(0 -3px 0 #000); }
+[data-skin="arcade"] [data-element="reveal"] [data-part="env-flap"] { background: #ff4fb0; filter: drop-shadow(0 3px 0 #000); }
+[data-skin="arcade"] [data-element="reveal"] [data-part="env-seal"] { background: #ffd447; border: 3px solid #000; border-radius: 0; box-shadow: 3px 3px 0 #000; display: grid; place-items: center; }
+[data-skin="arcade"] [data-element="reveal"] [data-part="env-seal"]::after { content: "\2665"; color: #ff4fb0; font-size: clamp(0.8rem, 6cqh, 1.6rem); }
+[data-skin="arcade"] [data-element="reveal"] [data-part="env-address"] { color: #f6f2ff; font-family: var(--gk-font-mono); font-weight: 700; text-transform: uppercase; letter-spacing: 0.14em; text-shadow: 2px 2px 0 #000; }
+[data-skin="arcade"] [data-element="reveal"] [data-part="env-hint"] { font-family: var(--gk-font-mono); text-transform: uppercase; letter-spacing: 0.16em; color: #4df3ff; animation: arcade-env-blink 1s steps(1) infinite; }
+[data-skin="arcade"] [data-element="reveal"] [data-part="env-card"] { background: #14082e; border: 3px solid #4df3ff; border-radius: 0; box-shadow: 6px 6px 0 #000, 0 0 24px rgba(77, 243, 255, 0.35); font-family: var(--gk-font-mono); }
+[data-skin="arcade"] [data-element="reveal"] [data-part="env-card"]::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: repeating-linear-gradient(180deg, rgba(0, 0, 0, 0.28) 0 1px, transparent 1px 3px); }
+[data-skin="arcade"] [data-element="reveal"] [data-part="env-next"] { background: #ffd447; color: #1a0420; border: 3px solid #000; border-radius: 0; box-shadow: 3px 3px 0 #000; font-family: var(--gk-font-mono); font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; }
+[data-skin="arcade"] [data-element="reveal"] [data-part="env-polaroid"] { background: #f6f2ff; color: #14082e; border: 3px solid #000; border-radius: 0; box-shadow: 4px 4px 0 #000; }
+[data-skin="arcade"] [data-element="reveal"] [data-part="env-caption"] { font-family: var(--gk-font-mono); font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; }
+@keyframes arcade-env-blink { 50% { opacity: 0; } }
+
+/* memory film: a CRT with scanlines, neon progress blocks and square buttons */
+[data-skin="arcade"] [data-element="reveal"] [data-part="film-slide"] { background: #04121a; filter: saturate(1.2) contrast(1.08); }
+[data-skin="arcade"] [data-element="reveal"] [data-part="film-slide"]::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: repeating-linear-gradient(180deg, rgba(0, 0, 0, 0.3) 0 1px, transparent 1px 3px); }
+[data-skin="arcade"] [data-element="reveal"] [data-part="film-caption"] { font-family: var(--gk-font-mono); font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #4df3ff; text-shadow: 2px 2px 0 #000; background: linear-gradient(transparent, rgba(5, 2, 20, 0.85)); z-index: 1; }
+[data-skin="arcade"] [data-element="reveal"] [data-part="film-dim"] { background: rgba(5, 2, 20, 0.82); }
+[data-skin="arcade"] [data-element="reveal"] [data-part="film-tick"] { height: 6px; background: #2b1766; border: 1px solid #000; border-radius: 0; }
+[data-skin="arcade"] [data-element="reveal"] [data-part="film-tick"][data-state="past"] { background: #ff4fb0; }
+[data-skin="arcade"] [data-element="reveal"] [data-part="film-tick"][data-state="current"] { background: #4df3ff; box-shadow: 0 0 6px #4df3ff; }
+[data-skin="arcade"] [data-element="reveal"] [data-part="film-prev"],
+[data-skin="arcade"] [data-element="reveal"] [data-part="film-pause"],
+[data-skin="arcade"] [data-element="reveal"] [data-part="film-next"] { background: #1d0f45; border: 3px solid #000; border-radius: 0; box-shadow: 3px 3px 0 #000, 0 0 0 2px #4df3ff; color: #f6f2ff; }
+
+/* cake: a blocky pixel cake with blinking pixel flames */
+[data-skin="arcade"] [data-element="reveal"] [data-part="cake-cake"] { filter: drop-shadow(5px 5px 0 #000); }
+[data-skin="arcade"] [data-element="reveal"] [data-part="cake-tier"] { background: repeating-linear-gradient(90deg, #ff4fb0 0 10%, #ff8ac8 10% 20%); border: 3px solid #000; border-radius: 0; }
+[data-skin="arcade"] [data-element="reveal"] [data-part="cake-tier"][data-level="top"] { background: repeating-linear-gradient(90deg, #4df3ff 0 12%, #9bf8ff 12% 24%); }
+[data-skin="arcade"] [data-element="reveal"] [data-part="cake-icing"] { background: linear-gradient(180deg, #f6f2ff 0 70%, transparent 70%), repeating-linear-gradient(90deg, #f6f2ff 0 8%, transparent 8% 16%) 0 100% / 100% 30% no-repeat; border-radius: 0; height: calc(var(--u) * 2); }
+[data-skin="arcade"] [data-element="reveal"] [data-part="cake-candle"]::before { background: #ffd447; border: 2px solid #000; border-radius: 0; }
+[data-skin="arcade"] [data-element="reveal"] [data-part="cake-flame"] { background: linear-gradient(180deg, #fff6c8 0 40%, #ffb62e 40% 75%, #ff4fb0 75%); clip-path: polygon(30% 100%, 30% 55%, 15% 45%, 45% 0, 55% 30%, 85% 50%, 70% 60%, 70% 100%); border-radius: 0; animation: arcade-flame 0.5s steps(2) infinite; }
+[data-skin="arcade"] [data-element="reveal"] [data-part="cake-blow"] { border: 3px solid #000; border-radius: 0; box-shadow: 4px 4px 0 #000; font-family: var(--gk-font-mono); font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; }
+[data-skin="arcade"] [data-element="reveal"] [data-part="cake-hint"] { font-family: var(--gk-font-mono); text-transform: uppercase; letter-spacing: 0.14em; color: #4df3ff; text-shadow: 2px 2px 0 #000; }
+[data-skin="arcade"] [data-element="reveal"] [data-part="cake-bit"] { border-radius: 0; width: 1.6cqw; height: 1.6cqw; background: #ff4fb0; }
+[data-skin="arcade"] [data-element="reveal"] [data-part="cake-bit"][style*="--k:1"] { background: #4df3ff; }
+[data-skin="arcade"] [data-element="reveal"] [data-part="cake-bit"][style*="--k:2"] { background: #ffd447; }
+[data-skin="arcade"] [data-element="reveal"] [data-part="cake-bit"][style*="--k:3"] { background: #3dffa0; }
+[data-skin="arcade"] [data-element="reveal"] [data-part="cake-bit"][style*="--k:4"] { background: #f6f2ff; }
+@keyframes arcade-flame { 50% { transform: translateX(-50%) scale(1.1, 0.9); } }
+
+@media (prefers-reduced-motion: reduce) {
+  [data-skin="arcade"] [data-element="reveal"] [data-part="env-hint"],
+  [data-skin="arcade"] [data-element="reveal"] [data-part="cake-flame"] { animation: none !important; }
+}
+[data-skin="arcade"] [data-element="reveal"] [data-part="env-envelope"]:focus-visible { outline: 3px solid #ffd447; outline-offset: 8px; }

@@ -51,3 +51,12 @@ themes x skins x tiers (2 x 2 x 3 = 12 today). Roles (`hub`, `vault`, `board`, .
 is the shared behavior, `core/world.css` the shared structure and token-driven default paint, `themes/<id>/layout.css`
 the geometry, `skins/<id>/paint-<theme>.css` + `decorate-<theme>.js` the art. Gift config: `meta: { theme, skin, tier }`.
 Next candidates: a concert theme; a third skin (green); a fourth tier.
+
+## Owner feedback after the first themes (the journey)
+- Tiers 1 and 2 are right as they are. Signature was a mess: every object on screen at once, no guiding spirit, no story.
+- Fixes: progressive reveal (the room grows one thing per finished night), a story beat per night plus a one-time intro,
+  the hub shows only tonight and one teaser, and a gentle glow marks whatever is new. See docs/WORLD_CONTRACT.md ("The journey").
+- Gifts are landscape only (rotate hint in portrait). Roles can be included or excluded per gift (`config.roles`).
+- Endings: the finale (`reveal`) has variants chosen with `finale.variant` (scroll, envelope, slideshow, cake).
+- Open question for the owner: the story text in sample/signature.json is placeholder; real gifts need the sender's own beats.
+

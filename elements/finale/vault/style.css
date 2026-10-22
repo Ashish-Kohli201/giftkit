@@ -26,5 +26,6 @@
 
 /* FIT, landscape phone: let the keypad run wider so it takes three short rows and the Open button stays on screen. */
 @media (orientation: landscape) and (max-height: 500px) {
-  [data-part="sheet-body"] > [data-element="vault"] { max-width: 760px; }
+  [data-part="sheet-body"] > [data-element="vault"] { max-width: 760px; gap: 5px; padding: 4px 12px; }
+  [data-part="sheet-body"] > [data-element="vault"] [data-part="message"] { min-height: 1.1em; font-size: 0.8rem; }
 }

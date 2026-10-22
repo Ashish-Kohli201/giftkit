@@ -8,97 +8,506 @@
     "locale": "en",
     "timezone": "Asia/Kolkata"
   },
-  "people": { "recipient": "Aria", "sender": "Sam" },
-  "assets": {
-    "photo_01": { "type": "image", "alt": "A placeholder memory" },
-    "photo_02": { "type": "image", "alt": "Another placeholder memory" },
-    "photo_03": { "type": "image", "alt": "A third placeholder memory" },
-    "photo_04": { "type": "image", "alt": "A fourth placeholder memory" },
-    "photo_05": { "type": "image", "alt": "A fifth placeholder memory" },
-    "photo_06": { "type": "image", "alt": "A sixth placeholder memory" },
-    "track_01": { "type": "audio", "alt": "First placeholder track" },
-    "track_02": { "type": "audio", "alt": "Second placeholder track" },
-    "track_03": { "type": "audio", "alt": "Third placeholder track" }
+  "people": {
+    "recipient": "Aria",
+    "sender": "Sam"
   },
-  "schedule": { "mode": "date", "startDate": "2026-12-01", "finaleDate": "2026-12-11" },
+  "assets": {
+    "photo_01": {
+      "type": "image",
+      "alt": "A placeholder memory"
+    },
+    "photo_02": {
+      "type": "image",
+      "alt": "Another placeholder memory"
+    },
+    "photo_03": {
+      "type": "image",
+      "alt": "A third placeholder memory"
+    },
+    "photo_04": {
+      "type": "image",
+      "alt": "A fourth placeholder memory"
+    },
+    "photo_05": {
+      "type": "image",
+      "alt": "A fifth placeholder memory"
+    },
+    "photo_06": {
+      "type": "image",
+      "alt": "A sixth placeholder memory"
+    },
+    "track_01": {
+      "type": "audio",
+      "alt": "First placeholder track"
+    },
+    "track_02": {
+      "type": "audio",
+      "alt": "Second placeholder track"
+    },
+    "track_03": {
+      "type": "audio",
+      "alt": "Third placeholder track"
+    }
+  },
+  "schedule": {
+    "mode": "date",
+    "startDate": "2026-12-01",
+    "finaleDate": "2026-12-11"
+  },
   "days": [
-    { "day": 1, "note": "Ten nights. One star each. Start gently.", "game": { "type": "wordle", "params": { "answer": "LIGHT", "maxGuesses": 5, "hint": "What stars give", "copy": { "win": "The first star is yours." } } } },
-    { "day": 2, "note": "Find the pairs.", "game": { "type": "memory", "params": { "pairs": 6 } } },
-    { "day": 3, "note": "Easy one. Mostly.", "game": { "type": "quiz", "params": { "mode": "quiz", "passMark": 0.6, "questions": [
-      { "q": "Which planet is closest to the Sun?", "options": ["Venus", "Mercury", "Mars"], "correct": 1 },
-      { "q": "How many moons does Earth have?", "options": ["None", "One", "Two", "Three"], "correct": 1 },
-      { "q": "A group of stars forming a picture is called a...", "options": ["Galaxy", "Comet", "Constellation"], "correct": 2 }
-    ] } } },
-    { "day": 4, "note": "The first clue is hiding somewhere you pass every day.", "game": { "type": "hunt", "params": { "hintAfter": 2, "clues": [
-      { "clue": "I am full of stories but never speak. Find me on a shelf.", "answer": "book", "answers": ["books"], "hint": "You read me.", "reveal": "Look inside it for the next clue." },
-      { "clue": "I count the hours without a face to smile.", "answer": "clock", "hint": "Tick tock.", "reveal": "Check behind it." },
-      { "clue": "Warm by day, a bedtime friend at night.", "answer": "blanket", "answers": ["blankets", "quilt"], "reveal": "Hug it. You are done." }
-    ] } } },
-    { "day": 5, "note": "Who is it more likely to be?", "game": { "type": "quiz", "params": { "mode": "whosaid", "passMark": 0, "questions": [
-      { "q": "Who is more likely to fall asleep during a movie?", "correct": null },
-      { "q": "Who said \"five more minutes\" first today?", "correct": null },
-      { "q": "Who is more likely to cry at a happy ending?", "correct": null },
-      { "q": "Who would pack the night before a trip?", "correct": null }
-    ] } } },
-    { "day": 6, "note": "A memory, cut into pieces. Put it back together.", "game": { "type": "jigsaw", "params": { "image": "@photo_03", "cols": 3, "rows": 3 } } },
-    { "day": 7, "note": "Do you remember how it all went?", "game": { "type": "timeline", "params": { "events": [
-      { "label": "The first message", "detail": "Nervous typing, many deleted drafts." },
-      { "label": "The first meeting", "detail": "Coffee that lasted four hours." },
-      { "label": "The first trip", "detail": "A wrong turn and the best view." },
-      { "label": "The first big laugh", "detail": "Still no one remembers why." },
-      { "label": "Today", "detail": "Right here, lighting a star." }
-    ] } } },
-    { "day": 8, "note": "Pairs again, with your faces this time.", "game": { "type": "memory", "params": { "pairs": 6, "faces": ["@photo_01", "@photo_02", "@photo_04", "@photo_05", "@photo_06", "@photo_03"], "flipBackMs": 1000 } } },
-    { "day": 9, "note": "One last word game before the end.", "game": { "type": "wordle", "params": { "answer": "{{recipient}}", "maxGuesses": 6, "hint": "It is someone you know well" } } },
-    { "day": 10, "note": "The last star. How well do you know us?", "game": { "type": "quiz", "params": { "mode": "quiz", "passMark": 0.5, "questions": [
-      { "q": "Which season do we both love most?", "options": ["Spring", "Summer", "Monsoon", "Winter"], "correct": 2 },
-      { "q": "Which of these is our usual order?", "options": ["Tea and toast", "Pasta", "Ice cream", "Noodles"], "correct": 0 },
-      { "q": "What do we do when we are lost?", "options": ["Argue", "Laugh", "Call someone", "Sit and wait"], "correct": 1 }
-    ] } } }
+    {
+      "day": 1,
+      "note": "Ten nights. One star each. Start gently.",
+      "game": {
+        "type": "wordle",
+        "params": {
+          "answer": "LIGHT",
+          "maxGuesses": 5,
+          "hint": "What stars give",
+          "copy": {
+            "win": "The first star is yours."
+          }
+        }
+      },
+      "story": {
+        "title": "Night 1 - The spark",
+        "text": "Do you remember the first time we properly talked? The whole room felt lit up. Something new has appeared. Have a look around."
+      }
+    },
+    {
+      "day": 2,
+      "note": "Find the pairs.",
+      "game": {
+        "type": "memory",
+        "params": {
+          "pairs": 6
+        }
+      },
+      "story": {
+        "title": "Night 2 - Two of a kind",
+        "text": "We always found each other, even in a crowd. The light is easier on the eyes tonight."
+      }
+    },
+    {
+      "day": 3,
+      "note": "Easy one. Mostly.",
+      "game": {
+        "type": "quiz",
+        "params": {
+          "mode": "quiz",
+          "passMark": 0.6,
+          "questions": [
+            {
+              "q": "Which planet is closest to the Sun?",
+              "options": [
+                "Venus",
+                "Mercury",
+                "Mars"
+              ],
+              "correct": 1
+            },
+            {
+              "q": "How many moons does Earth have?",
+              "options": [
+                "None",
+                "One",
+                "Two",
+                "Three"
+              ],
+              "correct": 1
+            },
+            {
+              "q": "A group of stars forming a picture is called a...",
+              "options": [
+                "Galaxy",
+                "Comet",
+                "Constellation"
+              ],
+              "correct": 2
+            }
+          ]
+        }
+      },
+      "story": {
+        "title": "Night 3 - Little promises",
+        "text": "I have been saving up small things I want to do for you. They are kept somewhere safe now."
+      }
+    },
+    {
+      "day": 4,
+      "note": "The first clue is hiding somewhere you pass every day.",
+      "game": {
+        "type": "hunt",
+        "params": {
+          "hintAfter": 2,
+          "clues": [
+            {
+              "clue": "I am full of stories but never speak. Find me on a shelf.",
+              "answer": "book",
+              "answers": [
+                "books"
+              ],
+              "hint": "You read me.",
+              "reveal": "Look inside it for the next clue."
+            },
+            {
+              "clue": "I count the hours without a face to smile.",
+              "answer": "clock",
+              "hint": "Tick tock.",
+              "reveal": "Check behind it."
+            },
+            {
+              "clue": "Warm by day, a bedtime friend at night.",
+              "answer": "blanket",
+              "answers": [
+                "blankets",
+                "quilt"
+              ],
+              "reveal": "Hug it. You are done."
+            }
+          ]
+        }
+      },
+      "story": {
+        "title": "Night 4 - Follow the trail",
+        "text": "Some of our best days started with a wrong turn. Listen closely, there is a sound in here now."
+      }
+    },
+    {
+      "day": 5,
+      "note": "Who is it more likely to be?",
+      "game": {
+        "type": "quiz",
+        "params": {
+          "mode": "whosaid",
+          "passMark": 0,
+          "questions": [
+            {
+              "q": "Who is more likely to fall asleep during a movie?",
+              "correct": null
+            },
+            {
+              "q": "Who said \"five more minutes\" first today?",
+              "correct": null
+            },
+            {
+              "q": "Who is more likely to cry at a happy ending?",
+              "correct": null
+            },
+            {
+              "q": "Who would pack the night before a trip?",
+              "correct": null
+            }
+          ]
+        }
+      },
+      "story": {
+        "title": "Night 5 - Who started it",
+        "text": "We will never agree on who started it. Someone has come to keep you company while we argue."
+      }
+    },
+    {
+      "day": 6,
+      "note": "A memory, cut into pieces. Put it back together.",
+      "game": {
+        "type": "jigsaw",
+        "params": {
+          "image": "@photo_03",
+          "cols": 3,
+          "rows": 3
+        }
+      },
+      "story": {
+        "title": "Night 6 - A picture comes together",
+        "text": "A day does not feel real until it is a photo. Pieces are falling into place."
+      }
+    },
+    {
+      "day": 7,
+      "note": "Do you remember how it all went?",
+      "game": {
+        "type": "timeline",
+        "params": {
+          "events": [
+            {
+              "label": "The first message",
+              "detail": "Nervous typing, many deleted drafts."
+            },
+            {
+              "label": "The first meeting",
+              "detail": "Coffee that lasted four hours."
+            },
+            {
+              "label": "The first trip",
+              "detail": "A wrong turn and the best view."
+            },
+            {
+              "label": "The first big laugh",
+              "detail": "Still no one remembers why."
+            },
+            {
+              "label": "Today",
+              "detail": "Right here, lighting a star."
+            }
+          ]
+        }
+      },
+      "story": {
+        "title": "Night 7 - How we got here",
+        "text": "Funny how every small moment led to this one. There is something to play with now."
+      }
+    },
+    {
+      "day": 8,
+      "note": "Pairs again, with your faces this time.",
+      "game": {
+        "type": "memory",
+        "params": {
+          "pairs": 6,
+          "faces": [
+            "@photo_01",
+            "@photo_02",
+            "@photo_04",
+            "@photo_05",
+            "@photo_06",
+            "@photo_03"
+          ],
+          "flipBackMs": 1000
+        }
+      },
+      "story": {
+        "title": "Night 8 - Faces",
+        "text": "I kept a few words for the nights when you need them. They are waiting where you can find them."
+      }
+    },
+    {
+      "day": 9,
+      "note": "One last word game before the end.",
+      "game": {
+        "type": "wordle",
+        "params": {
+          "answer": "{{recipient}}",
+          "maxGuesses": 6,
+          "hint": "It is someone you know well"
+        }
+      },
+      "story": {
+        "title": "Night 9 - One last word",
+        "text": "Almost there. The place feels warmer than it did on the first night."
+      }
+    },
+    {
+      "day": 10,
+      "note": "The last star. How well do you know us?",
+      "game": {
+        "type": "quiz",
+        "params": {
+          "mode": "quiz",
+          "passMark": 0.5,
+          "questions": [
+            {
+              "q": "Which season do we both love most?",
+              "options": [
+                "Spring",
+                "Summer",
+                "Monsoon",
+                "Winter"
+              ],
+              "correct": 2
+            },
+            {
+              "q": "Which of these is our usual order?",
+              "options": [
+                "Tea and toast",
+                "Pasta",
+                "Ice cream",
+                "Noodles"
+              ],
+              "correct": 0
+            },
+            {
+              "q": "What do we do when we are lost?",
+              "options": [
+                "Argue",
+                "Laugh",
+                "Call someone",
+                "Sit and wait"
+              ],
+              "correct": 1
+            }
+          ]
+        }
+      },
+      "story": {
+        "title": "Night 10 - Almost",
+        "text": "You found everything. One thing is still locked, and it has your name on it."
+      }
+    }
   ],
   "apps": {
-    "music": { "enabled": true, "tracks": [
-      { "title": "Slow Orbit", "artist": "Placeholder Band", "src": "@track_01" },
-      { "title": "Porch Light", "artist": "Placeholder Band", "src": "@track_02" },
-      { "title": "Small Hours", "artist": "Placeholder Band", "src": "@track_03" }
-    ] },
-    "gallery": { "enabled": true, "items": [
-      { "photo": "@photo_01", "caption": "The night we got lost" },
-      { "photo": "@photo_02", "caption": "Golden hour" },
-      { "photo": "@photo_03", "caption": "A slow Sunday" },
-      { "photo": "@photo_04", "caption": "Rainy day plans" },
-      { "photo": "@photo_05", "caption": "Just us" },
-      { "photo": "@photo_06", "caption": "Somewhere with a view" }
-    ] },
-    "notes": { "enabled": true, "items": [
-      { "title": "Open this first", "text": "Nothing fancy. Just a reminder that I think about you more than I say.", "date": "1 Dec" },
-      { "title": "Things I noticed", "text": "The way you hum when you think nobody is listening.\n\nThe tea that went cold because something more interesting came up.\n\nHow quiet the room gets when you laugh.", "date": "4 Dec" },
-      { "title": "A list for later", "text": "Stay up too late talking.\n\nTake the long way home.\n\nDo nothing together, on purpose." },
-      { "title": "Before the last night", "text": "If you are reading this, you made it through every day. I hope each one felt like a small surprise.", "date": "10 Dec" }
-    ] },
-    "coupons": { "enabled": true, "items": [
-      { "id": "c1", "title": "One slow dance", "detail": "Anytime, anywhere." },
-      { "id": "c2", "title": "Breakfast in bed", "detail": "Pancakes included." },
-      { "id": "c3", "title": "You pick the movie", "detail": "No complaints. Valid once." },
-      { "id": "c4", "title": "A day without chores", "detail": "Starts the moment you redeem it." },
-      { "id": "c5", "title": "One big hug, on demand", "detail": "No questions asked." }
-    ] }
+    "music": {
+      "enabled": true,
+      "tracks": [
+        {
+          "title": "Slow Orbit",
+          "artist": "Placeholder Band",
+          "src": "@track_01"
+        },
+        {
+          "title": "Porch Light",
+          "artist": "Placeholder Band",
+          "src": "@track_02"
+        },
+        {
+          "title": "Small Hours",
+          "artist": "Placeholder Band",
+          "src": "@track_03"
+        }
+      ]
+    },
+    "gallery": {
+      "enabled": true,
+      "items": [
+        {
+          "photo": "@photo_01",
+          "caption": "The night we got lost"
+        },
+        {
+          "photo": "@photo_02",
+          "caption": "Golden hour"
+        },
+        {
+          "photo": "@photo_03",
+          "caption": "A slow Sunday"
+        },
+        {
+          "photo": "@photo_04",
+          "caption": "Rainy day plans"
+        },
+        {
+          "photo": "@photo_05",
+          "caption": "Just us"
+        },
+        {
+          "photo": "@photo_06",
+          "caption": "Somewhere with a view"
+        }
+      ]
+    },
+    "notes": {
+      "enabled": true,
+      "items": [
+        {
+          "title": "Open this first",
+          "text": "Nothing fancy. Just a reminder that I think about you more than I say.",
+          "date": "1 Dec"
+        },
+        {
+          "title": "Things I noticed",
+          "text": "The way you hum when you think nobody is listening.\n\nThe tea that went cold because something more interesting came up.\n\nHow quiet the room gets when you laugh.",
+          "date": "4 Dec"
+        },
+        {
+          "title": "A list for later",
+          "text": "Stay up too late talking.\n\nTake the long way home.\n\nDo nothing together, on purpose."
+        },
+        {
+          "title": "Before the last night",
+          "text": "If you are reading this, you made it through every day. I hope each one felt like a small surprise.",
+          "date": "10 Dec"
+        }
+      ]
+    },
+    "coupons": {
+      "enabled": true,
+      "items": [
+        {
+          "id": "c1",
+          "title": "One slow dance",
+          "detail": "Anytime, anywhere."
+        },
+        {
+          "id": "c2",
+          "title": "Breakfast in bed",
+          "detail": "Pancakes included."
+        },
+        {
+          "id": "c3",
+          "title": "You pick the movie",
+          "detail": "No complaints. Valid once."
+        },
+        {
+          "id": "c4",
+          "title": "A day without chores",
+          "detail": "Starts the moment you redeem it."
+        },
+        {
+          "id": "c5",
+          "title": "One big hug, on demand",
+          "detail": "No questions asked."
+        }
+      ]
+    }
   },
   "scene": {
     "corkboard": [
-      { "photo": "@photo_01", "caption": "The night we got lost", "back": "Best wrong turn ever.", "tilt": -3 },
-      { "photo": "@photo_02", "caption": "Golden hour", "tilt": 2 },
-      { "photo": "@photo_04", "caption": "Rainy day plans", "back": "We never left the sofa.", "tilt": -2 },
-      { "photo": "@photo_05", "caption": "Just us", "tilt": 3 }
+      {
+        "photo": "@photo_01",
+        "caption": "The night we got lost",
+        "back": "Best wrong turn ever.",
+        "tilt": -3
+      },
+      {
+        "photo": "@photo_02",
+        "caption": "Golden hour",
+        "tilt": 2
+      },
+      {
+        "photo": "@photo_04",
+        "caption": "Rainy day plans",
+        "back": "We never left the sofa.",
+        "tilt": -2
+      },
+      {
+        "photo": "@photo_05",
+        "caption": "Just us",
+        "tilt": 3
+      }
     ]
   },
   "finale": {
     "type": "vault",
     "reveal": [
-      { "type": "headline", "text": "Happy Birthday, {{recipient}}!" },
-      { "type": "letter", "text": "Dear {{recipient}},\n\nThis is placeholder text for a long letter. In a real Signature gift, this is where your words go - the ones you have been saving up all year.\n\nTen days, ten stars, and every one of them was for you.\n\nLove,\n{{sender}}" },
-      { "type": "photos", "items": ["@photo_01", "@photo_02", "@photo_03", "@photo_04", "@photo_05", "@photo_06"] },
-      { "type": "headline", "text": "See you at the next star." }
+      {
+        "type": "headline",
+        "text": "Happy Birthday, {{recipient}}!"
+      },
+      {
+        "type": "letter",
+        "text": "Dear {{recipient}},\n\nThis is placeholder text for a long letter. In a real Signature gift, this is where your words go - the ones you have been saving up all year.\n\nTen days, ten stars, and every one of them was for you.\n\nLove,\n{{sender}}"
+      },
+      {
+        "type": "photos",
+        "items": [
+          "@photo_01",
+          "@photo_02",
+          "@photo_03",
+          "@photo_04",
+          "@photo_05",
+          "@photo_06"
+        ]
+      },
+      {
+        "type": "headline",
+        "text": "See you at the next star."
+      }
     ]
+  },
+  "story": {
+    "intro": {
+      "title": "Ten nights",
+      "text": "{{recipient}}, there are ten nights until your birthday. This place has been waiting for you, quiet and a little dark. Each night something in it comes back to life. Start with the one that is glowing."
+    }
   }
 }

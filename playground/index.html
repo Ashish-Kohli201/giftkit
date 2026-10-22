@@ -24,10 +24,11 @@
     <div id="elements-root"></div>
   </main>
 
-  <!-- Full gift tab: reference runtime running sample/config.json inside a phone-sized frame -->
+  <!-- Full gift tab: reference runtime running sample/config.json inside a landscape phone frame (gifts are made for landscape) -->
   <main id="gift-view" hidden>
     <div class="pg-controls">
       <label>Tier <select id="tier"></select></label>
+      <label>Finale <select id="finale-style"></select></label>
       <label>Schedule
         <select id="mode"><option value="sequential">sequential</option><option value="all">all open</option><option value="date">by date</option></select>
       </label>
@@ -35,11 +36,12 @@
       <label><input type="checkbox" id="unlock"> unlock all</label>
       <button id="reset" type="button">Reset progress</button>
       <label>Frame
-        <select id="frame"><option value="phone">phone 390x780</option><option value="se">small 360x640</option><option value="wide">wide 1000x640</option></select>
+        <select id="frame"><option value="phone">phone landscape 844x390</option><option value="se">small phone landscape 667x375</option><option value="wide">wide 1000x640</option></select>
       </label>
       <a id="live-link" href="./gift.html" target="_blank" rel="noopener">open full-screen</a>
       <output id="codeout"></output>
     </div>
+    <details id="roles-panel" class="pg-roles"><summary>Roles in the room (untick to leave one out)</summary><div id="roles-list"></div></details>
     <div id="gift-frame" class="pg-frame" data-size="phone"><div id="gift-root" class="gift-root"></div></div>
   </main>
 

@@ -28,7 +28,13 @@
   [data-part="sheet-body"] > [data-element="music"] { flex-direction: row; max-width: none; }
   [data-part="sheet-body"] > [data-element="music"] [data-part="player"] { flex: 1 1 50%; align-content: center; }
   [data-part="sheet-body"] > [data-element="music"] [data-part="track-list"] { flex: 1 1 50%; }
-  [data-part="sheet-body"] > [data-element="music"] [data-part="cover"] { width: min(30cqw, 40cqh, 140px); }
+  [data-part="sheet-body"] > [data-element="music"] [data-part="cover"] { width: min(30cqw, 26cqh, 120px); }
+  /* tighter vertical rhythm so cover, title, controls and seek bar fit a 360px-tall screen */
+  [data-part="sheet-body"] > [data-element="music"] { gap: 10px; padding: 6px 12px; }
+  [data-part="sheet-body"] > [data-element="music"] [data-part="player"] { gap: 3px; }
+  [data-part="sheet-body"] > [data-element="music"] [data-part="now-title"] { font-size: 1.05rem; line-height: 1.2; }
+  [data-part="sheet-body"] > [data-element="music"] [data-part="now-artist"] { min-height: 0; font-size: 0.85rem; }
+  [data-part="sheet-body"] > [data-element="music"] [data-part="message"] { min-height: 1.1em; font-size: 0.8rem; }
 }
 
 /* default paint */

@@ -97,3 +97,29 @@ Role label keys (read aloud, never shown as text): `giftTag` (the Spark hero, al
 - every theme: manifest, `layout.css` scoping (`[data-theme="<id>"]`), keyframes prefixed `<theme>-`, every role positioned
 - every (theme, skin) pair that the skin declares: its paint file exists and is scoped `[data-skin="<id>"]`
 - `npm run test:browser` and `npm run test:responsive` run the whole matrix: every theme x every skin x every tier on 8 device sizes
+
+## The journey: a story, not a list (Signature)
+
+A ten-day gift must not show everything on day one. The recipient should always have one obvious thing to do, and no way
+to see what the other nights hold.
+
+- **The room grows.** Signature starts with the hub (where the nights live), the locked vault and the backdrop. Every finished
+  night adds one more thing to the room, in this order: `board`, `light`, `jar`, `app-music`, `pet`, `app-gallery`, `toy`,
+  `app-notes`, `ambient-a`, `ambient-b` (spread over however many nights the gift has). A role that has just appeared pops in
+  (`data-reveal="in"`) and glows (`data-hint="new"`) until it is touched, so the recipient discovers it without being told where to look.
+- **The hub shows tonight, not the whole run.** It lists finished nights, the open night, and one locked teaser. Progress marks
+  (`tally`) follow the same rule.
+- **Every night has a story beat.** `days[].story = { title, text }` opens as a card when the night is finished ("Night 3 - Little
+  promises"); the text is the sender's own and may use `{{recipient}}` and `{{sender}}`. `story.intro = { title, text }` opens once,
+  when the gift is first opened, to frame the ten nights.
+- **Config can reshape it.** `roles.exclude: ["pet", "toy"]` leaves roles out (the hub and the vault can never be removed),
+  `roles.include` keeps only the listed ones, `roles.unlockDay: { "pet": 2 }` re-times a role (after that many finished nights),
+  `roles.progressive: false` shows the whole room from the start. Countdown and Spark always show their whole (small) room.
+- **Preview helpers.** `unlock=1` shows everything; `night=4` pretends four nights are finished; `exclude=pet,toy` and
+  `finale=scroll|envelope|slideshow|cake` are accepted by `playground/gift.html`. The playground has checkboxes for roles.
+
+## Landscape only
+
+Gifts are designed for landscape: phones are asked to turn sideways (a full-screen `rotate-hint`, shown by CSS in portrait;
+Android browsers are also asked to lock the orientation on the first touch). Only the 16:10 composition is ever seen on
+phones; the tests cover landscape phones 667x375 to 932x430, tablets, laptops, desktops and ultrawide.

@@ -13,3 +13,10 @@
 :where([data-element="polaroid"] [data-part="frame"]) { padding: 12px 12px 8px; background: #f7f4ee; color: #2a2a2a; border: 0; border-radius: 3px; box-shadow: var(--gk-shadow-1); }
 :where([data-element="polaroid"] [data-part="caption"]) { font-family: var(--gk-font-display); font-size: 0.95rem; text-align: center; }
 :where([data-element="polaroid"] [data-part="back"]) { font-family: var(--gk-font-display); line-height: 1.5; }
+
+/* FIT, short landscape phone: size the photo from the screen height so the frame and its caption stay in view. */
+@media (orientation: landscape) and (max-height: 500px) {
+  [data-part="sheet-body"] > [data-element="polaroid"] { padding: 6px; }
+  [data-part="sheet-body"] > [data-element="polaroid"] [data-part="frame"] { width: min(100%, 260px, 48dvh); }
+  [data-part="sheet-body"] > [data-element="polaroid"] [data-part="caption"] { min-height: 0; padding-top: 6px; }
+}
