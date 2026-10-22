@@ -7,7 +7,7 @@
 // Media files get a content hash in their name (cache-friendly, and a new photo can never be shown from an old cache).
 import { createHash, randomBytes } from 'node:crypto';
 import { createReadStream } from 'node:fs';
-import { copyFile, cp, mkdir, readFile, readdir, rm, stat, writeFile } from 'node:fs/promises';
+import { copyFile, cp, mkdir, readFile, readdir, rename, rm, stat, writeFile } from 'node:fs/promises';
 import { basename, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { registry } from '../../elements/registry.js';
@@ -93,14 +93,16 @@ export async function buildGift({ giftDir, outDir, preview = false, zip = false 
   if (!gift.ok) throw new GiftError(`${gift.name} has ${gift.report.errors.length} problem(s) to fix.`, gift.report);
   const { config, assets } = gift;
 
-  await rm(outDir, { recursive: true, force: true });
-  await mkdir(join(outDir, 'media'), { recursive: true });
+  // build in a side folder and swap it in at the end: a preview that is open never sees a half-built gift
+  const dest = `${outDir}.building`;
+  await rm(dest, { recursive: true, force: true });
+  await mkdir(join(dest, 'media'), { recursive: true });
 
   // ---- the runtime this gift uses (and only that: one skin, one theme)
-  await copyTree(join(ROOT, 'core'), join(outDir, 'core'));
-  await copyTree(join(ROOT, 'elements'), join(outDir, 'elements'));
-  await copyTree(join(ROOT, 'skins', config.meta.skin), join(outDir, 'skins', config.meta.skin));
-  await copyTree(join(ROOT, 'themes', config.meta.theme), join(outDir, 'themes', config.meta.theme));
+  await copyTree(join(ROOT, 'core'), join(dest, 'core'));
+  await copyTree(join(ROOT, 'elements'), join(dest, 'elements'));
+  await copyTree(join(ROOT, 'skins', config.meta.skin), join(dest, 'skins', config.meta.skin));
+  await copyTree(join(ROOT, 'themes', config.meta.theme), join(dest, 'themes', config.meta.theme));
 
   // ---- media: only the files the gift actually uses, named by content hash
   const used = referencedSlots(config);
@@ -109,25 +111,25 @@ export async function buildGift({ giftDir, outDir, preview = false, zip = false 
     if (!used.has(id)) continue;
     const ext = a.file.slice(a.file.lastIndexOf('.')).toLowerCase();
     const src = `media/${id}.${await hashFile(a.file)}${ext}`;
-    await copyFile(a.file, join(outDir, src));
+    await copyFile(a.file, join(dest, src));
     manifest[id] = { type: a.type, src, alt: a.alt };
     if (a.posterFile) {
       const pext = a.posterFile.slice(a.posterFile.lastIndexOf('.')).toLowerCase();
       manifest[id].poster = `media/${id}.poster.${await hashFile(a.posterFile)}${pext}`;
-      await copyFile(a.posterFile, join(outDir, manifest[id].poster));
+      await copyFile(a.posterFile, join(dest, manifest[id].poster));
     }
   }
-  await writeFile(join(outDir, 'gift.json'), `${JSON.stringify({ ...config, assets: manifest }, null, 2)}\n`);
+  await writeFile(join(dest, 'gift.json'), `${JSON.stringify({ ...config, assets: manifest }, null, 2)}\n`);
 
   // ---- the page
   const title = `A gift for ${config.people.recipient}`;
   const html = (await readFile(join(ROOT, 'engine/template/index.html'), 'utf8')).replace('{{title}}', title.replace(/[<>&"]/g, ''));
-  await writeFile(join(outDir, 'index.html'), html);
-  await copyFile(join(ROOT, 'engine/template', preview ? 'entry-preview.js' : 'entry.js'), join(outDir, 'entry.js'));
+  await writeFile(join(dest, 'index.html'), html);
+  await copyFile(join(ROOT, 'engine/template', preview ? 'entry-preview.js' : 'entry.js'), join(dest, 'entry.js'));
   if (!preview) {
     // keep search engines and link previews out; hosts that understand _headers send the same instruction as a header
-    await writeFile(join(outDir, 'robots.txt'), 'User-agent: *\nDisallow: /\n');
-    await writeFile(join(outDir, '_headers'), '/*\n  X-Robots-Tag: noindex, nofollow\n  Referrer-Policy: no-referrer\n  Cache-Control: public, max-age=0, must-revalidate\n/media/*\n  Cache-Control: public, max-age=31536000, immutable\n');
+    await writeFile(join(dest, 'robots.txt'), 'User-agent: *\nDisallow: /\n');
+    await writeFile(join(dest, '_headers'), '/*\n  X-Robots-Tag: noindex, nofollow\n  Referrer-Policy: no-referrer\n  Cache-Control: public, max-age=0, must-revalidate\n/media/*\n  Cache-Control: public, max-age=31536000, immutable\n');
   }
 
   // ---- what was built
@@ -139,12 +141,17 @@ export async function buildGift({ giftDir, outDir, preview = false, zip = false 
       else files.push({ path: `${rel}${e.name}`, full: path, bytes: (await stat(path)).size });
     }
   };
-  await walk(outDir);
+  await walk(dest);
   const bytes = files.reduce((n, f) => n + f.bytes, 0);
-  await writeFile(join(outDir, 'manifest.json'), `${JSON.stringify({
+  await writeFile(join(dest, 'manifest.json'), `${JSON.stringify({
     engine: ENGINE_VERSION, giftId: config.meta.giftId, tier: config.meta.tier, theme: config.meta.theme, skin: config.meta.skin,
     files: files.map((f) => ({ path: f.path, bytes: f.bytes })), totalBytes: bytes,
   }, null, 2)}\n`);
+
+  // swap the finished folder into place
+  await rm(outDir, { recursive: true, force: true });
+  await rename(dest, outDir);
+  for (const f of files) f.full = join(outDir, f.path);
 
   const result = { outDir, files: files.length + 1, bytes, report: gift.report, config };
   if (zip) {

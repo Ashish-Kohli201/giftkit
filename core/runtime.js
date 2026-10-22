@@ -119,11 +119,18 @@ export async function startGift({ root, config, themeId = config.meta.theme, ski
     } catch (e) { sheet.close(); fail(e); }
   }
 
+  // the ending's blocks plus its style and the style's own settings (candles, seconds per photo, scroll speed)
+  const revealParams = () => {
+    const f = config.finale;
+    const style = Object.fromEntries(['variant', 'candles', 'slideMs', 'scrollSpeed', 'autoScroll'].filter((k) => f[k] !== undefined).map((k) => [k, f[k]]));
+    return { blocks: f.reveal, ...style };
+  };
+
   async function playReveal() {
     const fin = shell.presentFinale({ title: 'Finale' });
     try {
       theme.fx.reveal();
-      await open(fin, 'reveal', { blocks: config.finale.reveal, ...(config.finale.variant ? { variant: config.finale.variant } : {}) }, { onExit: () => fin.close() }, 'finale');
+      await open(fin, 'reveal', revealParams(), { onExit: () => fin.close() }, 'finale');
     } catch (e) { fin.close(); fail(e); }
   }
 
@@ -179,6 +186,9 @@ export async function startGift({ root, config, themeId = config.meta.theme, ski
 
   return {
     theme, shell, code, fragments,
+    // preview helpers: open a night's game or the ending directly (the studio uses these to let an owner try what they just edited)
+    playDay(n) { const day = days.find((d) => d.day === n); if (day) return runDay(day); },
+    playEnding() { return playReveal(); },
     refresh,
     reset() { store.clear(); done = {}; refresh(); },
     destroy() { shell.destroy(); },

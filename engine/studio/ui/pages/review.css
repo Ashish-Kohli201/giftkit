@@ -1,0 +1,57 @@
+/* REVIEW: status header, problem lists, summary, checklist and the build result. Classes are prefixed rv-. */
+.rv-kicker { font-size: 0.9rem; font-family: var(--font); text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+.rv-status { display: flex; gap: 18px; align-items: center; padding: 22px 24px; border-radius: var(--radius); margin-bottom: 24px; border: 1px solid transparent; }
+.rv-status h1 { font-size: 1.6rem; }
+.rv-status p { margin-top: 4px; color: var(--ink); opacity: 0.8; max-width: 60ch; }
+.rv-status-icon { display: grid; place-items: center; width: 56px; height: 56px; border-radius: 50%; flex: none; background: var(--surface); }
+.rv-status-good { background: var(--good-soft); border-color: var(--good); } .rv-status-good .rv-status-icon { color: var(--good); }
+.rv-status-warn { background: var(--warn-soft); border-color: var(--warn); } .rv-status-warn .rv-status-icon { color: var(--warn); }
+.rv-status-bad { background: var(--bad-soft); border-color: var(--bad); } .rv-status-bad .rv-status-icon { color: var(--bad); }
+
+.rv-problems { display: grid; gap: 14px; margin-bottom: 28px; }
+.rv-section { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 4px 18px 16px; }
+.rv-section > summary { display: flex; align-items: center; gap: 10px; padding: 14px 0; cursor: pointer; list-style: none; }
+.rv-section > summary::-webkit-details-marker { display: none; }
+.rv-section > summary h2 { font-size: 1.15rem; }
+.rv-lead { margin-bottom: 8px; }
+.rv-group { display: grid; gap: 8px; margin-top: 12px; }
+.rv-group h4 { margin: 0; font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); display: flex; align-items: center; gap: 8px; }
+.rv-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.rv-item { display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; padding: 10px 12px; border-radius: var(--radius-s); background: var(--surface-2); border: 1px solid var(--line); }
+.rv-item-bad { background: var(--bad-soft); border-color: transparent; } .rv-item-bad .rv-item-icon { color: var(--bad); }
+.rv-item-warn { background: var(--warn-soft); border-color: transparent; } .rv-item-warn .rv-item-icon { color: var(--warn); }
+.rv-item-note .rv-item-icon { color: var(--muted); }
+.rv-item-text { min-width: 0; overflow-wrap: anywhere; }
+
+.rv-summary, .rv-checklist, .rv-build { margin-bottom: 24px; display: grid; gap: 14px; }
+.rv-dl { margin: 0; display: grid; gap: 10px; }
+.rv-row { display: grid; grid-template-columns: 150px 1fr; gap: 12px; align-items: start; }
+.rv-row dt { color: var(--muted); font-weight: 600; font-size: 0.9rem; }
+.rv-row dd { margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; min-width: 0; overflow-wrap: anywhere; }
+.rv-small { flex-basis: 100%; font-size: 0.85rem; }
+
+.rv-checks { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.rv-checks li { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.rv-check { display: flex; align-items: center; gap: 10px; cursor: pointer; font-weight: 600; }
+.rv-check input { width: 20px; height: 20px; accent-color: var(--accent); }
+.rv-phone-url { font-size: 1.3rem; font-weight: 700; word-break: break-all; padding: 14px; background: var(--surface-2); border-radius: 10px; }
+
+.rv-build-row { display: flex; align-items: center; gap: 14px; }
+.rv-reason { color: var(--bad); font-weight: 600; }
+.rv-spinner { width: 22px; height: 22px; border-radius: 50%; border: 3px solid var(--accent-soft); border-top-color: var(--accent); animation: rv-spin 0.8s linear infinite; }
+@keyframes rv-spin { to { transform: rotate(360deg); } }
+.rv-result { display: grid; gap: 16px; padding: 18px; border-radius: var(--radius); background: var(--good-soft); border: 1px solid var(--good); }
+.rv-result-head { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.rv-result-icon { display: grid; place-items: center; width: 42px; height: 42px; border-radius: 50%; background: var(--good); color: #fff; flex: none; }
+.rv-stale { margin-left: auto; }
+.rv-result code { padding: 2px 8px; border-radius: 6px; background: var(--surface); font-size: 0.9rem; overflow-wrap: anywhere; }
+.rv-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.rv-actions a.btn { text-decoration: none; }
+.rv-h3 { margin-top: 4px; }
+.rv-steps { margin: 0; padding-left: 22px; display: grid; gap: 8px; }
+
+@media (max-width: 860px) {
+  .rv-row { grid-template-columns: 1fr; gap: 2px; }
+  .rv-item { grid-template-columns: auto 1fr; } .rv-item .btn { grid-column: 2; justify-self: start; }
+  .rv-status { align-items: flex-start; }
+}

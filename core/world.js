@@ -6,7 +6,7 @@
 // Nothing here says "level", "fragment" or "collect": the room guides the recipient implicitly.
 import { part } from './util.js';
 import { createSheets } from './sheets.js';
-import { PROGRESS_ORDER, REQUIRED_ROLES as REQUIRED } from './roles.js';
+import { PROGRESS_ORDER, REQUIRED_ROLES as REQUIRED, defaultUnlockDay } from './roles.js';
 
 const TOOLS = ['music', 'gallery', 'notes'];
 const TOOL_GLYPHS = { music: '♪', gallery: '▣', notes: '✎' };
@@ -53,9 +53,7 @@ export function mountWorld(root, opts, world = {}) {
   /** The number of finished days after which a role appears (0 = from the start). */
   function unlockAfter(role) {
     if (roleConfig.unlockDay?.[role] != null) return roleConfig.unlockDay[role];
-    const i = PROGRESS_ORDER.indexOf(role);
-    if (i < 0) return 0;
-    return Math.ceil(((i + 1) * Math.max(days().length, 1)) / PROGRESS_ORDER.length);
+    return defaultUnlockDay(role, days().length);
   }
   const seen = new Set(opts.store?.get('seenRoles', []) ?? []);
   const shown = new Set(); // roles already visible, so a newly appearing one can announce itself

@@ -10,6 +10,7 @@
     "test": "node tests/unit.mjs && node scripts/check.mjs",
     "test:browser": "node tests/smoke.mjs",
     "test:engine": "node tests/engine.mjs",
+    "test:studio": "node tests/run-studio.mjs",
     "test:responsive": "node tests/responsive.mjs",
     "new-skin": "node scripts/new-skin.mjs",
     "gift": "node engine/cli.mjs",

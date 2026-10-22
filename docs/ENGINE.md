@@ -9,6 +9,10 @@ gifts/aria-birthday/
   media/         drop pictures, songs and videos here
 ```
 
+## The easiest way: the studio
+
+`npm run gift -- studio` opens a screen where you do everything below by clicking and dragging (setup, media, each night, the room, the ending, check and build). See `docs/STUDIO.md`. The rest of this page is the command line and the file format it works on, which the studio reads and writes too.
+
 ## The 5-minute path
 
 ```bash

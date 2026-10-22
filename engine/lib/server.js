@@ -7,7 +7,7 @@ import { stat } from 'node:fs/promises';
 import { networkInterfaces } from 'node:os';
 import { extname, join, normalize, resolve, sep } from 'node:path';
 
-const MIME = {
+export const MIME = {
   '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.mjs': 'text/javascript; charset=utf-8',
   '.css': 'text/css; charset=utf-8', '.json': 'application/json; charset=utf-8', '.svg': 'image/svg+xml', '.txt': 'text/plain; charset=utf-8',
   '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.webp': 'image/webp', '.gif': 'image/gif', '.avif': 'image/avif',
@@ -20,6 +20,38 @@ const MIME = {
 export function lanAddress() {
   for (const list of Object.values(networkInterfaces())) for (const n of list ?? []) if (n.family === 'IPv4' && !n.internal) return n.address;
   return null;
+}
+
+
+/**
+ * Send one file, honouring HTTP Range requests (iPhones will not play a video or a song without them).
+ * @throws when the path is not a file (callers answer 404)
+ */
+export async function sendFile(req, res, file) {
+  const info = await stat(file);
+  if (!info.isFile()) throw new Error('not a file');
+  const headers = { 'Content-Type': MIME[extname(file).toLowerCase()] ?? 'application/octet-stream', 'Cache-Control': 'no-store', 'Accept-Ranges': 'bytes' };
+  const range = /^bytes=(\d*)-(\d*)$/.exec(req.headers.range ?? '');
+  if (range) {
+    const start = range[1] === '' ? info.size - Number(range[2]) : Number(range[1]);
+    let end = range[1] === '' || range[2] === '' ? info.size - 1 : Number(range[2]);
+    end = Math.min(end, info.size - 1);
+    if (!(start >= 0) || start > end) { res.writeHead(416, { 'Content-Range': `bytes */${info.size}` }).end(); return; }
+    res.writeHead(206, { ...headers, 'Content-Range': `bytes ${start}-${end}/${info.size}`, 'Content-Length': end - start + 1 });
+    if (req.method === 'HEAD') return void res.end();
+    streamTo(res, createReadStream(file, { start, end }));
+    return;
+  }
+  res.writeHead(200, { ...headers, 'Content-Length': info.size });
+  if (req.method === 'HEAD') return void res.end();
+  streamTo(res, createReadStream(file));
+}
+
+/** Pipe a file to the response; if the file vanishes mid-send (a preview being rebuilt), end the response instead of crashing. */
+function streamTo(res, stream) {
+  stream.on('error', () => res.destroy());
+  res.on('close', () => stream.destroy());
+  stream.pipe(res);
 }
 
 /**
@@ -44,24 +76,7 @@ export function serveFolder(root, { port = 5180, host = '0.0.0.0' } = {}) {
       if (path.endsWith('/')) path += 'index.html';
       const file = normalize(join(base, path));
       if (file !== base && !file.startsWith(base + sep)) { res.writeHead(403).end('Forbidden'); return; } // path traversal guard
-      const info = await stat(file);
-      if (!info.isFile()) throw new Error('not a file');
-
-      const headers = { 'Content-Type': MIME[extname(file).toLowerCase()] ?? 'application/octet-stream', 'Cache-Control': 'no-store', 'Accept-Ranges': 'bytes' };
-      const range = /^bytes=(\d*)-(\d*)$/.exec(req.headers.range ?? '');
-      if (range) {
-        let start = range[1] === '' ? info.size - Number(range[2]) : Number(range[1]);
-        let end = range[1] === '' || range[2] === '' ? info.size - 1 : Number(range[2]);
-        end = Math.min(end, info.size - 1);
-        if (!(start >= 0) || start > end) { res.writeHead(416, { 'Content-Range': `bytes */${info.size}` }).end(); return; }
-        res.writeHead(206, { ...headers, 'Content-Range': `bytes ${start}-${end}/${info.size}`, 'Content-Length': end - start + 1 });
-        if (req.method === 'HEAD') return res.end();
-        createReadStream(file, { start, end }).pipe(res);
-        return;
-      }
-      res.writeHead(200, { ...headers, 'Content-Length': info.size });
-      if (req.method === 'HEAD') return res.end();
-      createReadStream(file).pipe(res);
+      await sendFile(req, res, file);
     } catch {
       res.writeHead(404, { 'Content-Type': 'text/plain' }).end('Not found');
     }

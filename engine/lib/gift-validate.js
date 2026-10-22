@@ -110,7 +110,7 @@ export function validateGift(config, { registry, catalog, assets = {}, refProble
   else {
     if (finale.variant && !FINALE_VARIANTS.includes(finale.variant)) err('finale.variant', `"${finale.variant}" is not an ending style. Choose one of: ${FINALE_VARIANTS.join(', ')}.`);
     const reveal = registry.reveal;
-    for (const m of validate(reveal.paramsSchema, { blocks: finale.reveal, ...(finale.variant ? { variant: finale.variant } : {}) }, 'finale')) errors.push(plain(m));
+    for (const m of validate(reveal.paramsSchema, { blocks: finale.reveal, ...Object.fromEntries(['variant', 'candles', 'slideMs', 'scrollSpeed', 'autoScroll'].filter((k) => finale[k] !== undefined).map((k) => [k, finale[k]])) }, 'finale')) errors.push(plain(m));
     finale.reveal.forEach((b, i) => {
       if (b?.type === 'video' && b.ref && assets[b.ref.slice(1)] && assets[b.ref.slice(1)].type !== 'video') err(`finale.reveal[${i}].ref`, `${b.ref} is not a video file`);
       if (b?.type === 'video' && !b.ref) err(`finale.reveal[${i}]`, 'a video block needs a "ref" such as "@our_video"');

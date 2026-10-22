@@ -15,7 +15,7 @@ Read `RULES.md` first. It is the source of truth. Then `docs/CONTEXT.md` for the
 - `npm run dev` -> http://localhost:5173/playground/
 - `npm run check` / `npm run check -- skin <id>` / `npm run check -- theme <id>` / `npm run check -- element <id>`
 - `npm run new-skin -- <id> "Name"` / `npm run new-theme -- <id> "Name"`
-- `npm run gift -- new|add|check|preview|build <name>` the gift engine (docs/ENGINE.md); `npm run test:engine` tests it
+- `npm run gift -- new|add|check|preview|build <name>` the gift engine (docs/ENGINE.md); `npm run gift -- studio` the on-screen gift studio (docs/STUDIO.md); `npm run test:engine` / `npm run test:studio` test them
 - `npm test` -> unit tests + contract check
 
 ## Where things live
@@ -24,4 +24,5 @@ Read `RULES.md` first. It is the source of truth. Then `docs/CONTEXT.md` for the
 - `skins/<id>/` a look: tokens, element parts, fx, copy, and `paint-<theme>.css` + `decorate-<theme>.js` per theme. List in `skins/skins.json`.
 - `engine/` the gift engine: reads `gifts/<name>/gift.json` + `media/`, checks it, builds a static gift folder + zip. `gifts/`, `dist-gifts/`, `.engine/` are never committed.
 - `core/` shared plumbing. `core/runtime.js` is a REFERENCE glue, not the production engine.
-- Guides: `docs/ELEMENT_GUIDE.md`, `docs/SKIN_GUIDE.md`, `docs/WORLD_CONTRACT.md`, `docs/ENGINE.md`.
+- `engine/studio/` the gift studio (a local web app over the same gift folders).
+- Guides: `docs/ELEMENT_GUIDE.md`, `docs/SKIN_GUIDE.md`, `docs/WORLD_CONTRACT.md`, `docs/ENGINE.md`, `docs/STUDIO.md`.

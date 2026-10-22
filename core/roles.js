@@ -19,3 +19,14 @@ export const ALL_ROLE_IDS = [...REQUIRED_ROLES, ...OPTIONAL_ROLES.map((r) => r.i
 
 /** The ending styles of the reveal finale. */
 export const FINALE_VARIANTS = ['scroll', 'envelope', 'slideshow', 'cake'];
+
+/**
+ * After how many finished nights a role appears in a progressive (Signature) room.
+ * The same rule the world engine uses; the studio shows it so the owner sees what the recipient will see.
+ */
+export function defaultUnlockDay(role, nights) {
+  const i = PROGRESS_ORDER.indexOf(role);
+  if (i < 0) return 0;
+  return Math.ceil(((i + 1) * Math.max(nights, 1)) / PROGRESS_ORDER.length);
+}
+

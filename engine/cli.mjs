@@ -3,6 +3,7 @@
 //   new <name>        start a gift folder (gift.json + an empty media folder)
 //   add <name> <files or folders...>   put pictures, songs and videos into a gift's media folder
 //   check <name>      look the gift over and say what is wrong, in plain words
+//   studio            open the gift studio: edit everything on screen, drag in media, preview, build
 //   preview <name>    open the gift on this computer AND on a phone on the same Wi-Fi; refreshes itself when you save
 //   build <name>      make the finished gift: one folder (and a .zip) that works on any web host
 //   list              the gifts in the gifts/ folder
@@ -13,14 +14,14 @@
 import { copyFile, cp, mkdir, readdir, readFile, rm, stat, watch, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { basename, dirname, extname, isAbsolute, join, resolve } from 'node:path';
-import { buildGift, GiftError, prepareGift, ROOT, slugFor } from './lib/build.js';
-import { kindOf, scanMedia, slugify, unsupportedHint } from './lib/media.js';
+import { buildGift, GiftError, prepareGift, slugFor } from './lib/build.js';
+import { DIST, GIFTS, PREVIEW, ROOT } from './lib/paths.js';
+import { createGift } from './lib/create.js';
+import { planMediaFile } from './lib/media-files.js';
+import { scanMedia } from './lib/media.js';
 import { serveFolder, lanAddress } from './lib/server.js';
 import { bold, dim, green, printMedia, printReport, red, size, yellow } from './lib/report.js';
 
-const GIFTS = process.env.GIFT_DIR ? resolve(process.env.GIFT_DIR) : join(ROOT, 'gifts');
-const DIST = process.env.GIFT_OUT ? resolve(process.env.GIFT_OUT) : join(ROOT, 'dist-gifts');
-const PREVIEW = join(ROOT, '.engine', 'preview');
 
 /** "--tier signature" style options and the plain words around them. */
 function parseArgs(argv) {
@@ -48,44 +49,21 @@ const rel = (p) => p.replace(ROOT, '.').replace(/\\/g, '/');
 
 // ------------------------------------------------------------------ new
 async function cmdNew(args) {
-  const name = String(args._[0] ?? '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
   if (!args._[0]) fail('Give the gift a short name, for example:  npm run gift -- new aria-birthday');
-  const dir = join(GIFTS, name);
-  if (existsSync(dir)) fail(`${rel(dir)} already exists. Pick another name, or open its gift.json.`);
-  const tier = args.tier ?? 'signature';
-  if (!['spark', 'countdown', 'signature'].includes(tier)) fail('--tier must be spark, countdown or signature.');
-  const config = JSON.parse(await readFile(join(ROOT, 'engine/templates', `${tier}.json`), 'utf8'));
-  if (args.theme) config.meta.theme = args.theme;
-  if (args.skin) config.meta.skin = args.skin;
-  if (typeof args.for === 'string') config.people.recipient = args.for;
-  if (typeof args.from === 'string') config.people.sender = args.from;
-  if (typeof args.birthday === 'string') {
-    // the finale opens on the birthday; the first night is as many days earlier as there are nights
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(args.birthday)) fail('--birthday needs a date like 2026-12-20');
-    const last = Date.parse(args.birthday);
-    const nights = Math.max(config.days.length, 1);
-    const day = (n) => new Date(last - n * 86400000).toISOString().slice(0, 10);
-    config.schedule = { mode: 'date', startDate: day(nights), finaleDate: args.birthday };
-  }
-  await mkdir(join(dir, 'media'), { recursive: true });
-  await writeFile(join(dir, 'gift.json'), `${JSON.stringify(config, null, 2)}\n`);
-  await writeFile(join(dir, 'media', 'README.txt'), [
-    'DROP YOUR FILES HERE.',
-    '',
-    'Pictures: .jpg .png .webp        Songs: .mp3 .m4a        Videos: .mp4 (H.264)',
-    '',
-    'A file is used by its name: "us at goa.jpg" becomes @us_at_goa.',
-    'You do not have to list your files anywhere. Songs add a Music app, pictures add a Photos app and a pinboard,',
-    'and a video joins the ending, all by themselves. Run:  npm run gift -- check ' + name,
-    '',
-    'Tips: iPhone photos (.heic) must be exported as JPG. Keep pictures under 5 MB and videos under 60 MB.',
-    'A video can have a cover picture: name it like the video, plus ".poster" (our-video.mp4 + our-video.poster.jpg).',
-    '',
-  ].join('\n'));
-  console.log(`${green(bold(`Started ${name}`))}  (${tier}, ${config.meta.theme} x ${config.meta.skin})\n`);
+  let made;
+  try {
+    made = await createGift({
+      name: args._[0], tier: args.tier ?? 'signature', theme: args.theme, skin: args.skin,
+      recipient: typeof args.for === 'string' ? args.for : undefined, sender: typeof args.from === 'string' ? args.from : undefined,
+      birthday: typeof args.birthday === 'string' ? args.birthday : undefined,
+    });
+  } catch (e) { fail(e.message); }
+  const { name, dir, config } = made;
+  console.log(`${green(bold(`Started ${name}`))}  (${config.meta.tier}, ${config.meta.theme} x ${config.meta.skin})\n`);
   console.log(`  1. Put your pictures, songs and videos in  ${rel(join(dir, 'media'))}`);
   console.log(`     (or:  npm run gift -- add ${name} "C:\\path\\to\\your\\files")`);
   console.log(`  2. Replace the sample words in  ${rel(join(dir, 'gift.json'))}`);
+  console.log(`     (or edit everything on screen:  npm run gift -- studio)`);
   console.log(`  3. See it on your phone:        npm run gift -- preview ${name}`);
   console.log(`  4. When it is right:            npm run gift -- build ${name}\n`);
 }
@@ -97,21 +75,13 @@ async function cmdAdd(args) {
   if (!sources.length) fail('Which files? For example:  npm run gift -- add aria-birthday "C:\\Users\\me\\Pictures\\goa"');
   const media = join(dir, 'media');
   await mkdir(media, { recursive: true });
-  const taken = new Set((await readdir(media)).map((f) => f.toLowerCase()));
   let added = 0;
   const copyOne = async (file) => {
-    const ext = extname(file);
-    const stem = basename(file, ext);
-    const kind = kindOf(ext);
-    if (!kind) { if (/^(\.|thumbs|desktop)/i.test(basename(file))) return; console.log(`  ${yellow('skipped')} ${basename(file)}: ${unsupportedHint(ext)}`); return; }
-    // keep ".poster" in a name so a video's cover picture stays attached
-    const clean = /\.poster$/i.test(stem) ? `${slugify(stem.replace(/\.poster$/i, ''))}.poster` : slugify(stem);
-    let target = `${clean}${ext.toLowerCase()}`;
-    for (let n = 2; taken.has(target.toLowerCase()); n++) target = `${clean}_${n}${ext.toLowerCase()}`;
-    taken.add(target.toLowerCase());
-    await copyFile(file, join(media, target));
+    const plan = await planMediaFile(media, file);
+    if (!plan.ok) { if (/^(\.|thumbs|desktop)/i.test(basename(file))) return; console.log(`  ${yellow('skipped')} ${basename(file)}: ${plan.message}`); return; }
+    await copyFile(file, plan.path);
     added++;
-    console.log(`  ${green('added')}   ${basename(file)}  ->  @${slugify(basename(target, extname(target)))}`);
+    console.log(`  ${green('added')}   ${basename(file)}  ->  @${plan.slot}`);
   };
   const visit = async (path) => {
     const info = await stat(path).catch(() => null);
@@ -209,6 +179,13 @@ async function cmdList() {
   }
 }
 
+// ------------------------------------------------------------------ studio
+async function cmdStudio(args) {
+  const { startStudio } = await import('./studio/server.js');
+  await startStudio({ port: Number(args.port ?? process.env.PORT ?? 5190), open: !args['no-open'] });
+  await new Promise(() => {}); // runs until Ctrl+C
+}
+
 // ------------------------------------------------------------------ help
 function help() {
   console.log(`${bold('Gift engine')}   npm run gift -- <command>
@@ -219,6 +196,8 @@ function help() {
   add <name> <files or folders...>
                           copy pictures, songs and videos into the gift's media folder (names are tidied for you)
   check <name>            say what is wrong, in plain words
+  studio [--port 5190] [--no-open]
+                          open the studio in your browser: edit the gift on screen, drag in media, preview, build
   preview <name> [--port 5180]
                           open it on this computer and on a phone on the same Wi-Fi; refreshes when you save
   build <name> [--strict] [--no-zip] [--slug my-private-link]
@@ -231,7 +210,7 @@ Your pictures, songs and videos need no setup: drop them in the gift's media fol
 // ------------------------------------------------------------------ main
 const [command, ...rest] = process.argv.slice(2);
 const args = parseArgs(rest);
-const commands = { new: cmdNew, add: cmdAdd, check: cmdCheck, preview: cmdPreview, build: cmdBuild, list: cmdList };
+const commands = { new: cmdNew, add: cmdAdd, check: cmdCheck, preview: cmdPreview, build: cmdBuild, list: cmdList, studio: cmdStudio };
 try {
   if (!command || command === 'help' || command === '--help') help();
   else if (commands[command]) await commands[command](args);

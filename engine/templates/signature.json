@@ -239,9 +239,9 @@
       "game": {
         "type": "wordle",
         "params": {
-          "answer": "{{recipient}}",
+          "answer": "FOREVER",
           "maxGuesses": 6,
-          "hint": "It is someone you know well"
+          "hint": "Something to say at the end"
         }
       },
       "story": {

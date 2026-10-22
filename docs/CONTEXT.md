@@ -66,3 +66,5 @@ name (`@us_at_goa`), songs / pictures / a video appear in the gift automatically
 serves the gift on the LAN (HTTP Range for iPhones) with live reload, `build` writes a self-contained folder + zip with hashed media
 and a secret path. Still to do: hashed text answers, encrypted private media, image resizing, a visual editor, order intake from Part 2.
 
+## Gift studio
+`npm run gift -- studio` (docs/STUDIO.md): a local web app over the same gift folders: Setup, Media, Nights (forms generated from element schemas), Room (timeline of what appears when), Ending (four styles), Review and Build, with a live preview and undo. Not done: duplicate/delete gifts, rename media, QR for the phone address, image resizing.
