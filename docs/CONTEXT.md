@@ -60,3 +60,9 @@ Next candidates: a concert theme; a third skin (green); a fourth tier.
 - Endings: the finale (`reveal`) has variants chosen with `finale.variant` (scroll, envelope, slideshow, cake).
 - Open question for the owner: the story text in sample/signature.json is placeholder; real gifts need the sender's own beats.
 
+## Part 1 (engine) - first version built
+`npm run gift -- new|add|check|preview|build <name>` (docs/ENGINE.md). A gift is a folder (`gift.json` + `media/`); media is used by file
+name (`@us_at_goa`), songs / pictures / a video appear in the gift automatically, `check` explains problems in plain words, `preview`
+serves the gift on the LAN (HTTP Range for iPhones) with live reload, `build` writes a self-contained folder + zip with hashed media
+and a secret path. Still to do: hashed text answers, encrypted private media, image resizing, a visual editor, order intake from Part 2.
+

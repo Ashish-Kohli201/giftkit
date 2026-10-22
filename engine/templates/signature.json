@@ -1,0 +1,360 @@
+{
+  "schemaVersion": 1,
+  "meta": {
+    "theme": "desk",
+    "skin": "nightsky",
+    "tier": "signature",
+    "locale": "en",
+    "timezone": "Asia/Kolkata"
+  },
+  "people": {
+    "recipient": "Aria",
+    "sender": "Sam"
+  },
+  "schedule": {
+    "mode": "sequential"
+  },
+  "days": [
+    {
+      "day": 1,
+      "note": "Ten nights. One star each. Start gently.",
+      "game": {
+        "type": "wordle",
+        "params": {
+          "answer": "LIGHT",
+          "maxGuesses": 5,
+          "hint": "What stars give",
+          "copy": {
+            "win": "The first star is yours."
+          }
+        }
+      },
+      "story": {
+        "title": "Night 1",
+        "text": "Write your story for night 1 here. It opens when the night is finished."
+      }
+    },
+    {
+      "day": 2,
+      "note": "Find the pairs.",
+      "game": {
+        "type": "memory",
+        "params": {
+          "pairs": 6
+        }
+      },
+      "story": {
+        "title": "Night 2",
+        "text": "Write your story for night 2 here. It opens when the night is finished."
+      }
+    },
+    {
+      "day": 3,
+      "note": "Easy one. Mostly.",
+      "game": {
+        "type": "quiz",
+        "params": {
+          "mode": "quiz",
+          "passMark": 0.6,
+          "questions": [
+            {
+              "q": "Which planet is closest to the Sun?",
+              "options": [
+                "Venus",
+                "Mercury",
+                "Mars"
+              ],
+              "correct": 1
+            },
+            {
+              "q": "How many moons does Earth have?",
+              "options": [
+                "None",
+                "One",
+                "Two",
+                "Three"
+              ],
+              "correct": 1
+            },
+            {
+              "q": "A group of stars forming a picture is called a...",
+              "options": [
+                "Galaxy",
+                "Comet",
+                "Constellation"
+              ],
+              "correct": 2
+            }
+          ]
+        }
+      },
+      "story": {
+        "title": "Night 3",
+        "text": "Write your story for night 3 here. It opens when the night is finished."
+      }
+    },
+    {
+      "day": 4,
+      "note": "The first clue is hiding somewhere you pass every day.",
+      "game": {
+        "type": "hunt",
+        "params": {
+          "hintAfter": 2,
+          "clues": [
+            {
+              "clue": "I am full of stories but never speak. Find me on a shelf.",
+              "answer": "book",
+              "answers": [
+                "books"
+              ],
+              "hint": "You read me.",
+              "reveal": "Look inside it for the next clue."
+            },
+            {
+              "clue": "I count the hours without a face to smile.",
+              "answer": "clock",
+              "hint": "Tick tock.",
+              "reveal": "Check behind it."
+            },
+            {
+              "clue": "Warm by day, a bedtime friend at night.",
+              "answer": "blanket",
+              "answers": [
+                "blankets",
+                "quilt"
+              ],
+              "reveal": "Hug it. You are done."
+            }
+          ]
+        }
+      },
+      "story": {
+        "title": "Night 4",
+        "text": "Write your story for night 4 here. It opens when the night is finished."
+      }
+    },
+    {
+      "day": 5,
+      "note": "Who is it more likely to be?",
+      "game": {
+        "type": "quiz",
+        "params": {
+          "mode": "whosaid",
+          "passMark": 0,
+          "questions": [
+            {
+              "q": "Who is more likely to fall asleep during a movie?",
+              "correct": null
+            },
+            {
+              "q": "Who said \"five more minutes\" first today?",
+              "correct": null
+            },
+            {
+              "q": "Who is more likely to cry at a happy ending?",
+              "correct": null
+            },
+            {
+              "q": "Who would pack the night before a trip?",
+              "correct": null
+            }
+          ]
+        }
+      },
+      "story": {
+        "title": "Night 5",
+        "text": "Write your story for night 5 here. It opens when the night is finished."
+      }
+    },
+    {
+      "day": 6,
+      "note": "A memory, cut into pieces. Put it back together.",
+      "game": {
+        "type": "jigsaw",
+        "params": {
+          "image": "@any",
+          "cols": 3,
+          "rows": 3
+        }
+      },
+      "story": {
+        "title": "Night 6",
+        "text": "Write your story for night 6 here. It opens when the night is finished."
+      }
+    },
+    {
+      "day": 7,
+      "note": "Do you remember how it all went?",
+      "game": {
+        "type": "timeline",
+        "params": {
+          "events": [
+            {
+              "label": "The first message",
+              "detail": "Nervous typing, many deleted drafts."
+            },
+            {
+              "label": "The first meeting",
+              "detail": "Coffee that lasted four hours."
+            },
+            {
+              "label": "The first trip",
+              "detail": "A wrong turn and the best view."
+            },
+            {
+              "label": "The first big laugh",
+              "detail": "Still no one remembers why."
+            },
+            {
+              "label": "Today",
+              "detail": "Right here, lighting a star."
+            }
+          ]
+        }
+      },
+      "story": {
+        "title": "Night 7",
+        "text": "Write your story for night 7 here. It opens when the night is finished."
+      }
+    },
+    {
+      "day": 8,
+      "note": "Pairs again, with your faces this time.",
+      "game": {
+        "type": "memory",
+        "params": {
+          "pairs": 6,
+          "faces": "@all",
+          "flipBackMs": 1000
+        }
+      },
+      "story": {
+        "title": "Night 8",
+        "text": "Write your story for night 8 here. It opens when the night is finished."
+      }
+    },
+    {
+      "day": 9,
+      "note": "One last word game before the end.",
+      "game": {
+        "type": "wordle",
+        "params": {
+          "answer": "{{recipient}}",
+          "maxGuesses": 6,
+          "hint": "It is someone you know well"
+        }
+      },
+      "story": {
+        "title": "Night 9",
+        "text": "Write your story for night 9 here. It opens when the night is finished."
+      }
+    },
+    {
+      "day": 10,
+      "note": "The last star. How well do you know us?",
+      "game": {
+        "type": "quiz",
+        "params": {
+          "mode": "quiz",
+          "passMark": 0.5,
+          "questions": [
+            {
+              "q": "Which season do we both love most?",
+              "options": [
+                "Spring",
+                "Summer",
+                "Monsoon",
+                "Winter"
+              ],
+              "correct": 2
+            },
+            {
+              "q": "Which of these is our usual order?",
+              "options": [
+                "Tea and toast",
+                "Pasta",
+                "Ice cream",
+                "Noodles"
+              ],
+              "correct": 0
+            },
+            {
+              "q": "What do we do when we are lost?",
+              "options": [
+                "Argue",
+                "Laugh",
+                "Call someone",
+                "Sit and wait"
+              ],
+              "correct": 1
+            }
+          ]
+        }
+      },
+      "story": {
+        "title": "Night 10",
+        "text": "Write your story for night 10 here. It opens when the night is finished."
+      }
+    }
+  ],
+  "apps": {
+    "notes": {
+      "enabled": true,
+      "items": [
+        {
+          "title": "Open this first",
+          "text": "Nothing fancy. Just a reminder that I think about you more than I say.",
+          "date": "1 Dec"
+        },
+        {
+          "title": "Things I noticed",
+          "text": "The way you hum when you think nobody is listening.\n\nThe tea that went cold because something more interesting came up.\n\nHow quiet the room gets when you laugh.",
+          "date": "4 Dec"
+        }
+      ]
+    },
+    "coupons": {
+      "enabled": true,
+      "items": [
+        {
+          "id": "c1",
+          "title": "One slow dance",
+          "detail": "Anytime, anywhere."
+        },
+        {
+          "id": "c2",
+          "title": "Breakfast in bed",
+          "detail": "Pancakes included."
+        },
+        {
+          "id": "c3",
+          "title": "You pick the movie",
+          "detail": "No complaints. Valid once."
+        }
+      ]
+    }
+  },
+  "finale": {
+    "type": "vault",
+    "reveal": [
+      {
+        "type": "headline",
+        "text": "Happy Birthday, {{recipient}}!"
+      },
+      {
+        "type": "letter",
+        "text": "Write your letter here, in your own words.\n\nUse a blank line between paragraphs.\n\n{{sender}}"
+      },
+      {
+        "type": "photos",
+        "items": "@all"
+      }
+    ]
+  },
+  "story": {
+    "intro": {
+      "title": "Ten nights",
+      "text": "Write your opening here: what these ten nights are about, in your own words. It opens once, when the gift is first opened."
+    }
+  }
+}

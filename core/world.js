@@ -6,18 +6,18 @@
 // Nothing here says "level", "fragment" or "collect": the room guides the recipient implicitly.
 import { part } from './util.js';
 import { createSheets } from './sheets.js';
+import { PROGRESS_ORDER, REQUIRED_ROLES as REQUIRED } from './roles.js';
 
 const TOOLS = ['music', 'gallery', 'notes'];
 const TOOL_GLYPHS = { music: '♪', gallery: '▣', notes: '✎' };
 const DAY_GLYPHS = ['◈', '✦', '☾', '✿', '♪', '❀', '★', '✶', '❦', '❈'];
 const SLOTS = ['a', 'b', 'c', 'd'];
+const REQUIRED_ROLES = new Set(REQUIRED);
 
 // PROGRESSIVE REVEAL (Signature). A ten-day gift must not show everything on day one: the room starts with the hub (where the days
-// live), the locked vault and the backdrop, and every finished day adds one more thing to the room, in this order. The recipient
-// is guided by a gentle glow on whatever is new, never by a list. A gift config may re-time a role with roles.unlockDay.
-const PROGRESS_ORDER = ['board', 'light', 'jar', 'app-music', 'pet', 'app-gallery', 'toy', 'app-notes', 'ambient-a', 'ambient-b'];
-// roles a gift can never remove: without them there is no way to play
-const REQUIRED_ROLES = new Set(['hero', 'hub', 'vault']);
+// live), the locked vault and the backdrop, and every finished day adds one more thing to the room, in the order of PROGRESS_ORDER
+// (core/roles.js). The recipient is guided by a gentle glow on whatever is new, never by a list. A gift config may re-time a role
+// with roles.unlockDay.
 
 /**
  * @param opts   shell options from the engine: { title, items, extras, copy, tier, vars, decorateWorld,

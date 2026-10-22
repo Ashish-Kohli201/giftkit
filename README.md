@@ -18,6 +18,7 @@ Needs Node 18+. No install step is required to run the playground.
 | Path | What |
 |---|---|
 | `RULES.md` | **Start here.** Vocabulary, layers, hard rules, definition of done |
+| `engine/` | The gift engine: media folder + gift.json -> checked, built static gift (docs/ENGINE.md) |
 | `docs/SKIN_GUIDE.md`, `docs/WORLD_CONTRACT.md` | Build a skin (a look); how themes (worlds), skins and tiers fit together |
 | `docs/ELEMENT_GUIDE.md` | Build an element + the `ctx` reference |
 | `elements/` | 7 elements: wordle, memory, quiz (also who-said-it), vault, reveal, polaroid, coupons |
@@ -49,6 +50,7 @@ config.json ──> engine ──> loadTheme(id)   tokens + parts + fx + copy + 
 ## Everyday tasks
 
 ```bash
+npm run gift -- new aria-birthday           # make a gift (then: add, preview, check, build; see docs/ENGINE.md)
 npm run new-skin -- forest "Forest"         # scaffold a skin (a look)
 npm run new-theme -- concert "Concert"      # scaffold a theme (a world)
 npm run check                              # check all elements + themes

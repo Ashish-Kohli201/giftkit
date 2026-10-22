@@ -1,0 +1,5 @@
+node_modules/
+# customer gifts and everything the engine produces are never committed
+gifts/
+dist-gifts/
+.engine/
