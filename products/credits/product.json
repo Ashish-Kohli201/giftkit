@@ -97,5 +97,65 @@
         }
       ]
     }
-  ]
+  ],
+  "shop": {
+    "accent": "#6fd6a8",
+    "ink": "#05301f",
+    "headline": "Roll the credits",
+    "blurb": "Your message rolls up the screen like the end of a favourite film.",
+    "steps": [
+      {
+        "id": "who",
+        "title": "Who is this gift for?",
+        "hint": "Their name, the way you would say it out loud.",
+        "keys": [
+          "recipient",
+          "sender"
+        ]
+      },
+      {
+        "id": "words",
+        "title": "Now, say it.",
+        "hint": "Write it like you are talking to them. Blank line = new paragraph.",
+        "keys": [
+          "title",
+          "message"
+        ],
+        "starters": true
+      },
+      {
+        "id": "photos",
+        "title": "Add some photos",
+        "hint": "Your favourites of the two of you. You can skip this.",
+        "keys": [
+          "photos"
+        ],
+        "optional": true
+      },
+      {
+        "id": "extras",
+        "title": "Make it unforgettable",
+        "hint": "A video message or your song. Both are optional.",
+        "keys": [
+          "video",
+          "music"
+        ],
+        "optional": true
+      },
+      {
+        "id": "style",
+        "title": "Choose the feel",
+        "hint": "Tap one. You can change it any time.",
+        "keys": [
+          "pace",
+          "skin"
+        ]
+      }
+    ],
+    "starters": [
+      "You make every ordinary day feel a little like a celebration. Thank you for being exactly who you are.\n\nHappy birthday, {{recipient}}.\n\n{{sender}}",
+      "I was thinking about you today and I wanted to say it properly: I am really glad you are in my life.\n\nMake a wish. You deserve all of them.\n\n{{sender}}",
+      "Another year, another reason to celebrate you.\n\nI hope today is full of cake, laughter and the people you love.\n\nLove,\n{{sender}}"
+    ]
+  }
 }

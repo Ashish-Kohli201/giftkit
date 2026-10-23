@@ -6,6 +6,7 @@ This is the `spark` branch: a stripped-down base for one-tap gift products. The 
 
 ## Working rules
 - After ANY change to an element, skin or product, run `npm run check`. Before finishing a task, run `npm test`.
+- Storefront check: `npm run test:site` (the whole purchase for every product, on phone screens).
 - Browser check: `npm run test:browser` (every product x skin at 390x844 and 360x640; needs `npm i` and `npx playwright install chromium` once).
 - Never claim something works unless a test or the playground shows it.
 - No stubs, no TODO placeholders, no one-line minified code. Readable, commented, small files.
@@ -25,5 +26,6 @@ This is the `spark` branch: a stripped-down base for one-tap gift products. The 
 - `elements/finale/reveal/` the reveal element; its formats are `variants/*.js`. Register elements in `elements/registry.js`.
 - `skins/<id>/` a look: tokens, element parts, fx, copy. List in `skins/skins.json`.
 - `core/` shared plumbing: `product.js` (host), `options.js` (check + price, no DOM, shared with the backend), `look.js`, `fx.js`, `resolver.js`, `store.js`, `validate.js`, `util.js`.
+- `site/` the storefront (landing, guided builder, payment seam in `site/lib/api.js`); see `docs/spark/SITE.md`.
 - `host/` the page a recipient opens. `playground/` the dev form + live phone frame.
 - Guides: `docs/spark/PRODUCT_GUIDE.md`, `docs/spark/BACKEND.md`, `docs/SKIN_GUIDE.md`.

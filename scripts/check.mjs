@@ -180,6 +180,27 @@ async function checkProduct(id) {
   const skinOption = m.options?.find((o) => o.key === 'skin');
   if (skinOption && !skinOption.choices?.every((c) => m.skins?.includes(c.value))) err(s, 'every choice of the "skin" option must be listed in skins');
 
+  // the storefront builds its guided steps from the "shop" block: every option must be asked somewhere, and nothing unknown
+  const shop = m.shop;
+  if (!shop) err(s, '"shop" is required (colours, headline and the guided steps the storefront shows)');
+  else {
+    for (const k of ['accent', 'ink', 'headline', 'blurb']) if (!shop[k]) err(s, `shop.${k} is required`);
+    for (const k of ['accent', 'ink']) if (shop[k] && !/^#[0-9a-f]{6}$/i.test(shop[k])) err(s, `shop.${k} must be a #rrggbb colour`);
+    if (!shop.starters?.length) err(s, 'shop.starters needs a few lines of starter text for people who do not know what to write');
+    const asked = new Set();
+    for (const st of shop.steps ?? []) {
+      for (const k of ['id', 'title', 'hint']) if (!st[k]) err(s, `shop step "${st.id ?? '?'}": ${k} is required`);
+      for (const key of st.keys ?? []) {
+        if (!m.options?.some((o) => o.key === key)) err(s, `shop step "${st.id}" asks for "${key}", which is not an option`);
+        if (asked.has(key)) err(s, `option "${key}" is asked in more than one step`);
+        asked.add(key);
+      }
+    }
+    for (const o of m.options ?? []) if (!asked.has(o.key)) err(s, `option "${o.key}" is never asked: add it to a shop step`);
+    // a required option on an optional step would let the customer skip past it
+    for (const st of shop.steps ?? []) if (st.optional && st.keys?.some((k) => m.options?.find((o) => o.key === k)?.required)) err(s, `shop step "${st.id}" is optional but holds a required option`);
+  }
+
   // a sample must exist and be a complete, valid order; its price must be a sensible whole number
   const samplePath = join(dir, 'sample.json');
   if (!existsSync(samplePath)) err(s, 'sample.json missing (the playground and tests use it)');
@@ -206,6 +227,13 @@ async function checkProduct(id) {
 const [kind, target] = process.argv.slice(2);
 const skins = skinIds;
 const products = (await readdir(join(ROOT, 'products'), { withFileTypes: true })).filter((d) => d.isDirectory() && !d.name.startsWith('_')).map((d) => d.name);
+// products/index.json is the order the storefront shows them in; it must list exactly the product folders
+const listed = JSON.parse(await readFile(join(ROOT, 'products/index.json'), 'utf8'));
+if (!kind || kind === 'product') {
+  console.log('\n[products/index.json]');
+  for (const id of products) if (!listed.includes(id)) err('products/index.json', `"${id}" is a product folder but is not listed`);
+  for (const id of listed) if (!products.includes(id)) err('products/index.json', `lists "${id}", which is not a product folder`);
+}
 if (!kind || kind === 'element') for (const [id, el] of Object.entries(registry)) if (!target || target === id) await checkElement(id, el);
 if (!kind || kind === 'skin') for (const id of skins) if (!target || target === id) await checkSkin(id);
 if (!kind || kind === 'product') for (const id of products) if (!target || target === id) await checkProduct(id);

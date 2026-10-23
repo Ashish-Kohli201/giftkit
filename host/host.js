@@ -22,8 +22,13 @@ async function readJson(url) {
   return res.json();
 }
 
+// A preview sits inside the storefront while the customer types. A format that focuses its own button when it starts
+// (the envelope does) would pull focus out of the text box, and on a phone that closes the keyboard on every keystroke.
+// So in a preview, code cannot move focus; taps and keys from a real person still work.
+if (preview) HTMLElement.prototype.focus = function ignoreFocus() {};
+
 try {
-  let gift = query.get('gift') ? await readJson(query.get('gift')) : {};
+  let gift =query.get('gift') ? await readJson(query.get('gift')) : {};
   const productId = gift.product ?? query.get('product');
   if (!productId) throw new Error('Open this page with ?product=<id> (or ?gift=<url>)');
   if (!gift.options && preview) gift = { ...gift, ...(await readJson(new URL(`../products/${productId}/sample.json`, location.href))) };

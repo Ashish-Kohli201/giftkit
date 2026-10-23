@@ -10,6 +10,7 @@ This is the `spark` branch. The earlier full library (rooms, tiers, gift engine,
 ```bash
 npm run dev          # http://localhost:5173/playground/   pick a product, fill the form, watch it on a phone
 npm test             # unit tests + contract check (no browser needed)
+npm run test:site    # Playwright: the whole purchase for every product on phone screens
 npm run test:browser # Playwright: every product x skin at 390x844 and 360x640 (npm i && npx playwright install chromium first)
 ```
 
@@ -21,6 +22,8 @@ Needs Node 18+. No install step is needed to run the playground.
 |---|---|
 | `RULES.md` | **Start here.** Vocabulary, hard rules, definition of done |
 | `docs/spark/PRODUCT_GUIDE.md` | How to build a product (for the frontend) |
+| `docs/spark/SITE.md` | The storefront: the guided buying flow and its seam to the backend |
+| `site/` | The storefront customers use (landing, guided builder, payment). `npm run dev` then /site/ |
 | `docs/spark/BACKEND.md` | The website, payments and automation plan (stack, data, API, flow) |
 | `docs/SKIN_GUIDE.md` | Build a skin (a look) |
 | `products/` | The products: `envelope`, `cake`, `film`, `credits`; each is `product.json` + `index.js` + `sample.json`. `_shared/` holds the reveal adapter |
