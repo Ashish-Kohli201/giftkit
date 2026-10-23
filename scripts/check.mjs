@@ -1,6 +1,6 @@
-// Contract checker for elements, skins and themes (worlds). Zero dependencies.
-//   node scripts/check.mjs                 -> check every element, every skin (skins/skins.json) and every theme (themes/themes.json)
-//   node scripts/check.mjs skin nightsky   -> one skin   |   theme desk -> one theme   |   element wordle -> one element
+// Contract checker for elements, skins and products. Zero dependencies.
+//   node scripts/check.mjs                   -> check every element, every skin (skins/skins.json) and every product (products/*)
+//   node scripts/check.mjs skin nightsky     -> one skin   |   product envelope -> one product   |   element reveal -> one element
 // Exit code 1 on any ERROR. Warnings (WARN) never fail the run.
 import { readFile, readdir } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
@@ -8,6 +8,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { join } from 'node:path';
 import { registry } from '../elements/registry.js';
 import { validate } from '../core/validate.js';
+import { checkManifest, normalizeOptions, priceFor } from '../core/options.js';
 import { CONTRACT_VERSION, ELEMENT_KINDS, FX_EVENTS, REQUIRED_TOKENS } from '../core/contract.js';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
@@ -51,7 +52,7 @@ ${await readFile(join(folder, f), 'utf8')}`;
 
   // every declared part must exist in style.css (structure or default paint) -> every element has a fallback look
   for (const p of el.parts || []) if (!css.includes(`data-part="${p}"`)) err(s, `style.css has no rule for part "${p}"`);
-  if (!/\)\s*\{/.test(css) || !css.includes(':where(')) warn(s, 'style.css has no :where() default paint (themes get no fallback look)');
+  if (!/\)\s*\{/.test(css) || !css.includes(':where(')) warn(s, 'style.css has no :where() default paint (skins get no fallback look)');
 
   // parts used in code must be declared, and declared parts should be used
   const used = new Set([...src.matchAll(/part\(\s*'[\w-]+'\s*,\s*'([\w-]+)'/g)].map((m) => m[1]));
@@ -61,11 +62,11 @@ ${await readFile(join(folder, f), 'utf8')}`;
   // hard rules
   const bans = [
     [/\.(innerHTML|outerHTML)\b|insertAdjacentHTML/, 'no innerHTML/outerHTML/insertAdjacentHTML (XSS) - use text nodes / part()'],
-    [/(?<![.\w])(alert|confirm|prompt)\s*\(|window\.(alert|confirm|prompt)\b/, 'no alert/confirm/prompt - use ctx.dialogs'],
+    [/(?<![.\w])(alert|confirm|prompt)\s*\(|window\.(alert|confirm|prompt)\b/, 'no alert/confirm/prompt'],
     [/\b(localStorage|sessionStorage|indexedDB)\b/, 'no direct browser storage - use ctx.store'],
     [/https?:\/\//, 'no hardcoded URLs - assets go through ctx.assets'],
     [/\bfetch\s*\(|XMLHttpRequest|navigator\.sendBeacon/, 'no network calls from elements'],
-    [/from\s+['"][^'"]*themes\//, 'elements must never import from themes/'],
+    [/from\s+['"][^'"]*(skins|products)\//, 'elements must never import from skins/ or products/'],
     [/\bwindow\.open\b|document\.cookie/, 'no window.open / cookies'],
   ];
   for (const [re, msg] of bans) if (re.test(src)) err(s, msg);
@@ -74,17 +75,14 @@ ${await readFile(join(folder, f), 'utf8')}`;
   }
 }
 
-// ---------------------------------------------------------------- skins and themes
+// ---------------------------------------------------------------- skins
 const hex = (h) => { const n = parseInt(h.slice(1).replace(/^(.)(.)(.)$/, '$1$1$2$2$3$3'), 16); return [n >> 16, (n >> 8) & 255, n & 255]; };
 const lum = (rgb) => { const [r, g, b] = rgb.map((v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }); return 0.2126 * r + 0.7152 * g + 0.0722 * b; };
 const contrast = (a, b) => { const [x, y] = [lum(hex(a)), lum(hex(b))].sort((p, q) => q - p); return (x + 0.05) / (y + 0.05); };
 
-// The roles every theme positions and every skin may paint. See docs/WORLD_CONTRACT.md.
-const ROLES = ['hero', 'scenic', 'board', 'tally', 'vault', 'hub', 'jar', 'light', 'app-notes', 'app-music', 'app-gallery', 'toy', 'pet', 'ambient-a', 'ambient-b'];
-
-/** Selector check shared by skin and theme CSS: every selector begins with the scope (or :where(scope ...)). */
-function checkCss(s, file, css, scopeAttr, id, prefix) {
-  const scope = `[${scopeAttr}="${id}"]`;
+/** Selector check for a skin's CSS: every selector begins with the skin scope (or :where(scope ...)). */
+function checkCss(s, file, css, id) {
+  const scope = `[data-skin="${id}"]`;
   for (const [, prelude] of css.matchAll(/([^{}]+)\{/g)) {
     const p = prelude.trim();
     if (!p || p.startsWith('@')) continue;
@@ -97,55 +95,30 @@ function checkCss(s, file, css, scopeAttr, id, prefix) {
       if (!(sel.startsWith(scope) || sel.startsWith(`:where(${scope}`))) err(s, `${file}: selector not scoped to ${scope}: "${sel.slice(0, 60)}"`);
     }
   }
-  for (const [, name] of css.matchAll(/@keyframes\s+([\w-]+)/g)) if (!name.startsWith(`${prefix}-`)) err(s, `${file}: @keyframes "${name}" must be prefixed "${prefix}-"`);
+  for (const [, name] of css.matchAll(/@keyframes\s+([\w-]+)/g)) if (!name.startsWith(`${id}-`)) err(s, `${file}: @keyframes "${name}" must be prefixed "${id}-"`);
   if (/@import|url\(\s*['"]?https?:/.test(css)) err(s, `${file}: external @import/url() is forbidden - self-host everything`);
-}
-
-async function readManifest(kind, id) {
-  const dir = join(ROOT, kind === 'skin' ? 'skins' : 'themes', id);
-  const path = join(dir, `${kind}.json`);
-  if (!existsSync(path)) return { dir, manifest: null };
-  return { dir, manifest: JSON.parse(await readFile(path, 'utf8')) };
 }
 
 const readCss = async (dir, f) => stripComments(await readFile(join(dir, f), 'utf8').catch(() => ''));
 const codeBans = (s, src, what) => {
   if (/(?<![.\w])(alert|confirm|prompt)\s*\(|window\.(alert|confirm|prompt)\b/.test(src)) err(s, `no alert/confirm/prompt in ${what} code`);
   if (/https?:\/\/(?!www\.w3\.org)/.test(src)) err(s, `no external URLs in ${what} code`);
-  if (/\.(innerHTML|outerHTML)\b/.test(src)) err(s, `no innerHTML in ${what} code`);
+  if (/\.(innerHTML|outerHTML)\b|insertAdjacentHTML/.test(src)) err(s, `no innerHTML in ${what} code`);
 };
-
-/**
- * A skin's world paint styles roles and its own decorations by part name. Some of those names are also part names of
- * elements (`board` is a wordle and jigsaw part), so a world rule that mentions one must live inside the room stage,
- * or it would restyle the element. Rules that target an element (`data-element=`) are the skin's business and are skipped.
- */
-function checkWorldPartNames(s, file, css) {
-  const elementParts = new Set(Object.values(registry).flatMap((el) => el.parts));
-  for (const [, prelude] of css.matchAll(/([^{}]+)\{/g)) {
-    const p = prelude.trim();
-    if (!p || p.startsWith('@')) continue;
-    for (const sel of p.split(',').map((x) => x.trim())) {
-      if (sel.includes('data-element=') || sel.includes('data-part="room-stage"') || sel.includes('data-part="room"')) continue;
-      for (const [, name] of sel.matchAll(/data-part="([\w-]+)"/g)) {
-        if (elementParts.has(name)) err(s, `${file}: "${name}" is also an element part; scope this rule under [data-part="room-stage"]: "${sel.slice(0, 70)}"`);
-      }
-    }
-  }
-}
 
 async function checkSkin(id) {
   const s = `skin:${id}`;
   console.log(`\n[${s}]`);
-  const { dir, manifest: m } = await readManifest('skin', id);
-  if (!m) { err(s, 'skin.json missing'); return; }
+  const dir = join(ROOT, 'skins', id);
+  const path = join(dir, 'skin.json');
+  if (!existsSync(path)) { err(s, 'skin.json missing'); return; }
+  const m = JSON.parse(await readFile(path, 'utf8'));
 
   if (m.id !== id) err(s, `skin.json id "${m.id}" must equal folder name "${id}"`);
   if (m.contractVersion !== CONTRACT_VERSION) err(s, `contractVersion must be ${CONTRACT_VERSION}`);
   for (const k of ['name', 'version', 'description', 'entry', 'styles', 'license']) if (!m[k]) err(s, `skin.json: "${k}" is required`);
-  const worldFiles = Object.values(m.worlds || {}).flatMap((w) => [...(w.styles || []), w.module].filter(Boolean));
-  for (const f of [m.entry, ...(m.styles || []), ...worldFiles, m.preview].filter(Boolean)) if (!existsSync(join(dir, f))) err(s, `listed file missing: ${f}`);
-  if (!m.preview) warn(s, 'no preview image (needed for the configurator picker)');
+  for (const f of [m.entry, ...(m.styles || []), m.preview].filter(Boolean)) if (!existsSync(join(dir, f))) err(s, `listed file missing: ${f}`);
+  if (!m.preview) warn(s, 'no preview image (needed for the website picker)');
 
   // tokens
   const tokensCss = await readCss(dir, 'tokens.css');
@@ -161,28 +134,21 @@ async function checkSkin(id) {
 
   // css hygiene: scoping, keyframe names, motion, external urls
   let allCss = '';
-  for (const f of [...(m.styles || []), ...worldFiles].filter((x) => x.endsWith('.css'))) {
+  for (const f of (m.styles || []).filter((x) => x.endsWith('.css'))) {
     const css = await readCss(dir, f);
     allCss += css;
-    checkCss(s, f, css, 'data-skin', id, id);
-    if (worldFiles.includes(f)) checkWorldPartNames(s, f, css);
+    checkCss(s, f, css, id);
     if (/!important/.test(css) && !/animation: none !important/.test(css)) warn(s, `${f}: avoid !important (only allowed to disable animation in reduced-motion)`);
   }
   if (/animation|@keyframes/.test(allCss) && !allCss.includes('prefers-reduced-motion')) err(s, 'uses animation but has no prefers-reduced-motion block');
 
-  // JS module contract (the skin entry plus any per-theme decorate modules)
+  // JS module contract
   let mod;
   try { mod = (await import(pathToFileURL(join(dir, m.entry)).href)).default; } catch (e) { err(s, `cannot import ${m.entry}: ${e.message}`); return; }
   if (mod.id !== id) err(s, `index.js id "${mod.id}" must equal "${id}"`);
   for (const ev of FX_EVENTS) if (!mod.fx || !(ev in mod.fx)) err(s, `fx.${ev} must be defined (use {} for silent)`);
   if (typeof mod.copy !== 'object') err(s, 'copy{} export is required (can be empty)');
-  if (mod.shell) err(s, 'a skin must not define a shell: the world (theme) owns the layout and behavior');
-  const js = [m.entry, ...worldFiles.filter((f) => f.endsWith('.js'))];
-  for (const f of js) codeBans(s, await readFile(join(dir, f), 'utf8'), 'skin');
-  for (const f of worldFiles.filter((x) => x.endsWith('.js'))) {
-    try { const dm = (await import(pathToFileURL(join(dir, f)).href)).default; if (typeof dm !== 'function') err(s, `${f} must default-export decorateWorld(api)`); }
-    catch (e) { err(s, `cannot import ${f}: ${e.message}`); }
-  }
+  codeBans(s, await readFile(join(dir, m.entry), 'utf8'), 'skin');
 
   // part coverage report (informational: uncovered parts fall back to core defaults)
   let total = 0, hit = 0; const missing = [];
@@ -194,55 +160,54 @@ async function checkSkin(id) {
   }
   console.log(`  coverage: ${hit}/${total} element parts themed (${Math.round((hit / total) * 100)}%) - the rest use core defaults`);
   if (missing.length && process.env.VERBOSE) console.log(`  unthemed: ${missing.join(', ')}`);
-
-  // which worlds this skin paints (informational: the rest use each world's default paint)
-  const themeIds = JSON.parse(await readFile(join(ROOT, 'themes/themes.json'), 'utf8')).map((t) => t.id);
-  const painted = themeIds.filter((t) => m.worlds?.[t]);
-  console.log(`  worlds painted: ${painted.join(', ') || 'none'} (of ${themeIds.join(', ')})`);
-  for (const t of Object.keys(m.worlds || {})) if (!themeIds.includes(t)) err(s, `skin.json paints unknown world "${t}"`);
 }
 
-async function checkTheme(id) {
-  const s = `theme:${id}`;
+// ---------------------------------------------------------------- products
+const skinIds = JSON.parse(await readFile(join(ROOT, 'skins/skins.json'), 'utf8')).map((t) => t.id);
+
+async function checkProduct(id) {
+  const s = `product:${id}`;
   console.log(`\n[${s}]`);
-  const { dir, manifest: m } = await readManifest('theme', id);
-  if (!m) { err(s, 'theme.json missing'); return; }
-  if (m.id !== id) err(s, `theme.json id "${m.id}" must equal folder name "${id}"`);
+  const dir = join(ROOT, 'products', id);
+  const path = join(dir, 'product.json');
+  if (!existsSync(path)) { err(s, 'product.json missing'); return; }
+  const m = JSON.parse(await readFile(path, 'utf8'));
+
+  if (m.id !== id) err(s, `product.json id "${m.id}" must equal folder name "${id}"`);
   if (m.contractVersion !== CONTRACT_VERSION) err(s, `contractVersion must be ${CONTRACT_VERSION}`);
-  for (const k of ['name', 'version', 'description', 'metaphor', 'entry', 'styles', 'license']) if (!m[k]) err(s, `theme.json: "${k}" is required`);
-  for (const f of [m.entry, ...(m.styles || [])].filter(Boolean)) if (!existsSync(join(dir, f))) err(s, `listed file missing: ${f}`);
+  for (const p of checkManifest(m)) err(s, p);
+  for (const sk of m.skins ?? []) if (!skinIds.includes(sk)) err(s, `skins lists "${sk}", which is not in skins/skins.json`);
+  const skinOption = m.options?.find((o) => o.key === 'skin');
+  if (skinOption && !skinOption.choices?.every((c) => m.skins?.includes(c.value))) err(s, 'every choice of the "skin" option must be listed in skins');
 
-  let allCss = '';
-  for (const f of (m.styles || []).filter((x) => x.endsWith('.css'))) {
-    const css = await readCss(dir, f);
-    allCss += css;
-    checkCss(s, f, css, 'data-theme', id, id);
-    if (/!important/.test(css) && !/animation: none !important/.test(css)) warn(s, `${f}: avoid !important`);
+  // a sample must exist and be a complete, valid order; its price must be a sensible whole number
+  const samplePath = join(dir, 'sample.json');
+  if (!existsSync(samplePath)) err(s, 'sample.json missing (the playground and tests use it)');
+  else {
+    const sample = JSON.parse(await readFile(samplePath, 'utf8'));
+    const { options, errors: bad } = normalizeOptions(m, sample.options);
+    for (const [k, v] of Object.entries(bad)) err(s, `sample.json: ${v} (${k})`);
+    const price = priceFor(m, options);
+    if (!Number.isInteger(price) || price < 100) err(s, `sample price ${price} is not a sensible whole number of paise`);
   }
-  if (/animation|@keyframes/.test(allCss) && !allCss.includes('prefers-reduced-motion')) err(s, 'uses animation but has no prefers-reduced-motion block');
-  if (/#[0-9a-f]{3,8}\b|rgba?\(|hsla?\(/i.test(allCss.replace(/var\([^)]*\)/g, ''))) warn(s, 'layout.css hard-codes a color: themes use tokens only, skins own colors');
 
-  // every role needs its box (x, y, w, ar) in both compositions; core/world.css turns the variables into positions
-  for (const r of ROLES) {
-    for (const v of ['x', 'y', 'w', 'ar']) if ((allCss.match(new RegExp(`--${r}-${v}:`, 'g')) || []).length < 2) err(s, `layout.css must set --${r}-${v} for portrait and landscape`);
-  }
-  for (const orient of ['landscape']) if (!allCss.includes(`orientation: ${orient}`)) err(s, `layout.css has no ${orient} composition`);
-
-  let mod;
-  try { mod = (await import(pathToFileURL(join(dir, m.entry)).href)).default; } catch (e) { err(s, `cannot import ${m.entry}: ${e.message}`); return; }
-  if (mod.id !== id) err(s, `index.js id "${mod.id}" must equal "${id}"`);
-  if (typeof mod.mount !== 'function') err(s, 'mount(root, opts) is required (usually mountWorld from core/world.js)');
-  codeBans(s, await readFile(join(dir, m.entry), 'utf8'), 'theme');
+  // code: the entry exists, mounts, and keeps to the same hard rules as elements (no network, storage or HTML strings)
+  if (!existsSync(join(dir, 'index.js'))) { err(s, 'index.js missing'); return; }
+  const mod = (await import(pathToFileURL(join(dir, 'index.js')).href)).default;
+  if (typeof mod?.mount !== 'function') err(s, 'index.js must default-export { mount(root, ctx) }');
+  let src = await readFile(join(dir, 'index.js'), 'utf8');
+  if (id !== '_shared') for (const f of await readdir(join(ROOT, 'products/_shared'))) if (f.endsWith('.js')) src += `\n${await readFile(join(ROOT, 'products/_shared', f), 'utf8')}`;
+  codeBans(s, src, 'product');
+  if (/\bfetch\s*\(|XMLHttpRequest|navigator\.sendBeacon/.test(src)) err(s, 'products must not make network calls (files arrive through ctx.media)');
+  if (/\b(localStorage|sessionStorage|indexedDB)\b|document\.cookie/.test(src)) err(s, 'products must not touch browser storage (use ctx.store)');
 }
 
 // ---------------------------------------------------------------- run
-//   node scripts/check.mjs                  -> every element, skin and theme
-//   node scripts/check.mjs skin nightsky    -> one skin   |   theme desk -> one theme   |   element wordle -> one element
 const [kind, target] = process.argv.slice(2);
-const skins = JSON.parse(await readFile(join(ROOT, 'skins/skins.json'), 'utf8')).map((t) => t.id);
-const themes = JSON.parse(await readFile(join(ROOT, 'themes/themes.json'), 'utf8')).map((t) => t.id);
+const skins = skinIds;
+const products = (await readdir(join(ROOT, 'products'), { withFileTypes: true })).filter((d) => d.isDirectory() && !d.name.startsWith('_')).map((d) => d.name);
 if (!kind || kind === 'element') for (const [id, el] of Object.entries(registry)) if (!target || target === id) await checkElement(id, el);
 if (!kind || kind === 'skin') for (const id of skins) if (!target || target === id) await checkSkin(id);
-if (!kind || kind === 'theme') for (const id of themes) if (!target || target === id) await checkTheme(id);
+if (!kind || kind === 'product') for (const id of products) if (!target || target === id) await checkProduct(id);
 console.log(`\n${errors ? 'FAILED' : 'OK'} - ${errors} error(s), ${warns} warning(s)`);
 process.exit(errors ? 1 : 0);

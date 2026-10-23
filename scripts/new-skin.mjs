@@ -1,6 +1,6 @@
 // Scaffold a new SKIN (a look) from the neutral starter.   npm run new-skin -- <id> "Display Name"
 // Copies skins/_neutral -> skins/<id>, rewrites ids and scopes, and registers it in skins/skins.json.
-// A skin with only tokens already works in every theme (each world paints itself from tokens).
+// A skin with only tokens already works with every product (core paints every part from the tokens).
 import { cp, readdir, readFile, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
@@ -31,9 +31,8 @@ list.push({ id, name });
 await writeFile(listPath, `${JSON.stringify(list, null, 2)}\n`);
 
 console.log(`Created skins/${id}. Next:
-  1. edit skins/${id}/tokens.css  (palette, type, shape, motion) - every theme already renders with it
+  1. edit skins/${id}/tokens.css  (palette, type, shape, motion) - every format already renders with it
   2. edit skins/${id}/skin.json   (description, mood, preview)
-  3. npm run dev -> http://localhost:5173/playground/?skin=${id}
+  3. add "${id}" to a product's "skins" and to its "skin" choices, then npm run dev -> http://localhost:5173/playground/
   4. npm run check -- skin ${id}
-  5. paint a theme: add paint-<theme>.css + decorate-<theme>.js and list them under "worlds" in skin.json
-Full walkthrough: docs/SKIN_GUIDE.md and docs/WORLD_CONTRACT.md`);
+Full walkthrough: docs/SKIN_GUIDE.md`);

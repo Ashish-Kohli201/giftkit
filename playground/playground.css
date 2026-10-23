@@ -1,35 +1,19 @@
-/* Playground chrome only. Deliberately independent from any theme. */
+/* Dev tool only: a form made from a product's product.json, beside a live phone. Not part of any gift. */
+:root { color-scheme: light dark; --line: #8884; --pad: 12px; font-family: system-ui, sans-serif; }
 * { box-sizing: border-box; }
-body { margin: 0; font: 14px/1.4 system-ui, sans-serif; background: #15171c; color: #e9eaee; }
-.pg-bar { position: sticky; top: 0; z-index: 5; display: flex; gap: 16px; align-items: center; flex-wrap: wrap; padding: 10px 16px; background: #0d0e12; border-bottom: 1px solid #2a2d36; }
-.pg-bar select, .pg-controls select, .pg-controls input[type="date"], .pg-controls button { font: inherit; padding: 4px 8px; background: #20232b; color: inherit; border: 1px solid #3a3e4a; border-radius: 6px; }
-.pg-tabs { display: flex; gap: 4px; margin-left: auto; }
-.pg-tabs button { font: inherit; padding: 6px 14px; color: inherit; background: none; border: 1px solid #3a3e4a; border-radius: 6px; cursor: pointer; }
-.pg-tabs button[aria-selected="true"] { background: #e9eaee; color: #0d0e12; }
-main { padding: 16px; }
-.pg-hint { color: #9aa0ad; max-width: 70ch; }
-code { background: #20232b; padding: 1px 5px; border-radius: 4px; }
-
-#elements-root { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 16px; align-items: start; }
-.pg-card { background: #0d0e12; border: 1px solid #2a2d36; border-radius: 10px; overflow: hidden; }
-.pg-card > header { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; border-bottom: 1px solid #2a2d36; }
-.pg-card .kind { color: #9aa0ad; font-size: 12px; }
-.pg-stage { min-height: 340px; background: var(--gk-bg, #222); color: var(--gk-text, #fff); }
-.pg-stage[data-element="reveal"] { height: 520px; min-height: 0; }
-.pg-tools { padding: 8px 12px; display: grid; gap: 6px; border-top: 1px solid #2a2d36; }
-.pg-tools textarea { width: 100%; min-height: 90px; font: 12px/1.4 ui-monospace, monospace; background: #15171c; color: #cfd3dc; border: 1px solid #2a2d36; border-radius: 6px; padding: 6px; resize: vertical; }
-.pg-tools button { justify-self: start; font: inherit; padding: 4px 12px; background: #e9eaee; color: #0d0e12; border: 0; border-radius: 6px; cursor: pointer; }
-.pg-log { margin: 0; max-height: 80px; overflow: auto; color: #8bd5a8; font: 11px/1.4 ui-monospace, monospace; white-space: pre-wrap; }
-.pg-error { color: #ff9aa8; font: 12px ui-monospace, monospace; white-space: pre-wrap; padding: 8px 12px; }
-
-.pg-controls { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; margin-bottom: 14px; }
-.pg-controls output { font: 12px ui-monospace, monospace; color: #8bd5a8; }
-.pg-frame { margin: 0 auto; border-radius: 28px; border: 8px solid #000; overflow: hidden; position: relative; transform: translateZ(0); /* makes position:fixed children (sheets, dialogs) stay inside the frame */ }
-.pg-frame[data-size="phone"] { width: 844px; height: 390px; border-radius: 24px; }
-.pg-frame[data-size="se"] { width: 667px; height: 375px; border-radius: 24px; }
-.pg-frame[data-size="wide"] { width: min(1000px, 100%); height: 640px; border-radius: 12px; }
-.gift-root { position: absolute; inset: 0; }
-.pg-roles { margin: 0 0 12px; color: #cfd3dc; }
-.pg-roles summary { cursor: pointer; }
-#roles-list { display: flex; flex-wrap: wrap; gap: 6px 16px; padding: 8px 0; }
-#roles-list label { display: inline-flex; gap: 6px; align-items: center; }
+body { margin: 0; }
+.bar { display: flex; flex-wrap: wrap; gap: var(--pad); align-items: center; padding: var(--pad); border-bottom: 1px solid var(--line); }
+.bar label { display: flex; gap: 6px; align-items: center; }
+main { display: grid; grid-template-columns: minmax(280px, 380px) 1fr; gap: var(--pad); padding: var(--pad); align-items: start; }
+@media (max-width: 760px) { main { grid-template-columns: 1fr; } }
+form { display: grid; gap: var(--pad); }
+.field { display: grid; gap: 4px; }
+.field > label { font-weight: 600; }
+.field .hint { font-size: 0.85em; opacity: 0.7; margin: 0; }
+.field .error { color: #c0392b; font-size: 0.85em; margin: 0; }
+.field input[type="text"], .field input[type="date"], .field textarea, .field select { font: inherit; padding: 8px; width: 100%; }
+.stage { display: grid; justify-items: center; gap: 8px; }
+#device { border: 10px solid #222; border-radius: 28px; overflow: hidden; background: #000; }
+#gift { display: block; border: 0; }
+#price { margin: 0; font-weight: 700; }
+.events { margin: 0; font-size: 0.85em; opacity: 0.7; min-height: 1.2em; }

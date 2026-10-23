@@ -1,8 +1,8 @@
 // Pure-logic tests (no browser). Run: npm test
 import assert from 'node:assert/strict';
 import { validate } from '../core/validate.js';
-import { assignFragments, deriveCode, FRAGMENT_ALPHABET } from '../core/fragments.js';
-import { itemStatus, todayIn, addDays } from '../core/schedule.js';
+import { checkManifest, normalizeOptions, priceFor, mediaIdsIn } from '../core/options.js';
+import { readFileSync, readdirSync } from 'node:fs';
 import { template, deepTemplate, seededRandom } from '../core/util.js';
 import { registry } from '../elements/registry.js';
 import { createResolver, placeholderWav, WAV_RATE, WAV_SECONDS } from '../core/resolver.js';
@@ -25,41 +25,6 @@ test('validator: required, type, bounds, nullable', () => {
 
 test('every element: placeholderParams satisfy its own schema', () => {
   for (const el of Object.values(registry)) assert.deepEqual(validate(el.paramsSchema, el.placeholderParams), [], el.id);
-});
-
-test('fragments: unique, unambiguous, deterministic per seed, code derived in order', () => {
-  const days = Array.from({ length: 10 }, (_, i) => ({ day: i + 1 }));
-  const a = assignFragments(days, seededRandom('gift-1'));
-  const b = assignFragments(days, seededRandom('gift-1'));
-  assert.deepEqual(a, b);
-  assert.equal(new Set(a).size, 10);
-  assert.ok(a.every((c) => FRAGMENT_ALPHABET.includes(c) && !'IO01'.includes(c)));
-  assert.equal(deriveCode(a), a.join(''));
-});
-
-test('fragments: explicit values honored, duplicates and look-alikes rejected', () => {
-  assert.deepEqual(assignFragments([{ fragment: 'h' }, { fragment: 'K' }], seededRandom('x')), ['H', 'K']);
-  assert.throws(() => assignFragments([{ fragment: 'H' }, { fragment: 'H' }]), /Duplicate/);
-  assert.throws(() => assignFragments([{ fragment: 'O' }]), /Invalid/);
-});
-
-test('schedule: date mode unlocks day N on startDate + N-1 in the given timezone', () => {
-  const base = { mode: 'date', startDate: '2026-12-01', tz: 'Asia/Kolkata', flags: [false, false, false] };
-  const at = (iso) => new Date(iso);
-  assert.equal(itemStatus({ ...base, index: 0, now: at('2026-12-01T00:00:00+05:30') }).status, 'open');
-  assert.equal(itemStatus({ ...base, index: 1, now: at('2026-12-01T23:59:00+05:30') }).status, 'locked');
-  assert.equal(itemStatus({ ...base, index: 1, now: at('2026-12-02T00:00:00+05:30') }).status, 'open');
-  assert.equal(itemStatus({ ...base, index: 2, now: at('2026-12-01T00:00:00+05:30') }).unlocksOn, '2026-12-03');
-  // timezone matters: 2026-12-01 20:00 UTC is already Dec 2 in Kolkata
-  assert.equal(todayIn('Asia/Kolkata', at('2026-12-01T20:00:00Z')), '2026-12-02');
-  assert.equal(addDays('2026-12-30', 3), '2027-01-02');
-});
-
-test('schedule: sequential waits for the previous item; all is always open; done wins', () => {
-  assert.equal(itemStatus({ mode: 'sequential', index: 1, flags: [false, false] }).status, 'locked');
-  assert.equal(itemStatus({ mode: 'sequential', index: 1, flags: [true, false] }).status, 'open');
-  assert.equal(itemStatus({ mode: 'all', index: 5, flags: [] }).status, 'open');
-  assert.equal(itemStatus({ mode: 'date', startDate: '2099-01-01', index: 0, flags: [true] }).status, 'done');
 });
 
 test('placeholder audio: valid mono 16-bit WAV, about 10s, deterministic per slot id', () => {
@@ -99,6 +64,48 @@ test('reveal: every finale variant validates, a bad variant or candle count is r
   assert.ok(validate(paramsSchema, { ...placeholderParams, variant: 'cake', candles: 12 }).length > 0);
   assert.ok(validate(paramsSchema, { ...placeholderParams, variant: 'slideshow', slideMs: 500 }).length > 0);
   assert.deepEqual(validate(paramsSchema, { ...placeholderParams, variant: 'cake', candles: 7 }), []);
+});
+
+// ---------------------------------------------------------------- products: options and price
+const load = (id) => JSON.parse(readFileSync(new URL(`../products/${id}/product.json`, import.meta.url), 'utf8'));
+const products = readdirSync(new URL('../products/', import.meta.url), { withFileTypes: true })
+  .filter((d) => d.isDirectory() && !d.name.startsWith('_')).map((d) => d.name);
+
+test('every product manifest is valid and its sample is a complete order', () => {
+  assert.ok(products.length >= 4);
+  for (const id of products) {
+    const m = load(id);
+    assert.deepEqual(checkManifest(m), [], id);
+    const sample = JSON.parse(readFileSync(new URL(`../products/${id}/sample.json`, import.meta.url), 'utf8'));
+    assert.deepEqual(normalizeOptions(m, sample.options).errors, {}, id);
+  }
+});
+
+test('options: required, length, choice, media ids and defaults are checked', () => {
+  const m = load('cake');
+  const ok = { recipient: 'Aria', message: 'Hi' };
+  const r = normalizeOptions(m, ok);
+  assert.deepEqual(r.errors, {});
+  assert.equal(r.options.candles, '5'); // default filled in
+  assert.equal(r.options.title, 'Happy Birthday, {{recipient}}!');
+  assert.ok(normalizeOptions(m, {}).errors.recipient); // required
+  assert.ok(normalizeOptions(m, { ...ok, recipient: 'x'.repeat(31) }).errors.recipient);
+  assert.ok(normalizeOptions(m, { ...ok, candles: '4' }).errors.candles); // not one of the choices
+  assert.ok(normalizeOptions(m, { ...ok, skin: 'wordle' }).errors.skin);
+  assert.ok(normalizeOptions(m, { ...ok, photos: ['a/../b'] }).errors.photos); // not a file id
+  assert.ok(normalizeOptions(m, { ...ok, photos: Array(7).fill('p') }).errors.photos); // too many
+  assert.equal(normalizeOptions(m, { ...ok, recipient: '  Aria  ' }).options.recipient, 'Aria'); // trimmed
+});
+
+test('price: computed from the manifest only, a client-sent price is ignored', () => {
+  const m = load('envelope');
+  const base = normalizeOptions(m, { recipient: 'Aria', message: 'Hi' }).options;
+  assert.equal(priceFor(m, base), m.price.base);
+  const withExtras = normalizeOptions(m, { recipient: 'Aria', message: 'Hi', video: 'v1', music: 'm1', price: 1 }).options;
+  assert.equal(withExtras.price, undefined); // unknown keys are dropped
+  const extras = m.options.find((o) => o.key === 'video').price + m.options.find((o) => o.key === 'music').price;
+  assert.equal(priceFor(m, withExtras), m.price.base + extras);
+  assert.deepEqual(mediaIdsIn(m, withExtras).sort(), ['m1', 'v1']);
 });
 
 console.log(`\n${n} tests passed`);

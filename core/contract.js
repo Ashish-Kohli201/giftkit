@@ -1,9 +1,9 @@
-// The contract every element and theme is checked against. Bump CONTRACT_VERSION on breaking changes.
-export const CONTRACT_VERSION = 1;
+// The contract every element, skin and product is checked against. Bump CONTRACT_VERSION on breaking changes.
+export const CONTRACT_VERSION = 2;
 
 export const ELEMENT_KINDS = ['game', 'app', 'prop', 'finale'];
 
-// Sound + particle + haptic events a theme's `fx` must define.
+// Sound + particle + haptic events a skin's `fx` must define.
 export const FX_EVENTS = ['success', 'fail', 'unlock', 'tap', 'reveal'];
 
 // Every skin MUST define all of these in tokens.css (scoped to [data-skin="<id>"]).
@@ -18,45 +18,6 @@ export const REQUIRED_TOKENS = [
   '--gk-tap', '--gk-gap',
 ];
 
-// Default microcopy for the shell (the "world" around the elements). Themes and skins override via copy["shell.<key>"].
-export const DEFAULT_SHELL_COPY = {
-  title: 'A gift for {{recipient}}',
-  subtitle: 'From {{sender}}',
-  dayLabel: 'Day {{n}}',
-  finaleLabel: 'Vault',
-  revealLabel: 'Your surprise',
-  giftTag: 'For {{recipient}}',
-  trayLabel: 'Fragments',
-  extrasLabel: 'Extras',
-  lockedTitle: 'Not yet',
-  lockedOn: 'Unlocks {{date}}',
-  lockedPrev: 'Come back to this one after the one before it.',
-  finaleLocked: 'It will not open yet. Something is still missing.',
-  revealLocked: 'Finish the game first',
-  fragmentTitle: 'Something slipped out',
-  fragmentFound: 'A little note slipped out: {{fragment}}. It might be worth remembering.',
-  // names of the roles in a themed world; used as accessible labels (not shown as text). See docs/WORLD_CONTRACT.md
-  hub: 'Games',
-  vault: 'Locked box',
-  board: 'Memories',
-  jar: 'Jar',
-  light: 'Light',
-  scenic: 'Backdrop',
-  appMusic: 'Music',
-  appGallery: 'Photos',
-  appNotes: 'Notes',
-  pet: 'Pet',
-  toy: 'Toy',
-  ambientA: 'Lights',
-  ambientB: 'Mood',
-  music: 'Music',
-  gallery: 'Photos',
-  notes: 'Notes',
-  rotateHint: 'Turn your phone sideways',
-  coupons: 'Coupons',
-  memories: 'Memories',
-  'status.locked': 'Locked',
-  'status.open': 'Ready',
-  'status.done': 'Completed',
-  errorTitle: 'Something went wrong',
-};
+// What a customer can be asked for in a product. See docs/spark/PRODUCT_GUIDE.md.
+export const OPTION_TYPES = ['text', 'longtext', 'choice', 'color', 'date', 'image', 'images', 'video', 'audio', 'toggle'];
+export const MEDIA_TYPES = ['image', 'images', 'video', 'audio'];

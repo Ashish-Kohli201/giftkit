@@ -39,14 +39,3 @@
   --gk-tap: 44px;
   --gk-gap: 16px;
 }
-
-/* TIER NUANCE - the same arcade, a different mood per tier (a palette shift, not a new theme).
-   Spark is attract mode: cool cyan. Countdown is the base magenta. Signature is high-score gold. */
-[data-skin="arcade"][data-tier="spark"] {
-  --gk-accent: #4df3ff;
-  --gk-glow: 0 0 18px rgba(77, 243, 255, 0.6);
-}
-[data-skin="arcade"][data-tier="signature"] {
-  --gk-accent: #ffd447;
-  --gk-glow: 0 0 18px rgba(255, 212, 71, 0.6);
-}

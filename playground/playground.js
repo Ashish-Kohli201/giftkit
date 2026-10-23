@@ -1,118 +1,113 @@
-// Playground: (1) every element standalone, (2) the reference runtime on sample/config.json.
-// This file is a dev tool - it is not part of the product.
-import { registry } from '../elements/registry.js';
-import { loadTheme } from '../core/theme-loader.js';
-import { mountElement } from '../core/mount.js';
-import { createResolver } from '../core/resolver.js';
-import { createStore } from '../core/store.js';
-import { startGift } from '../core/runtime.js';
-import { TIER_FILES } from './tiers.js';
-import { OPTIONAL_ROLES, FINALE_VARIANTS } from './roles.js';
+// The product playground (dev tool): pick a product, fill in its form, watch it live in a phone-sized frame.
+// The form is made from the product's own product.json, so a new product shows up here with no extra code.
+// Files picked here become blob: URLs inside the preview only; nothing is uploaded anywhere.
+import { normalizeOptions, priceFor } from '../core/options.js';
 
-const $ = (s) => document.querySelector(s);
-const themeSelect = $('#theme');
-const skinSelect = $('#skin');
-const elementsRoot = $('#elements-root');
-const giftRoot = $('#gift-root');
-let current = { theme: null, instances: [], gift: null };
+const $ = (id) => document.getElementById(id);
+const products = ['envelope', 'cake', 'film', 'credits'];
+const picker = $('product');
+const form = $('form');
+const frame = $('gift');
+const query = new URL(location.href).searchParams;
 
-const themes = await (await fetch('../themes/themes.json')).json();
-const skins = await (await fetch('../skins/skins.json')).json();
-const url = new URL(location.href);
-themeSelect.innerHTML = themes.map((t) => `<option value="${t.id}">${t.name}</option>`).join('');
-themeSelect.value = url.searchParams.get('theme') || themes[0].id;
-skinSelect.innerHTML = skins.map((t) => `<option value="${t.id}">${t.name}</option>`).join('');
-skinSelect.value = url.searchParams.get('skin') || skins[0].id;
-const finaleSelect = $('#finale-style');
-finaleSelect.innerHTML = FINALE_VARIANTS.map((v) => `<option value="${v}">${v}</option>`).join('');
-finaleSelect.value = url.searchParams.get('finale') || 'scroll';
-$('#roles-list').innerHTML = OPTIONAL_ROLES.map((r) => `<label><input type="checkbox" data-role="${r.id}" checked> ${r.label}</label>`).join('');
-const tierSelect = $('#tier');
-tierSelect.innerHTML = Object.keys(TIER_FILES).map((t) => `<option value="${t}">${t}</option>`).join('');
-tierSelect.value = url.searchParams.get('tier') || 'countdown';
+let manifest;
+let values = {};
+let media = {};     // id -> { type, url }, from files picked in the form
+let ready = false;
 
-const vars = { recipient: 'Aria', sender: 'Sam' };
-const assets = createResolver({ placeholders: true });
+for (const id of products) picker.append(new Option(id, id));
+picker.value = products.includes(query.get('product')) ? query.get('product') : products[0];
 
-// ------------------------------------------------------------ elements tab
-async function renderElements() {
-  current.instances.forEach((i) => i.destroy());
-  current.instances = [];
-  elementsRoot.replaceChildren();
-  elementsRoot.dataset.theme = '';
-  const theme = await loadTheme(themeSelect.value, { skinId: skinSelect.value, root: elementsRoot, store: createStore('playground', { persist: false }) });
-  current.theme = theme;
+const el = (tag, attrs = {}, ...kids) => {
+  const n = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) if (v != null && v !== false) n.setAttribute(k, v === true ? '' : v);
+  n.append(...kids.filter((k) => k != null));
+  return n;
+};
+const rupees = (paise) => `₹${(paise / 100).toLocaleString('en-IN')}`;
 
-  for (const el of Object.values(registry)) {
-    const card = document.createElement('section');
-    card.className = 'pg-card';
-    card.innerHTML = `<header><strong>${el.id}</strong><span class="kind">${el.kind} - v${el.version}</span></header>
-      <div class="pg-stage"></div>
-      <div class="pg-tools"><textarea spellcheck="false"></textarea><button type="button">Remount</button><pre class="pg-log"></pre></div>`;
-    elementsRoot.append(card);
-    const stage = card.querySelector('.pg-stage');
-    const area = card.querySelector('textarea');
-    const log = card.querySelector('.pg-log');
-    area.value = JSON.stringify(el.placeholderParams, null, 2);
-    const say = (name) => (data) => { log.textContent += `${name} ${JSON.stringify(data ?? {})}\n`; log.scrollTop = log.scrollHeight; };
+async function load() {
+  ready = false;
+  manifest = await (await fetch(`../products/${picker.value}/product.json`)).json();
+  const sample = await (await fetch(`../products/${picker.value}/sample.json`)).json();
+  values = { ...sample.options };
+  media = {};
+  buildForm();
+  const url = `../host/index.html?product=${picker.value}&preview=1`;
+  frame.src = url;
+  $('open').href = url;
+  size();
+}
 
-    const mount = async () => {
-      card.querySelector('.pg-error')?.remove();
-      log.textContent = '';
-      current.instances = current.instances.filter((i) => i.el !== el.id || (i.destroy(), false));
-      try {
-        const inst = await mountElement(el, stage, {
-          theme, params: JSON.parse(area.value), assets, vars,
-          store: createStore(`pg-${el.id}`, { persist: false }),
-          hooks: { onComplete: say('onComplete'), onFail: say('onFail'), emit: (n, d) => say(`emit:${n}`)(d), onExit: say('onExit') },
-        });
-        inst.el = el.id;
-        current.instances.push(inst);
-      } catch (e) {
-        const pre = document.createElement('pre'); pre.className = 'pg-error'; pre.textContent = e.message;
-        card.append(pre);
-      }
-    };
-    card.querySelector('button').addEventListener('click', mount);
-    await mount();
+function buildForm() {
+  form.replaceChildren();
+  for (const o of manifest.options) {
+    const id = `f-${o.key}`;
+    let control;
+    if (o.type === 'longtext') control = el('textarea', { id, rows: 6 });
+    else if (o.type === 'choice') control = el('select', { id }, ...o.choices.map((c) => new Option(`${c.label}${c.price ? ` (+${rupees(c.price)})` : ''}`, c.value)));
+    else if (o.type === 'toggle') control = el('input', { id, type: 'checkbox' });
+    else if (['image', 'images', 'video', 'audio'].includes(o.type)) control = el('input', { id, type: 'file', accept: `${o.type === 'images' ? 'image' : o.type}/*`, multiple: o.type === 'images' });
+    else control = el('input', { id, type: o.type === 'color' ? 'color' : o.type === 'date' ? 'date' : 'text' });
+
+    const isFile = control.type === 'file';
+    if (!isFile && o.type !== 'toggle') control.value = values[o.key] ?? '';
+    if (o.type === 'toggle') control.checked = !!values[o.key];
+    control.addEventListener(isFile ? 'change' : 'input', () => {
+      if (isFile) pickFiles(o, control);
+      else values[o.key] = o.type === 'toggle' ? control.checked : control.value;
+      push();
+    });
+    form.append(el('div', { class: 'field', 'data-key': o.key },
+      el('label', { for: id }, o.label + (o.price ? ` (+${rupees(o.price)})` : '')),
+      control,
+      o.hint ? el('p', { class: 'hint' }, o.hint) : null,
+      el('p', { class: 'error', role: 'alert', hidden: true })));
   }
 }
 
-// ------------------------------------------------------------ full gift tab
-async function renderGift() {
-  current.gift?.destroy();
-  giftRoot.replaceChildren();
-  const config = await (await fetch(`../sample/${TIER_FILES[tierSelect.value]}`)).json();
-  config.schedule.mode = $('#mode').value;
-  // which roles the gift has, and how it ends
-  config.roles = { ...config.roles, exclude: [...document.querySelectorAll('#roles-list input:not(:checked)')].map((i) => i.dataset.role) };
-  config.finale = { ...config.finale, variant: finaleSelect.value };
-  const today = $('#today').value;
-  const gift = await startGift({
-    root: giftRoot, config, themeId: themeSelect.value, skinId: skinSelect.value, base: location.href, preview: true,
-    unlockAll: $('#unlock').checked,
-    now: () => new Date(`${today}T09:00:00+05:30`),
+function pickFiles(o, input) {
+  const files = [...input.files];
+  const ids = files.map((f, i) => {
+    const id = `${o.key}_${i + 1}`;
+    media[id] = { type: f.type.split('/')[0], url: URL.createObjectURL(f) };
+    return id;
   });
-  current.gift = gift;
-  $('#codeout').textContent = config.finale?.type === 'reveal' ? 'no vault in this tier' : `vault code (derived): ${gift.code}`;
-  $('#live-link').href = `./gift.html?tier=${tierSelect.value}&theme=${themeSelect.value}&skin=${skinSelect.value}&mode=${$('#mode').value}`;
+  if (!ids.length) delete values[o.key];
+  else values[o.key] = o.type === 'images' ? ids : ids[0];
 }
 
-// ------------------------------------------------------------ wiring
-function show(tab) {
-  const isGift = tab === 'gift';
-  $('#elements-view').hidden = isGift;
-  $('#gift-view').hidden = !isGift;
-  $('#tab-elements').setAttribute('aria-selected', String(!isGift));
-  $('#tab-gift').setAttribute('aria-selected', String(isGift));
-  (isGift ? renderGift : renderElements)();
+/** Check the values, show what is wrong next to each field, show the price, and send everything to the preview. */
+function push() {
+  const { options, errors } = normalizeOptions(manifest, values);
+  for (const f of form.querySelectorAll('.field')) {
+    const p = f.querySelector('.error');
+    p.textContent = errors[f.dataset.key] ?? '';
+    p.hidden = !errors[f.dataset.key];
+  }
+  $('price').textContent = `Price: ${rupees(priceFor(manifest, options))}`;
+  if (ready) frame.contentWindow.postMessage({ type: 'options', options: values, media }, location.origin);
 }
-$('#tab-elements').onclick = () => show('elements');
-$('#tab-gift').onclick = () => show('gift');
-skinSelect.onchange = themeSelect.onchange = () => show($('#gift-view').hidden ? 'elements' : 'gift');
-for (const id of ['#tier', '#mode', '#today', '#unlock', '#finale-style']) $(id).onchange = renderGift;
-$('#roles-list').onchange = renderGift;
-$('#reset').onclick = () => current.gift?.reset();
-$('#frame').onchange = (e) => { $('#gift-frame').dataset.size = e.target.value; };
 
-show(url.searchParams.get('tab') === 'gift' ? 'gift' : 'elements');
+function size() {
+  const [w, h] = $('frame').value.split('x').map(Number);
+  // fit the device on short screens: scale the frame, never change its logical size (so what you see is what a phone sees)
+  const scale = Math.min(1, (innerHeight - 190) / h);
+  frame.style.width = `${w}px`;
+  frame.style.height = `${h}px`;
+  $('device').style.transform = `scale(${scale})`;
+  $('device').style.transformOrigin = 'top center';
+  $('device').style.marginBottom = `${-(h * (1 - scale))}px`;
+}
+
+addEventListener('message', (e) => {
+  if (e.origin !== location.origin || e.data?.type !== 'gift') return;
+  if (e.data.event === 'ready') { ready = true; push(); }
+  $('events').textContent = e.data.event === 'error' ? `Problem: ${e.data.message}` : `Last event: ${e.data.event}`;
+});
+picker.addEventListener('change', load);
+$('frame').addEventListener('change', size);
+addEventListener('resize', size);
+$('restart').addEventListener('click', () => { ready = false; frame.src = frame.src; });
+
+await load();

@@ -1,0 +1,105 @@
+{
+  "contractVersion": 2,
+  "id": "film",
+  "name": "Memory film",
+  "tagline": "Your photos as a slow film with your words over the last frame.",
+  "format": "slideshow",
+  "skins": [
+    "nightsky",
+    "arcade"
+  ],
+  "price": {
+    "base": 19900,
+    "currency": "INR"
+  },
+  "options": [
+    {
+      "key": "recipient",
+      "type": "text",
+      "label": "Who is it for?",
+      "hint": "Their name, as you would say it",
+      "required": true,
+      "maxLength": 30
+    },
+    {
+      "key": "sender",
+      "type": "text",
+      "label": "From",
+      "hint": "Your name",
+      "maxLength": 30
+    },
+    {
+      "key": "title",
+      "type": "text",
+      "label": "Headline",
+      "default": "Happy Birthday, {{recipient}}!",
+      "maxLength": 60
+    },
+    {
+      "key": "message",
+      "type": "longtext",
+      "label": "Your message",
+      "hint": "Leave a blank line between paragraphs",
+      "required": true,
+      "maxLength": 1200
+    },
+    {
+      "key": "photos",
+      "type": "images",
+      "label": "Photos",
+      "hint": "Up to 10, in the order you want them shown",
+      "max": 10,
+      "required": true
+    },
+    {
+      "key": "pace",
+      "type": "choice",
+      "label": "Pace",
+      "default": "normal",
+      "choices": [
+        {
+          "value": "slow",
+          "label": "Slow"
+        },
+        {
+          "value": "normal",
+          "label": "Normal"
+        },
+        {
+          "value": "quick",
+          "label": "Quick"
+        }
+      ]
+    },
+    {
+      "key": "video",
+      "type": "video",
+      "label": "A video (optional)",
+      "hint": "Up to 60 MB, up to 1 minute",
+      "price": 9900
+    },
+    {
+      "key": "music",
+      "type": "audio",
+      "label": "A song (optional)",
+      "hint": "Your own song file, up to 15 MB",
+      "price": 4900
+    },
+    {
+      "key": "skin",
+      "type": "choice",
+      "label": "Look",
+      "default": "nightsky",
+      "choices": [
+        {
+          "value": "nightsky",
+          "label": "Night sky"
+        },
+        {
+          "value": "arcade",
+          "label": "Arcade"
+        }
+      ]
+    }
+  ]
+}

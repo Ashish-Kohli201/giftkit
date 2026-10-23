@@ -2,49 +2,33 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="robots" content="noindex">
-  <title>giftkit playground</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>giftkit - product playground</title>
   <link rel="stylesheet" href="./playground.css">
 </head>
 <body>
-  <header class="pg-bar">
-    <strong>giftkit playground</strong>
-    <label>Theme <select id="theme"></select></label>
-    <label>Skin <select id="skin"></select></label>
-    <nav class="pg-tabs" role="tablist">
-      <button role="tab" id="tab-elements" aria-selected="true">Elements</button>
-      <button role="tab" id="tab-gift" aria-selected="false">Full gift</button>
-    </nav>
+  <header class="bar">
+    <strong>Product playground</strong>
+    <label>Product <select id="product"></select></label>
+    <label>Screen
+      <select id="frame">
+        <option value="390x844">Phone 390 x 844</option>
+        <option value="360x640">Small phone 360 x 640</option>
+        <option value="430x932">Large phone 430 x 932</option>
+        <option value="768x1024">Tablet 768 x 1024</option>
+      </select>
+    </label>
+    <button id="restart" type="button">Play again</button>
+    <a id="open" target="_blank" rel="noopener">Open full screen</a>
   </header>
-
-  <!-- Elements tab: every element mounted standalone, with editable params and an event log -->
-  <main id="elements-view">
-    <p class="pg-hint">Each card mounts one element with its <code>placeholderParams</code>. Edit the JSON and press Remount. Events show what the element reports through <code>ctx</code>.</p>
-    <div id="elements-root"></div>
+  <main>
+    <form id="form" autocomplete="off"></form>
+    <section class="stage">
+      <p id="price" role="status"></p>
+      <div id="device"><iframe id="gift" title="Live preview"></iframe></div>
+      <p id="events" class="events"></p>
+    </section>
   </main>
-
-  <!-- Full gift tab: reference runtime running sample/config.json inside a landscape phone frame (gifts are made for landscape) -->
-  <main id="gift-view" hidden>
-    <div class="pg-controls">
-      <label>Tier <select id="tier"></select></label>
-      <label>Finale <select id="finale-style"></select></label>
-      <label>Schedule
-        <select id="mode"><option value="sequential">sequential</option><option value="all">all open</option><option value="date">by date</option></select>
-      </label>
-      <label>Pretend today <input type="date" id="today" value="2026-12-03"></label>
-      <label><input type="checkbox" id="unlock"> unlock all</label>
-      <button id="reset" type="button">Reset progress</button>
-      <label>Frame
-        <select id="frame"><option value="phone">phone landscape 844x390</option><option value="se">small phone landscape 667x375</option><option value="wide">wide 1000x640</option></select>
-      </label>
-      <a id="live-link" href="./gift.html" target="_blank" rel="noopener">open full-screen</a>
-      <output id="codeout"></output>
-    </div>
-    <details id="roles-panel" class="pg-roles"><summary>Roles in the room (untick to leave one out)</summary><div id="roles-list"></div></details>
-    <div id="gift-frame" class="pg-frame" data-size="phone"><div id="gift-root" class="gift-root"></div></div>
-  </main>
-
   <script type="module" src="./playground.js"></script>
 </body>
 </html>

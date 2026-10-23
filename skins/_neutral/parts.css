@@ -1,7 +1,7 @@
 /* STEP 4: element parts. Intentionally EMPTY in the starter - core.css already styles every part from your tokens.
    Add rules here only where your world should look different. Every selector must begin with [data-skin="_neutral"].
    Example (uncomment to try):
-   [data-skin="_neutral"] [data-element="wordle"] [data-part="tile"] { border-radius: 50%; }
+   [data-skin="_neutral"] [data-element="reveal"] [data-part="letter"] { font-style: italic; }
 */
 
 /* REQUIRED: if you add any animation, switch it off here. */

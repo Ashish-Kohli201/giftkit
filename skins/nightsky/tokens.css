@@ -39,15 +39,3 @@
   --gk-tap: 44px;
   --gk-gap: 16px;
 }
-
-/* TIER NUANCE - the same world, a slightly different mood per tier (a small palette shift, not a new theme).
-   Spark is softer and rosier; Countdown is the base palette above; Signature is warmer, like lamplight. */
-[data-skin="nightsky"][data-tier="spark"] {
-  --gk-accent: #ffb3c7;
-  --gk-accent-text: #2a0f24;
-  --gk-glow: 0 0 22px rgba(255, 179, 199, 0.45);
-}
-[data-skin="nightsky"][data-tier="signature"] {
-  --gk-accent: #ffc27a;
-  --gk-glow: 0 0 22px rgba(255, 194, 122, 0.5);
-}

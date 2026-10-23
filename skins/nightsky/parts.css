@@ -1,7 +1,3 @@
-/* LAYER 2 - PARTS. How each element's named parts look in THIS world.
-   Rules: every selector starts with [data-skin="nightsky"]; target [data-part] / [data-state] only (never element internals);
-   style the highest-impact elements first (wordle, memory, vault, reveal). Anything unstyled falls back to core defaults. */
-
 /* ---------- sheets / finale / dialogs / particles (shared chrome) ---------- */
 [data-skin="nightsky"] [data-part="sheet-backdrop"] { background: rgba(3, 5, 18, 0.72); backdrop-filter: blur(6px); }
 [data-skin="nightsky"] [data-part="sheet"] { background: linear-gradient(180deg, var(--gk-bg-2), var(--gk-bg)); }
@@ -14,43 +10,6 @@
 [data-skin="nightsky"] [data-part="dialog-title"] { color: var(--gk-accent); }
 [data-skin="nightsky"] [data-part="particle"] { text-shadow: 0 0 8px currentColor; }
 [data-skin="nightsky"] button[data-part][data-variant="primary"] { box-shadow: 0 0 18px rgba(255, 212, 121, 0.35); }
-
-/* ---------- wordle: tiles are little stars ---------- */
-[data-skin="nightsky"] [data-element="wordle"] [data-part="tile"] { border-radius: 50%; background: rgba(20, 27, 69, 0.7); border-color: var(--gk-border); font-family: var(--gk-font-display); }
-[data-skin="nightsky"] [data-element="wordle"] [data-part="tile"][data-state="filled"] { border-color: #fff; box-shadow: 0 0 10px rgba(255, 255, 255, 0.35); }
-[data-skin="nightsky"] [data-element="wordle"] [data-part="tile"][data-state="correct"] { background: var(--gk-accent); border-color: var(--gk-accent); color: var(--gk-accent-text); box-shadow: var(--gk-glow); animation: nightsky-flip 0.55s calc(var(--i, 0) * 120ms) var(--gk-ease) both; }
-[data-skin="nightsky"] [data-element="wordle"] [data-part="tile"][data-state="present"] { background: #6f64d8; border-color: #9a90ff; color: #fff; animation: nightsky-flip 0.55s calc(var(--i, 0) * 120ms) var(--gk-ease) both; }
-[data-skin="nightsky"] [data-element="wordle"] [data-part="tile"][data-state="absent"] { background: #0b1030; border-color: #1d2660; color: var(--gk-text-muted); animation: nightsky-flip 0.55s calc(var(--i, 0) * 120ms) var(--gk-ease) both; }
-[data-skin="nightsky"] [data-element="wordle"] [data-part="key"] { border-radius: 999px; background: rgba(29, 38, 96, 0.8); border-color: transparent; font-size: 0.85rem; }
-[data-skin="nightsky"] [data-element="wordle"] [data-part="key"][data-state="correct"] { background: var(--gk-accent); color: var(--gk-accent-text); }
-[data-skin="nightsky"] [data-element="wordle"] [data-part="key"][data-state="present"] { background: #6f64d8; color: #fff; }
-[data-skin="nightsky"] [data-element="wordle"] [data-part="hint"] { font-style: italic; }
-@keyframes nightsky-flip { 0% { transform: rotateX(0); } 50% { transform: rotateX(90deg); } 100% { transform: rotateX(0); } }
-
-/* ---------- memory: face-down cards show a constellation back ---------- */
-[data-skin="nightsky"] [data-element="memory"] [data-part="card-back"] { background: radial-gradient(circle at 30% 30%, #2c3790, #141b45); border-color: var(--gk-border); }
-[data-skin="nightsky"] [data-element="memory"] [data-part="card-back"]::before { content: "\2726"; color: var(--gk-accent); opacity: 0.7; font-size: 1.4rem; }
-[data-skin="nightsky"] [data-element="memory"] [data-part="card-front"] { background: linear-gradient(160deg, #fffaf0, #ffe7b0); color: #3a2a6a; border-color: var(--gk-accent); }
-[data-skin="nightsky"] [data-element="memory"] [data-part="card"][data-state="matched"] [data-part="card-front"] { box-shadow: var(--gk-glow); border-color: var(--gk-success); }
-[data-skin="nightsky"] [data-element="memory"] [data-part="counter"] { letter-spacing: 0.06em; }
-
-/* ---------- quiz ---------- */
-[data-skin="nightsky"] [data-element="quiz"] [data-part="option"] { background: rgba(20, 27, 69, 0.75); border-radius: var(--gk-radius-m); backdrop-filter: blur(4px); }
-[data-skin="nightsky"] [data-element="quiz"] [data-part="option"]:hover:not(:disabled) { border-color: var(--gk-accent); }
-[data-skin="nightsky"] [data-element="quiz"] [data-part="option"][data-state="correct"] { box-shadow: 0 0 16px rgba(124, 240, 192, 0.45); }
-[data-skin="nightsky"] [data-element="quiz"] [data-part="option"][data-state="wrong"] { box-shadow: 0 0 16px rgba(255, 138, 158, 0.35); }
-[data-skin="nightsky"] [data-element="quiz"] [data-part="question"] { color: var(--gk-text); }
-
-/* ---------- vault: glowing slots, round keys, a halo (see decorate() in index.js) ---------- */
-[data-skin="nightsky"] [data-element="vault"] [data-part="halo"] { position: absolute; inset: -40px 0 auto; height: 220px; pointer-events: none; background: radial-gradient(closest-side, rgba(255, 212, 121, 0.22), transparent); animation: nightsky-pulse-soft 4s ease-in-out infinite; }
-[data-skin="nightsky"] [data-element="vault"] { position: relative; }
-[data-skin="nightsky"] [data-element="vault"] [data-part="slot"] { border-radius: 50%; background: rgba(7, 11, 31, 0.7); }
-[data-skin="nightsky"] [data-element="vault"] [data-part="slot"][data-state="filled"] { box-shadow: var(--gk-glow); }
-[data-skin="nightsky"] [data-element="vault"] [data-part="key"],
-[data-skin="nightsky"] [data-element="vault"] [data-part="clear"] { border-radius: 50%; background: rgba(29, 38, 96, 0.85); border-color: transparent; font-weight: 600; }
-[data-skin="nightsky"] [data-element="vault"] [data-part="submit"] { border-radius: 999px; }
-@keyframes nightsky-pulse-soft { 50% { opacity: 0.55; } }
-
 /* ---------- reveal ---------- */
 [data-skin="nightsky"] [data-element="reveal"] [data-part="headline"] { background: linear-gradient(90deg, #fff2c8, var(--gk-accent), #ffb7d5); -webkit-background-clip: text; background-clip: text; color: transparent; text-shadow: none; filter: drop-shadow(0 0 18px rgba(255, 212, 121, 0.35)); }
 [data-skin="nightsky"] [data-element="reveal"] [data-part="letter"] { font-size: 1.12rem; color: #f3f1ff; }
@@ -58,163 +17,17 @@
 [data-skin="nightsky"] [data-element="reveal"] [data-part="photo"] img { border: 6px solid #f7f4ee; border-bottom-width: 22px; border-radius: 3px; box-shadow: var(--gk-shadow-1); }
 [data-skin="nightsky"] [data-element="reveal"] [data-part="photo"]:nth-child(odd) { transform: rotate(-2deg); }
 [data-skin="nightsky"] [data-element="reveal"] [data-part="photo"]:nth-child(even) { transform: rotate(2deg); }
-
-/* ---------- polaroid ---------- */
-[data-skin="nightsky"] [data-element="polaroid"] [data-part="frame"] { background: #f7f4ee; color: #2a2347; box-shadow: var(--gk-shadow-1), 0 0 24px rgba(255, 212, 121, 0.12); }
-[data-skin="nightsky"] [data-element="polaroid"] [data-part="caption"] { font-style: italic; }
-
-/* ---------- coupons: tickets ---------- */
-[data-skin="nightsky"] [data-element="coupons"] [data-part="coupon"] { background: linear-gradient(135deg, var(--gk-surface-2), var(--gk-surface)); border: 1.5px dashed var(--gk-accent); border-radius: var(--gk-radius-m); }
-[data-skin="nightsky"] [data-element="coupons"] [data-part="coupon-title"] { color: var(--gk-accent); }
-[data-skin="nightsky"] [data-element="coupons"] [data-part="stamp"] { color: var(--gk-success); border-color: var(--gk-success); text-shadow: 0 0 10px rgba(124, 240, 192, 0.5); }
-
 /* ---------- motion safety (REQUIRED by the theme rulebook) ---------- */
 @media (prefers-reduced-motion: reduce) {
   [data-skin="nightsky"] [data-part="sky-far"],
-  [data-skin="nightsky"] [data-part="sky-near"],
-  [data-skin="nightsky"] [data-part="star-glyph"],
-  [data-skin="nightsky"] [data-part="halo"],
-  [data-skin="nightsky"] [data-element="wordle"] [data-part="tile"] { animation: none !important; }
+[data-skin="nightsky"] [data-part="sky-near"],
+[data-skin="nightsky"] [data-part="star-glyph"] { animation: none !important; }
 }
-
 /* ---------- secondary parts (messages, buttons, small text) ---------- */
-[data-skin="nightsky"] [data-element="wordle"] [data-part="message"],
-[data-skin="nightsky"] [data-element="memory"] [data-part="message"],
-[data-skin="nightsky"] [data-element="vault"] [data-part="message"] { color: var(--gk-accent); font-style: italic; letter-spacing: 0.02em; }
-[data-skin="nightsky"] [data-element="wordle"] [data-part="retry"],
-[data-skin="nightsky"] [data-element="quiz"] [data-part="retry"],
-[data-skin="nightsky"] [data-element="quiz"] [data-part="next"],
-[data-skin="nightsky"] [data-element="coupons"] [data-part="redeem"],
 [data-skin="nightsky"] [data-element="reveal"] [data-part="restart"] { border-radius: 999px; padding: 0 22px; }
-[data-skin="nightsky"] [data-element="quiz"] [data-part="progress"] { letter-spacing: 0.12em; text-transform: uppercase; color: var(--gk-accent); }
-[data-skin="nightsky"] [data-element="quiz"] [data-part="feedback"] { font-style: italic; }
-[data-skin="nightsky"] [data-element="quiz"] [data-part="result"] { background: rgba(20, 27, 69, 0.6); border: 1px solid var(--gk-border); border-radius: var(--gk-radius-l); padding: 28px 16px; box-shadow: var(--gk-glow); }
 [data-skin="nightsky"] [data-element="reveal"] [data-part="skip"] { border-radius: 999px; background: transparent; color: var(--gk-text-muted); }
 [data-skin="nightsky"] [data-element="reveal"] [data-part="notice"] { font-style: italic; }
 [data-skin="nightsky"] [data-element="reveal"] [data-part="letter-line"] { text-shadow: 0 0 18px rgba(255, 212, 121, 0.12); }
-[data-skin="nightsky"] [data-element="polaroid"] [data-part="photo"] { filter: saturate(1.05) contrast(1.02); }
-[data-skin="nightsky"] [data-element="polaroid"] [data-part="back"] { color: #3a2a6a; background-image: repeating-linear-gradient(transparent 0 1.45em, rgba(58, 42, 106, 0.15) 1.45em calc(1.45em + 1px)); }
-[data-skin="nightsky"] [data-element="coupons"] [data-part="coupon-detail"] { font-style: italic; }
-
-/* ---------- hunt: clues are whispers between stars ---------- */
-[data-skin="nightsky"] [data-element="hunt"] [data-part="dot"] { border-color: var(--gk-border); background: rgba(20, 27, 69, 0.7); }
-[data-skin="nightsky"] [data-element="hunt"] [data-part="dot"][data-state="current"] { border-color: #fff; box-shadow: 0 0 10px rgba(255, 255, 255, 0.5); }
-[data-skin="nightsky"] [data-element="hunt"] [data-part="dot"][data-state="solved"] { background: var(--gk-accent); border-color: var(--gk-accent); box-shadow: var(--gk-glow); animation: nightsky-hunt-twinkle 0.6s var(--gk-ease) both; }
-[data-skin="nightsky"] [data-element="hunt"] [data-part="step"] { letter-spacing: 0.12em; text-transform: uppercase; color: var(--gk-accent); }
-[data-skin="nightsky"] [data-element="hunt"] [data-part="clue"] { font-style: italic; text-shadow: 0 0 18px rgba(255, 212, 121, 0.15); }
-[data-skin="nightsky"] [data-element="hunt"] [data-part="input"] { background: rgba(14, 20, 52, 0.85); border-color: var(--gk-border); border-radius: 999px; padding: 0 20px; font-family: var(--gk-font-display); }
-[data-skin="nightsky"] [data-element="hunt"] [data-part="input"]:focus-visible { border-color: var(--gk-accent); box-shadow: var(--gk-glow); outline: none; }
-[data-skin="nightsky"] [data-element="hunt"] [data-part="submit"] { border-radius: 999px; padding: 0 22px; }
-[data-skin="nightsky"] [data-element="hunt"] [data-part="feedback"] { color: var(--gk-accent); font-style: italic; letter-spacing: 0.02em; }
-[data-skin="nightsky"] [data-element="hunt"] [data-part="hint"] { color: var(--gk-text-muted); font-style: italic; }
-[data-skin="nightsky"] [data-element="hunt"] [data-part="reveal"] { background: rgba(20, 27, 69, 0.7); border: 1px solid var(--gk-accent); border-radius: var(--gk-radius-l); color: var(--gk-text); box-shadow: var(--gk-glow); animation: nightsky-hunt-rise 0.5s var(--gk-ease) both; }
-[data-skin="nightsky"] [data-element="hunt"] [data-part="next"] { border-radius: 999px; padding: 0 22px; }
-[data-skin="nightsky"] [data-element="hunt"] [data-part="done"] { color: var(--gk-accent); text-shadow: 0 0 24px rgba(255, 212, 121, 0.5); }
-@keyframes nightsky-hunt-twinkle { from { transform: scale(0.4); } 60% { transform: scale(1.5); } to { transform: scale(1); } }
-@keyframes nightsky-hunt-rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
-@media (prefers-reduced-motion: reduce) {
-  [data-skin="nightsky"] [data-element="hunt"] [data-part="dot"],
-  [data-skin="nightsky"] [data-element="hunt"] [data-part="reveal"] { animation: none !important; }
-}
-
-/* ---------- timeline: moments strung like stars on a thread ---------- */
-[data-skin="nightsky"] [data-element="timeline"] [data-part="hint"] { font-style: italic; }
-[data-skin="nightsky"] [data-element="timeline"] [data-part="card"] { background: rgba(20, 27, 69, 0.75); border: 1px solid var(--gk-border); border-radius: var(--gk-radius-l); backdrop-filter: blur(4px); }
-[data-skin="nightsky"] [data-element="timeline"] [data-part="card"][data-dragging] { border-color: var(--gk-accent); box-shadow: var(--gk-glow), var(--gk-shadow-2); transform-origin: center; }
-[data-skin="nightsky"] [data-element="timeline"] [data-part="card"][data-state="correct"] { border-color: var(--gk-success); box-shadow: 0 0 16px rgba(124, 240, 192, 0.3); animation: nightsky-timeline-glow 0.7s calc(var(--i, 0) * 110ms) var(--gk-ease) both; }
-[data-skin="nightsky"] [data-element="timeline"] [data-part="card"][data-state="wrong"] { border-color: var(--gk-danger); background: rgba(60, 20, 50, 0.55); }
-[data-skin="nightsky"] [data-element="timeline"] [data-part="handle"] { background: transparent; border-color: transparent; color: var(--gk-accent); text-shadow: 0 0 10px rgba(255, 212, 121, 0.6); }
-[data-skin="nightsky"] [data-element="timeline"] [data-part="label"] { font-family: var(--gk-font-display); font-size: 1.05rem; }
-[data-skin="nightsky"] [data-element="timeline"] [data-part="detail"] { font-style: italic; }
-[data-skin="nightsky"] [data-element="timeline"] [data-part="date"] { letter-spacing: 0.08em; text-transform: uppercase; text-shadow: 0 0 10px rgba(255, 212, 121, 0.4); }
-[data-skin="nightsky"] [data-element="timeline"] [data-part="up"],
-[data-skin="nightsky"] [data-element="timeline"] [data-part="down"] { border-radius: 50%; background: rgba(29, 38, 96, 0.8); border-color: transparent; color: var(--gk-text); }
-[data-skin="nightsky"] [data-element="timeline"] [data-part="check"],
-[data-skin="nightsky"] [data-element="timeline"] [data-part="retry"] { border-radius: 999px; padding: 0 22px; }
-[data-skin="nightsky"] [data-element="timeline"] [data-part="message"] { color: var(--gk-accent); font-style: italic; letter-spacing: 0.02em; }
-[data-skin="nightsky"] [data-element="timeline"] [data-part="status"] { color: var(--gk-text-muted); }
-@keyframes nightsky-timeline-glow { from { box-shadow: 0 0 0 rgba(124, 240, 192, 0); } 60% { box-shadow: 0 0 28px rgba(124, 240, 192, 0.6); } to { box-shadow: 0 0 16px rgba(124, 240, 192, 0.3); } }
-@media (prefers-reduced-motion: reduce) {
-  [data-skin="nightsky"] [data-element="timeline"] [data-part="card"] { animation: none !important; }
-}
-
-/* ---------- jigsaw: shards of sky ---------- */
-[data-skin="nightsky"] [data-element="jigsaw"] [data-part="piece"] { border: 1px solid rgba(185, 196, 255, 0.35); border-radius: 12px; box-shadow: 0 2px 10px rgba(0, 0, 8, 0.5); transition: transform var(--gk-dur-fast) var(--gk-ease), box-shadow var(--gk-dur-fast) var(--gk-ease); }
-[data-skin="nightsky"] [data-element="jigsaw"] [data-part="piece"][data-state="selected"] { outline: 2px solid var(--gk-accent); outline-offset: -2px; box-shadow: var(--gk-glow); transform: scale(0.96); }
-[data-skin="nightsky"] [data-element="jigsaw"] [data-part="piece"][data-state="dragging"] { box-shadow: 0 12px 30px rgba(0, 0, 8, 0.7), var(--gk-glow); transform-origin: center; }
-[data-skin="nightsky"] [data-element="jigsaw"] [data-part="piece"][data-state="placed"] { border-color: rgba(255, 212, 121, 0.75); box-shadow: 0 0 10px rgba(255, 212, 121, 0.25); }
-[data-skin="nightsky"] [data-element="jigsaw"] [data-part="board"][data-state="solved"] [data-part="piece"] { border-color: transparent; border-radius: 0; box-shadow: none; animation: nightsky-jigsaw-glow 1.4s ease-out 1; }
-[data-skin="nightsky"] [data-element="jigsaw"] [data-part="board"][data-state="solved"] { box-shadow: var(--gk-glow); border-radius: 12px; overflow: hidden; }
-[data-skin="nightsky"] [data-element="jigsaw"] [data-part="peek"] { border-radius: 12px; box-shadow: 0 0 40px rgba(185, 196, 255, 0.45); }
-[data-skin="nightsky"] [data-element="jigsaw"] [data-part="preview"] { border: 1px solid var(--gk-accent); border-radius: 8px; box-shadow: 0 0 12px rgba(255, 212, 121, 0.25); }
-[data-skin="nightsky"] [data-element="jigsaw"] [data-part="counter"] { letter-spacing: 0.1em; text-transform: uppercase; font-size: 0.8rem; color: var(--gk-accent); }
-[data-skin="nightsky"] [data-element="jigsaw"] [data-part="message"] { color: var(--gk-accent); font-style: italic; letter-spacing: 0.02em; }
-[data-skin="nightsky"] [data-element="jigsaw"] [data-part="hint"],
-[data-skin="nightsky"] [data-element="jigsaw"] [data-part="retry"] { border-radius: 999px; padding: 0 20px; background: rgba(20, 27, 69, 0.8); }
-[data-skin="nightsky"] [data-element="jigsaw"] [data-part="retry"] { background: var(--gk-accent); color: var(--gk-accent-text); }
-@keyframes nightsky-jigsaw-glow { from { filter: brightness(1.7) saturate(1.3); } to { filter: none; } }
-@media (prefers-reduced-motion: reduce) {
-  [data-skin="nightsky"] [data-element="jigsaw"] [data-part="piece"] { animation: none !important; transition: none; }
-}
-
-/* ---------- music: a record under a night sky ---------- */
-[data-skin="nightsky"] [data-element="music"] [data-part="cover"] { background: radial-gradient(circle at 30% 25%, rgba(255, 255, 255, 0.14), transparent 40%), repeating-radial-gradient(circle at center, #090d26 0 2px, #151b45 2px 4px); border-color: var(--gk-border); box-shadow: var(--gk-shadow-2), 0 0 28px rgba(160, 170, 255, 0.18); }
-[data-skin="nightsky"] [data-element="music"] [data-part="cover"]::after { background: radial-gradient(circle, var(--gk-accent) 0 30%, #b9893a 31% 100%); border-color: #090d26; box-shadow: var(--gk-glow); }
-[data-skin="nightsky"] [data-element="music"] [data-part="now-title"] { color: var(--gk-accent); letter-spacing: 0.01em; }
-[data-skin="nightsky"] [data-element="music"] [data-part="now-artist"] { font-style: italic; }
-[data-skin="nightsky"] [data-element="music"] [data-part="prev"],
-[data-skin="nightsky"] [data-element="music"] [data-part="next"] { border-radius: 999px; background: rgba(29, 38, 96, 0.8); border-color: transparent; }
-[data-skin="nightsky"] [data-element="music"] [data-part="play"] { box-shadow: var(--gk-glow); }
-[data-skin="nightsky"] [data-element="music"] [data-part="play"][data-state="playing"] { animation: nightsky-music-pulse 2.4s ease-in-out infinite; }
-[data-skin="nightsky"] [data-element="music"] [data-part="seek"] { accent-color: var(--gk-accent); }
-[data-skin="nightsky"] [data-element="music"] [data-part="elapsed"],
-[data-skin="nightsky"] [data-element="music"] [data-part="duration"] { font-family: var(--gk-font-mono); }
-[data-skin="nightsky"] [data-element="music"] [data-part="message"] { font-style: italic; }
-[data-skin="nightsky"] [data-element="music"] [data-part="track"] { border-radius: 999px; background: rgba(20, 27, 69, 0.7); }
-[data-skin="nightsky"] [data-element="music"] [data-part="track"][data-state="playing"] { box-shadow: var(--gk-glow); }
-@keyframes nightsky-music-pulse { 50% { box-shadow: 0 0 34px rgba(255, 212, 121, 0.7); } }
-
-/* ---------- gallery: photos like little windows ---------- */
-[data-skin="nightsky"] [data-element="gallery"] [data-part="thumb"] { border-radius: var(--gk-radius-l); border-color: var(--gk-border); background: rgba(20, 27, 69, 0.7); }
-[data-skin="nightsky"] [data-element="gallery"] [data-part="thumb"][data-state="ready"]:hover { box-shadow: var(--gk-glow); }
-[data-skin="nightsky"] [data-element="gallery"] [data-part="viewer"] { background: radial-gradient(120% 90% at 50% 0%, #1b2160 0%, var(--gk-bg) 70%); }
-[data-skin="nightsky"] [data-element="gallery"] [data-part="viewer-photo"] { border-radius: var(--gk-radius-m); box-shadow: var(--gk-shadow-2), 0 0 30px rgba(255, 212, 121, 0.14); animation: nightsky-gallery-in var(--gk-dur-med) var(--gk-ease) both; }
-[data-skin="nightsky"] [data-element="gallery"] [data-part="viewer-caption"] { color: var(--gk-accent); }
-[data-skin="nightsky"] [data-element="gallery"] [data-part="viewer-counter"] { letter-spacing: 0.12em; }
-[data-skin="nightsky"] [data-element="gallery"] [data-part="message"] { font-style: italic; }
-[data-skin="nightsky"] [data-element="gallery"] [data-part="viewer-prev"],
-[data-skin="nightsky"] [data-element="gallery"] [data-part="viewer-next"],
-[data-skin="nightsky"] [data-element="gallery"] [data-part="viewer-close"] { background: rgba(29, 38, 96, 0.85); border-color: var(--gk-border); }
-@keyframes nightsky-gallery-in { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: none; } }
-
-/* ---------- notes: lamplit paper ---------- */
-[data-skin="nightsky"] [data-element="notes"] [data-part="note-row"] { border-radius: var(--gk-radius-m); background: rgba(20, 27, 69, 0.7); }
-[data-skin="nightsky"] [data-element="notes"] [data-part="note-dot"] { box-shadow: var(--gk-glow); }
-[data-skin="nightsky"] [data-element="notes"] [data-part="note-row-preview"] { font-style: italic; }
-[data-skin="nightsky"] [data-element="notes"] [data-part="note-page"] { background-color: #f4ecdc; border-color: #d8c9a8; color: #2a2347; box-shadow: var(--gk-shadow-2), 0 0 26px rgba(255, 212, 121, 0.12); background-image: repeating-linear-gradient(transparent 0 1.6em, rgba(58, 42, 106, 0.16) 1.6em calc(1.6em + 1px)); animation: nightsky-notes-in var(--gk-dur-med) var(--gk-ease) both; }
-[data-skin="nightsky"] [data-element="notes"] [data-part="note-bar"] { background: #f4ecdc; }
-[data-skin="nightsky"] [data-element="notes"] [data-part="note-back"],
-[data-skin="nightsky"] [data-element="notes"] [data-part="note-prev"],
-[data-skin="nightsky"] [data-element="notes"] [data-part="note-next"] { background: rgba(58, 42, 106, 0.1); border-color: rgba(58, 42, 106, 0.3); color: #2a2347; border-radius: 999px; }
-[data-skin="nightsky"] [data-element="notes"] [data-part="note-heading"] { color: #3a2a6a; }
-[data-skin="nightsky"] [data-element="notes"] [data-part="note-date"],
-[data-skin="nightsky"] [data-element="notes"] [data-part="note-count"] { color: #6a5f8c; }
-[data-skin="nightsky"] [data-element="notes"] [data-part="note-body"] { color: #2a2347; }
-[data-skin="nightsky"] [data-element="notes"] [data-part="note-paragraph"] { text-shadow: none; }
-@keyframes nightsky-notes-in { from { opacity: 0; transform: translateY(8px) rotate(-0.4deg); } to { opacity: 1; transform: none; } }
-
-@media (prefers-reduced-motion: reduce) {
-  [data-skin="nightsky"] [data-element="music"] [data-part="play"],
-  [data-skin="nightsky"] [data-element="gallery"] [data-part="viewer-photo"],
-  [data-skin="nightsky"] [data-element="notes"] [data-part="note-page"] { animation: none !important; }
-}
-
-/* ---------- apps: the last few small parts ---------- */
-[data-skin="nightsky"] [data-element="gallery"] [data-part="thumb-photo"] { filter: saturate(1.05) contrast(1.02); }
-[data-skin="nightsky"] [data-element="notes"] [data-part="note-row-title"] { letter-spacing: 0.01em; }
-[data-skin="nightsky"] [data-element="notes"] [data-part="note-row-date"] { font-style: italic; }
-
-/* ---------- reveal variants: envelope, memory film, cake ---------- */
 /* envelope: a starry night-blue envelope with a gold wax seal */
 [data-skin="nightsky"] [data-element="reveal"] [data-part="env-back"] { background: radial-gradient(1.5px 1.5px at 20% 30%, #fff 50%, transparent 55%), radial-gradient(1px 1px at 70% 60%, #cfd6ff 50%, transparent 55%), linear-gradient(160deg, #1d2563, #0e1434); border: 2px solid #3a4590; border-radius: 12px; box-shadow: var(--gk-shadow-2), 0 0 40px rgba(120, 140, 255, 0.25); }
 [data-skin="nightsky"] [data-element="reveal"] [data-part="env-pocket"] { background: linear-gradient(160deg, #26308a, #151c50); border-radius: 12px; filter: drop-shadow(0 -2px 6px rgba(0, 0, 8, 0.5)); }
@@ -228,7 +41,6 @@
 [data-skin="nightsky"] [data-element="reveal"] [data-part="env-polaroid"] { background: #f7f4ee; color: #2a2347; border-radius: 3px; box-shadow: var(--gk-shadow-1), 0 0 24px rgba(255, 212, 121, 0.14); }
 [data-skin="nightsky"] [data-element="reveal"] [data-part="env-caption"] { font-style: italic; color: #3a2a6a; }
 @keyframes nightsky-env-hint { 50% { opacity: 0.45; } }
-
 /* memory film: a night-blue frame with a soft vignette and star-gold progress */
 [data-skin="nightsky"] [data-element="reveal"] [data-part="film-slide"] { background: #070b1f; box-shadow: inset 0 0 12cqw rgba(7, 11, 31, 0.85); }
 [data-skin="nightsky"] [data-element="reveal"] [data-part="film-caption"] { font-style: italic; text-shadow: 0 1px 8px #000; background: linear-gradient(transparent, rgba(7, 11, 31, 0.85)); }
@@ -239,7 +51,6 @@
 [data-skin="nightsky"] [data-element="reveal"] [data-part="film-prev"],
 [data-skin="nightsky"] [data-element="reveal"] [data-part="film-pause"],
 [data-skin="nightsky"] [data-element="reveal"] [data-part="film-next"] { background: rgba(20, 27, 69, 0.8); border-color: #3a4590; backdrop-filter: blur(4px); }
-
 /* cake: a rose-and-cream cake lit by little gold stars */
 [data-skin="nightsky"] [data-element="reveal"] [data-part="cake-cake"] { filter: drop-shadow(0 12px 18px rgba(0, 0, 8, 0.55)); }
 [data-skin="nightsky"] [data-element="reveal"] [data-part="cake-tier"] { background: linear-gradient(180deg, #ffe3ec, #f4b6cc); border: 0; border-radius: 10px 10px 6px 6px; box-shadow: inset 0 -6px 0 rgba(180, 90, 130, 0.25); }
@@ -255,9 +66,8 @@
 [data-skin="nightsky"] [data-element="reveal"] [data-part="cake-bit"][style*="--k:3"] { background: #ffb7d5; }
 [data-skin="nightsky"] [data-element="reveal"] [data-part="cake-bit"][style*="--k:4"] { background: #7cf0c0; }
 @keyframes nightsky-star-twinkle { from { transform: translateX(-50%) scale(1) rotate(-4deg); } to { transform: translateX(-50%) scale(1.12) rotate(4deg); } }
-
 @media (prefers-reduced-motion: reduce) {
   [data-skin="nightsky"] [data-element="reveal"] [data-part="env-hint"],
-  [data-skin="nightsky"] [data-element="reveal"] [data-part="cake-flame"] { animation: none !important; }
+[data-skin="nightsky"] [data-element="reveal"] [data-part="cake-flame"] { animation: none !important; }
 }
 [data-skin="nightsky"] [data-element="reveal"] [data-part="env-envelope"] { filter: drop-shadow(0 0 18px rgba(120, 140, 255, 0.3)); }

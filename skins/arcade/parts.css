@@ -1,8 +1,3 @@
-/* LAYER 2 - PARTS. How each element's named parts look in THIS world: a neon arcade after hours.
-   Rules: every selector starts with [data-skin="arcade"]; target [data-part] / [data-state] only; look changes only
-   (colour, border, shadow, texture, glow, motion) - each element sizes itself to fit the screen, so geometry stays put.
-   Animations use steps() so motion feels 8-bit, and every one is switched off in the reduced-motion block at the end. */
-
 /* ---------- sheets, finale, dialogs, particles: the cabinet bezel and pixel panels ---------- */
 [data-skin="arcade"] [data-part="sheet-backdrop"] { background: rgba(5, 2, 16, 0.84); }
 [data-skin="arcade"] [data-part="sheet"] { background: linear-gradient(180deg, #1d0f45 0%, #0b0420 100%); border: 3px solid var(--gk-border); box-shadow: inset 0 0 0 2px #000, 0 0 24px rgba(255, 79, 176, 0.25); }
@@ -19,229 +14,27 @@
 [data-skin="arcade"] [data-part="dialog-title"] { font-family: var(--gk-font-display); color: var(--gk-accent); text-transform: uppercase; letter-spacing: 0.1em; font-size: 0.95rem; }
 [data-skin="arcade"] [data-part="dialog-message"] { color: var(--gk-text); line-height: 1.55; }
 [data-skin="arcade"] [data-part="particle"] { font-family: var(--gk-font-mono); text-shadow: 0 0 8px currentColor; }
-
 /* ---------- pixel buttons: hard shadow, neon border, press down on tap ---------- */
-[data-skin="arcade"] [data-element="wordle"] [data-part="key"],
-[data-skin="arcade"] [data-element="wordle"] [data-part="retry"],
-[data-skin="arcade"] [data-element="quiz"] [data-part="next"],
-[data-skin="arcade"] [data-element="quiz"] [data-part="retry"],
-[data-skin="arcade"] [data-element="vault"] [data-part="key"],
-[data-skin="arcade"] [data-element="vault"] [data-part="clear"],
-[data-skin="arcade"] [data-element="vault"] [data-part="submit"],
 [data-skin="arcade"] [data-element="reveal"] [data-part="skip"],
 [data-skin="arcade"] [data-element="reveal"] [data-part="restart"],
-[data-skin="arcade"] [data-element="coupons"] [data-part="redeem"],
-[data-skin="arcade"] [data-element="timeline"] [data-part="up"],
-[data-skin="arcade"] [data-element="timeline"] [data-part="down"],
-[data-skin="arcade"] [data-element="timeline"] [data-part="check"],
-[data-skin="arcade"] [data-element="timeline"] [data-part="retry"],
-[data-skin="arcade"] [data-element="hunt"] [data-part="submit"],
-[data-skin="arcade"] [data-element="hunt"] [data-part="next"],
-[data-skin="arcade"] [data-element="jigsaw"] [data-part="hint"],
-[data-skin="arcade"] [data-element="jigsaw"] [data-part="retry"],
-[data-skin="arcade"] [data-element="music"] [data-part="prev"],
-[data-skin="arcade"] [data-element="music"] [data-part="play"],
-[data-skin="arcade"] [data-element="music"] [data-part="next"],
-[data-skin="arcade"] [data-element="gallery"] [data-part="viewer-prev"],
-[data-skin="arcade"] [data-element="gallery"] [data-part="viewer-next"],
-[data-skin="arcade"] [data-element="gallery"] [data-part="viewer-close"],
-[data-skin="arcade"] [data-element="notes"] [data-part="note-back"],
-[data-skin="arcade"] [data-element="notes"] [data-part="note-prev"],
-[data-skin="arcade"] [data-element="notes"] [data-part="note-next"],
 [data-skin="arcade"] [data-part="dialog-button"] { font-family: var(--gk-font-body); font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; background: var(--gk-surface-2); color: var(--gk-text); border: 2px solid var(--gk-accent); border-radius: var(--gk-radius-s); box-shadow: var(--gk-shadow-1); }
-[data-skin="arcade"] [data-element="wordle"] [data-part="key"]:hover,
-[data-skin="arcade"] [data-element="wordle"] [data-part="retry"]:hover,
-[data-skin="arcade"] [data-element="quiz"] [data-part="next"]:hover,
-[data-skin="arcade"] [data-element="quiz"] [data-part="retry"]:hover,
-[data-skin="arcade"] [data-element="vault"] [data-part="key"]:hover,
-[data-skin="arcade"] [data-element="vault"] [data-part="clear"]:hover,
-[data-skin="arcade"] [data-element="vault"] [data-part="submit"]:hover,
 [data-skin="arcade"] [data-element="reveal"] [data-part="skip"]:hover,
 [data-skin="arcade"] [data-element="reveal"] [data-part="restart"]:hover,
-[data-skin="arcade"] [data-element="coupons"] [data-part="redeem"]:hover,
-[data-skin="arcade"] [data-element="timeline"] [data-part="up"]:hover,
-[data-skin="arcade"] [data-element="timeline"] [data-part="down"]:hover,
-[data-skin="arcade"] [data-element="timeline"] [data-part="check"]:hover,
-[data-skin="arcade"] [data-element="timeline"] [data-part="retry"]:hover,
-[data-skin="arcade"] [data-element="hunt"] [data-part="submit"]:hover,
-[data-skin="arcade"] [data-element="hunt"] [data-part="next"]:hover,
-[data-skin="arcade"] [data-element="jigsaw"] [data-part="hint"]:hover,
-[data-skin="arcade"] [data-element="jigsaw"] [data-part="retry"]:hover,
-[data-skin="arcade"] [data-element="music"] [data-part="prev"]:hover,
-[data-skin="arcade"] [data-element="music"] [data-part="play"]:hover,
-[data-skin="arcade"] [data-element="music"] [data-part="next"]:hover,
-[data-skin="arcade"] [data-element="gallery"] [data-part="viewer-prev"]:hover,
-[data-skin="arcade"] [data-element="gallery"] [data-part="viewer-next"]:hover,
-[data-skin="arcade"] [data-element="gallery"] [data-part="viewer-close"]:hover,
-[data-skin="arcade"] [data-element="notes"] [data-part="note-back"]:hover,
-[data-skin="arcade"] [data-element="notes"] [data-part="note-prev"]:hover,
-[data-skin="arcade"] [data-element="notes"] [data-part="note-next"]:hover,
 [data-skin="arcade"] [data-part="dialog-button"]:hover { background: #3a1f85; }
-[data-skin="arcade"] [data-element="wordle"] [data-part="key"]:active,
-[data-skin="arcade"] [data-element="wordle"] [data-part="retry"]:active,
-[data-skin="arcade"] [data-element="quiz"] [data-part="next"]:active,
-[data-skin="arcade"] [data-element="quiz"] [data-part="retry"]:active,
-[data-skin="arcade"] [data-element="vault"] [data-part="key"]:active,
-[data-skin="arcade"] [data-element="vault"] [data-part="clear"]:active,
-[data-skin="arcade"] [data-element="vault"] [data-part="submit"]:active,
 [data-skin="arcade"] [data-element="reveal"] [data-part="skip"]:active,
 [data-skin="arcade"] [data-element="reveal"] [data-part="restart"]:active,
-[data-skin="arcade"] [data-element="coupons"] [data-part="redeem"]:active,
-[data-skin="arcade"] [data-element="timeline"] [data-part="up"]:active,
-[data-skin="arcade"] [data-element="timeline"] [data-part="down"]:active,
-[data-skin="arcade"] [data-element="timeline"] [data-part="check"]:active,
-[data-skin="arcade"] [data-element="timeline"] [data-part="retry"]:active,
-[data-skin="arcade"] [data-element="hunt"] [data-part="submit"]:active,
-[data-skin="arcade"] [data-element="hunt"] [data-part="next"]:active,
-[data-skin="arcade"] [data-element="jigsaw"] [data-part="hint"]:active,
-[data-skin="arcade"] [data-element="jigsaw"] [data-part="retry"]:active,
-[data-skin="arcade"] [data-element="music"] [data-part="prev"]:active,
-[data-skin="arcade"] [data-element="music"] [data-part="play"]:active,
-[data-skin="arcade"] [data-element="music"] [data-part="next"]:active,
-[data-skin="arcade"] [data-element="gallery"] [data-part="viewer-prev"]:active,
-[data-skin="arcade"] [data-element="gallery"] [data-part="viewer-next"]:active,
-[data-skin="arcade"] [data-element="gallery"] [data-part="viewer-close"]:active,
-[data-skin="arcade"] [data-element="notes"] [data-part="note-back"]:active,
-[data-skin="arcade"] [data-element="notes"] [data-part="note-prev"]:active,
-[data-skin="arcade"] [data-element="notes"] [data-part="note-next"]:active,
 [data-skin="arcade"] [data-part="dialog-button"]:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 #000; }
-[data-skin="arcade"] [data-element="wordle"] [data-part="key"]:disabled,
-[data-skin="arcade"] [data-element="wordle"] [data-part="retry"]:disabled,
-[data-skin="arcade"] [data-element="quiz"] [data-part="next"]:disabled,
-[data-skin="arcade"] [data-element="quiz"] [data-part="retry"]:disabled,
-[data-skin="arcade"] [data-element="vault"] [data-part="key"]:disabled,
-[data-skin="arcade"] [data-element="vault"] [data-part="clear"]:disabled,
-[data-skin="arcade"] [data-element="vault"] [data-part="submit"]:disabled,
 [data-skin="arcade"] [data-element="reveal"] [data-part="skip"]:disabled,
 [data-skin="arcade"] [data-element="reveal"] [data-part="restart"]:disabled,
-[data-skin="arcade"] [data-element="coupons"] [data-part="redeem"]:disabled,
-[data-skin="arcade"] [data-element="timeline"] [data-part="up"]:disabled,
-[data-skin="arcade"] [data-element="timeline"] [data-part="down"]:disabled,
-[data-skin="arcade"] [data-element="timeline"] [data-part="check"]:disabled,
-[data-skin="arcade"] [data-element="timeline"] [data-part="retry"]:disabled,
-[data-skin="arcade"] [data-element="hunt"] [data-part="submit"]:disabled,
-[data-skin="arcade"] [data-element="hunt"] [data-part="next"]:disabled,
-[data-skin="arcade"] [data-element="jigsaw"] [data-part="hint"]:disabled,
-[data-skin="arcade"] [data-element="jigsaw"] [data-part="retry"]:disabled,
-[data-skin="arcade"] [data-element="music"] [data-part="prev"]:disabled,
-[data-skin="arcade"] [data-element="music"] [data-part="play"]:disabled,
-[data-skin="arcade"] [data-element="music"] [data-part="next"]:disabled,
-[data-skin="arcade"] [data-element="gallery"] [data-part="viewer-prev"]:disabled,
-[data-skin="arcade"] [data-element="gallery"] [data-part="viewer-next"]:disabled,
-[data-skin="arcade"] [data-element="gallery"] [data-part="viewer-close"]:disabled,
-[data-skin="arcade"] [data-element="notes"] [data-part="note-back"]:disabled,
-[data-skin="arcade"] [data-element="notes"] [data-part="note-prev"]:disabled,
-[data-skin="arcade"] [data-element="notes"] [data-part="note-next"]:disabled,
 [data-skin="arcade"] [data-part="dialog-button"]:disabled,
 [data-skin="arcade"] button[data-part][data-variant="primary"]:disabled { background: #1b1236; color: var(--gk-text-muted); border-color: var(--gk-border); box-shadow: none; opacity: 0.75; transform: none; }
-[data-skin="arcade"] [data-element="wordle"] [data-part="key"]:focus-visible,
-[data-skin="arcade"] [data-element="wordle"] [data-part="retry"]:focus-visible,
-[data-skin="arcade"] [data-element="quiz"] [data-part="next"]:focus-visible,
-[data-skin="arcade"] [data-element="quiz"] [data-part="retry"]:focus-visible,
-[data-skin="arcade"] [data-element="vault"] [data-part="key"]:focus-visible,
-[data-skin="arcade"] [data-element="vault"] [data-part="clear"]:focus-visible,
-[data-skin="arcade"] [data-element="vault"] [data-part="submit"]:focus-visible,
 [data-skin="arcade"] [data-element="reveal"] [data-part="skip"]:focus-visible,
 [data-skin="arcade"] [data-element="reveal"] [data-part="restart"]:focus-visible,
-[data-skin="arcade"] [data-element="coupons"] [data-part="redeem"]:focus-visible,
-[data-skin="arcade"] [data-element="timeline"] [data-part="up"]:focus-visible,
-[data-skin="arcade"] [data-element="timeline"] [data-part="down"]:focus-visible,
-[data-skin="arcade"] [data-element="timeline"] [data-part="check"]:focus-visible,
-[data-skin="arcade"] [data-element="timeline"] [data-part="retry"]:focus-visible,
-[data-skin="arcade"] [data-element="hunt"] [data-part="submit"]:focus-visible,
-[data-skin="arcade"] [data-element="hunt"] [data-part="next"]:focus-visible,
-[data-skin="arcade"] [data-element="jigsaw"] [data-part="hint"]:focus-visible,
-[data-skin="arcade"] [data-element="jigsaw"] [data-part="retry"]:focus-visible,
-[data-skin="arcade"] [data-element="music"] [data-part="prev"]:focus-visible,
-[data-skin="arcade"] [data-element="music"] [data-part="play"]:focus-visible,
-[data-skin="arcade"] [data-element="music"] [data-part="next"]:focus-visible,
-[data-skin="arcade"] [data-element="gallery"] [data-part="viewer-prev"]:focus-visible,
-[data-skin="arcade"] [data-element="gallery"] [data-part="viewer-next"]:focus-visible,
-[data-skin="arcade"] [data-element="gallery"] [data-part="viewer-close"]:focus-visible,
-[data-skin="arcade"] [data-element="notes"] [data-part="note-back"]:focus-visible,
-[data-skin="arcade"] [data-element="notes"] [data-part="note-prev"]:focus-visible,
-[data-skin="arcade"] [data-element="notes"] [data-part="note-next"]:focus-visible,
 [data-skin="arcade"] [data-part="dialog-button"]:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
-[data-skin="arcade"] [data-element="wordle"] [data-part="retry"],
-[data-skin="arcade"] [data-element="quiz"] [data-part="next"],
-[data-skin="arcade"] [data-element="quiz"] [data-part="retry"],
 [data-skin="arcade"] [data-element="reveal"] [data-part="restart"],
-[data-skin="arcade"] [data-element="coupons"] [data-part="redeem"],
-[data-skin="arcade"] [data-element="timeline"] [data-part="check"],
-[data-skin="arcade"] [data-element="timeline"] [data-part="retry"],
-[data-skin="arcade"] [data-element="hunt"] [data-part="submit"],
-[data-skin="arcade"] [data-element="hunt"] [data-part="next"],
-[data-skin="arcade"] [data-element="jigsaw"] [data-part="retry"],
-[data-skin="arcade"] [data-element="music"] [data-part="play"],
 [data-skin="arcade"] button[data-part][data-variant="primary"] { background: var(--gk-accent); color: var(--gk-accent-text); border-color: #fff; box-shadow: var(--gk-shadow-1), var(--gk-glow); }
-[data-skin="arcade"] [data-element="wordle"] [data-part="retry"]:hover,
-[data-skin="arcade"] [data-element="quiz"] [data-part="next"]:hover,
-[data-skin="arcade"] [data-element="quiz"] [data-part="retry"]:hover,
 [data-skin="arcade"] [data-element="reveal"] [data-part="restart"]:hover,
-[data-skin="arcade"] [data-element="coupons"] [data-part="redeem"]:hover,
-[data-skin="arcade"] [data-element="timeline"] [data-part="check"]:hover,
-[data-skin="arcade"] [data-element="timeline"] [data-part="retry"]:hover,
-[data-skin="arcade"] [data-element="hunt"] [data-part="submit"]:hover,
-[data-skin="arcade"] [data-element="hunt"] [data-part="next"]:hover,
-[data-skin="arcade"] [data-element="jigsaw"] [data-part="retry"]:hover,
-[data-skin="arcade"] [data-element="music"] [data-part="play"]:hover,
 [data-skin="arcade"] button[data-part][data-variant="primary"]:hover { background: #fff; }
-
-/* ---------- wordle: tiles are pixel blocks with a bevel; a guess flips them in four 8-bit steps ---------- */
-[data-skin="arcade"] [data-element="wordle"] [data-part="tile"] { font-family: var(--gk-font-display); font-weight: 900; background: #14082e; border: 3px solid var(--gk-border); border-radius: var(--gk-radius-s); box-shadow: inset -3px -3px 0 rgba(0, 0, 0, 0.5), inset 3px 3px 0 rgba(255, 255, 255, 0.08); }
-[data-skin="arcade"] [data-element="wordle"] [data-part="tile"][data-state="filled"] { border-color: #fff; color: #fff; animation: arcade-pop 0.12s steps(2) both; }
-[data-skin="arcade"] [data-element="wordle"] [data-part="tile"][data-state="correct"] { background: var(--gk-success); border-color: #c9ffe6; color: #04210f; box-shadow: inset -3px -3px 0 rgba(0, 0, 0, 0.3), 0 0 12px rgba(61, 255, 160, 0.55); animation: arcade-flip 0.45s steps(4) calc(var(--i, 0) * 120ms) both; }
-[data-skin="arcade"] [data-element="wordle"] [data-part="tile"][data-state="present"] { background: #ffd447; border-color: #fff0a8; color: #2a1a00; box-shadow: inset -3px -3px 0 rgba(0, 0, 0, 0.3); animation: arcade-flip 0.45s steps(4) calc(var(--i, 0) * 120ms) both; }
-[data-skin="arcade"] [data-element="wordle"] [data-part="tile"][data-state="absent"] { background: #1b1236; border-color: #2b1766; color: var(--gk-text-muted); animation: arcade-flip 0.45s steps(4) calc(var(--i, 0) * 120ms) both; }
-[data-skin="arcade"] [data-element="wordle"] [data-part="key"] { padding: 0; font-size: 0.8rem; }
-[data-skin="arcade"] [data-element="wordle"] [data-part="key"][data-state="correct"] { background: var(--gk-success); color: #04210f; border-color: #c9ffe6; }
-[data-skin="arcade"] [data-element="wordle"] [data-part="key"][data-state="present"] { background: #ffd447; color: #2a1a00; border-color: #fff0a8; }
-[data-skin="arcade"] [data-element="wordle"] [data-part="key"][data-state="absent"] { background: #1b1236; border-color: #2b1766; }
-[data-skin="arcade"] [data-element="wordle"] [data-part="message"] { color: var(--gk-accent); text-transform: uppercase; letter-spacing: 0.08em; font-size: 0.85rem; font-weight: 800; text-shadow: 0 0 8px currentColor; }
-[data-skin="arcade"] [data-element="wordle"] [data-part="hint"] { color: #4df3ff; text-transform: uppercase; letter-spacing: 0.08em; font-size: 0.8rem; font-weight: 700; }
-@keyframes arcade-pop { 0% { transform: scale(1.18); } 100% { transform: scale(1); } }
-@keyframes arcade-flip { 0% { transform: scaleY(1); } 50% { transform: scaleY(0.05); } 100% { transform: scaleY(1); } }
-
-/* ---------- memory: arcade tokens - a neon checker back, a glowing glyph on the front ---------- */
-[data-skin="arcade"] [data-element="memory"] [data-part="card-inner"] { transition-timing-function: steps(5); }
-[data-skin="arcade"] [data-element="memory"] [data-part="card-back"] { background: linear-gradient(135deg, #ff4fb0 25%, transparent 25%) 0 0 / 16px 16px, linear-gradient(225deg, #4df3ff 25%, transparent 25%) 0 0 / 16px 16px, #2b1766; border: 3px solid #000; border-radius: var(--gk-radius-s); box-shadow: inset 0 0 0 2px var(--gk-accent), var(--gk-shadow-1); }
-[data-skin="arcade"] [data-element="memory"] [data-part="card-back"]::before { content: "?"; display: grid; place-items: center; width: 52%; aspect-ratio: 1; background: #14082e; color: #ffd447; font-family: var(--gk-font-display); font-weight: 900; font-size: 1.2rem; text-shadow: 0 0 8px currentColor; }
-[data-skin="arcade"] [data-element="memory"] [data-part="card-front"] { background: #14082e; color: #ffd447; border: 3px solid #4df3ff; border-radius: var(--gk-radius-s); text-shadow: 0 0 10px currentColor; box-shadow: inset 0 0 14px rgba(77, 243, 255, 0.25); }
-[data-skin="arcade"] [data-element="memory"] [data-part="card"][data-state="matched"] [data-part="card-front"] { border-color: var(--gk-success); box-shadow: inset 0 0 14px rgba(61, 255, 160, 0.4), 0 0 14px rgba(61, 255, 160, 0.5); }
-[data-skin="arcade"] [data-element="memory"] [data-part="card"]:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
-[data-skin="arcade"] [data-element="memory"] [data-part="counter"] { font-family: var(--gk-font-display); color: #ffd447; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.12em; text-shadow: 0 0 8px currentColor; }
-[data-skin="arcade"] [data-element="memory"] [data-part="message"] { color: var(--gk-accent); font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; font-size: 0.85rem; }
-
-/* ---------- quiz: a menu screen - options are menu entries with a blinking > cursor ---------- */
-[data-skin="arcade"] [data-element="quiz"] [data-part="progress"] { font-family: var(--gk-font-display); color: #4df3ff; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; }
-[data-skin="arcade"] [data-element="quiz"] [data-part="question"] { font-family: var(--gk-font-body); font-weight: 800; border-left: 4px solid var(--gk-accent); padding-left: 10px; text-shadow: 0 0 10px rgba(255, 79, 176, 0.3); }
-[data-skin="arcade"] [data-element="quiz"] [data-part="option"] { position: relative; background: #14082e; border: 2px solid var(--gk-border); border-radius: var(--gk-radius-s); box-shadow: var(--gk-shadow-1); font-weight: 700; letter-spacing: 0.02em; padding-left: 28px; }
-[data-skin="arcade"] [data-element="quiz"] [data-part="option"]::before { content: ">"; position: absolute; left: 10px; top: 50%; translate: 0 -50%; color: var(--gk-accent); font-weight: 900; opacity: 0; }
-[data-skin="arcade"] [data-element="quiz"] [data-part="option"]:hover:not(:disabled),
-[data-skin="arcade"] [data-element="quiz"] [data-part="option"]:focus-visible,
-[data-skin="arcade"] [data-element="quiz"] [data-part="option"][data-state="selected"] { border-color: var(--gk-accent); color: var(--gk-accent); outline: none; }
-[data-skin="arcade"] [data-element="quiz"] [data-part="option"]:hover:not(:disabled)::before,
-[data-skin="arcade"] [data-element="quiz"] [data-part="option"]:focus-visible::before,
-[data-skin="arcade"] [data-element="quiz"] [data-part="option"][data-state="selected"]::before { opacity: 1; animation: arcade-cursor 0.8s steps(1) infinite; }
-[data-skin="arcade"] [data-element="quiz"] [data-part="option"][data-state="correct"] { border-color: var(--gk-success); background: #0d2a22; color: var(--gk-success); box-shadow: var(--gk-shadow-1), 0 0 12px rgba(61, 255, 160, 0.4); }
-[data-skin="arcade"] [data-element="quiz"] [data-part="option"][data-state="wrong"] { border-color: var(--gk-danger); background: #2a0d1b; color: var(--gk-danger); }
-[data-skin="arcade"] [data-element="quiz"] [data-part="feedback"] { color: #ffd447; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; font-size: 0.85rem; }
-[data-skin="arcade"] [data-element="quiz"] [data-part="result"] { font-family: var(--gk-font-display); background: #14082e; border: 3px solid var(--gk-accent); box-shadow: var(--gk-shadow-2), var(--gk-glow); text-transform: uppercase; letter-spacing: 0.08em; padding: 20px 12px; }
-[data-skin="arcade"] [data-element="quiz"] [data-part="result"][data-state="pass"] { border-color: var(--gk-success); color: var(--gk-success); }
-[data-skin="arcade"] [data-element="quiz"] [data-part="result"][data-state="fail"] { border-color: var(--gk-danger); color: var(--gk-danger); }
-@keyframes arcade-cursor { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0; } }
-
-/* ---------- vault: a keypad panel with LED digit slots ---------- */
-[data-skin="arcade"] [data-element="vault"] [data-part="slot"] { font-family: var(--gk-font-display); background: #07021a; color: #ffd447; border: 3px solid #2b1766; border-radius: var(--gk-radius-s); box-shadow: inset 0 0 8px #000; text-shadow: 0 0 10px currentColor; }
-[data-skin="arcade"] [data-element="vault"] [data-part="slot"][data-state="filled"] { border-color: var(--gk-accent); box-shadow: inset 0 0 8px #000, var(--gk-glow); }
-[data-skin="arcade"] [data-element="vault"] [data-part="slot"][data-state="error"] { border-color: var(--gk-danger); color: var(--gk-danger); animation: arcade-blink 0.3s steps(1) 4; }
-[data-skin="arcade"] [data-element="vault"] [data-part="slot"][data-state="open"] { border-color: var(--gk-success); color: var(--gk-success); box-shadow: inset 0 0 8px #000, 0 0 14px rgba(61, 255, 160, 0.6); }
-[data-skin="arcade"] [data-element="vault"] [data-part="key"] { font-family: var(--gk-font-display); font-size: 1rem; padding: 0; }
-[data-skin="arcade"] [data-element="vault"] button[data-part="clear"] { background: var(--gk-danger); color: #1a0420; border-color: #fff; }
-[data-skin="arcade"] [data-element="vault"] button[data-part="submit"]:not(:disabled) { background: var(--gk-success); color: #04210f; border-color: #fff; box-shadow: var(--gk-shadow-1), 0 0 14px rgba(61, 255, 160, 0.5); }
-[data-skin="arcade"] [data-element="vault"] [data-part="message"] { color: var(--gk-accent); text-transform: uppercase; letter-spacing: 0.06em; font-size: 0.85rem; font-weight: 800; }
-@keyframes arcade-blink { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0.2; } }
-
 /* ---------- reveal: end credits rolling on a CRT ---------- */
 [data-skin="arcade"] [data-element="reveal"] [data-part="headline"] { font-family: var(--gk-font-display); font-size: clamp(1.4rem, 6.2vw, 2.4rem); color: #ffd447; text-transform: uppercase; letter-spacing: 0.04em; text-shadow: 3px 3px 0 var(--gk-accent), 0 0 24px rgba(255, 212, 71, 0.55); }
 [data-skin="arcade"] [data-element="reveal"] [data-part="video"] { background: #000; border: 4px solid var(--gk-accent); box-shadow: var(--gk-shadow-2), var(--gk-glow); }
@@ -253,126 +46,6 @@
 [data-skin="arcade"] [data-element="reveal"] [data-part="photo"]:nth-child(odd) { transform: rotate(-1.5deg); }
 [data-skin="arcade"] [data-element="reveal"] [data-part="photo"]:nth-child(even) { transform: rotate(1.5deg); }
 [data-skin="arcade"] [data-element="reveal"] [data-part="restart"] { font-family: var(--gk-font-display); font-size: 0.8rem; padding: 0 22px; }
-
-/* ---------- polaroid: a strip from the photo booth ---------- */
-[data-skin="arcade"] [data-element="polaroid"] [data-part="frame"] { background: #f6f2ff; color: #1a0420; border: 3px solid #000; border-radius: var(--gk-radius-s); box-shadow: var(--gk-shadow-2), 0 0 0 3px var(--gk-accent); }
-[data-skin="arcade"] [data-element="polaroid"] [data-part="photo"] { border-bottom: 3px solid #000; }
-[data-skin="arcade"] [data-element="polaroid"] [data-part="caption"] { padding-inline: 10px; font-family: var(--gk-font-body); font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.8rem; color: #1a0420; }
-[data-skin="arcade"] [data-element="polaroid"] [data-part="back"] { background: #fff3b8; color: #1a0420; font-family: var(--gk-font-mono); font-weight: 700; background-image: repeating-linear-gradient(transparent 0 1.45em, rgba(26, 4, 32, 0.18) 1.45em calc(1.45em + 1px)); }
-
-/* ---------- coupons: prize tickets with notched sides ---------- */
-[data-skin="arcade"] [data-element="coupons"] [data-part="coupon"] { background: #ffd447; color: #1a0420; border: 0; border-bottom: 5px solid #b8860b; border-radius: var(--gk-radius-s); -webkit-mask: radial-gradient(circle at 0 50%, transparent 9px, #000 9.5px) left / 51% 100% no-repeat, radial-gradient(circle at 100% 50%, transparent 9px, #000 9.5px) right / 51% 100% no-repeat; mask: radial-gradient(circle at 0 50%, transparent 9px, #000 9.5px) left / 51% 100% no-repeat, radial-gradient(circle at 100% 50%, transparent 9px, #000 9.5px) right / 51% 100% no-repeat; }
-[data-skin="arcade"] [data-element="coupons"] [data-part="coupon-title"] { font-family: var(--gk-font-display); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.06em; color: #1a0420; }
-[data-skin="arcade"] [data-element="coupons"] [data-part="coupon-detail"] { color: #3a1a50; font-weight: 600; }
-[data-skin="arcade"] [data-element="coupons"] [data-part="redeem"] { background: #1a0420; color: #ffd447; border-color: #1a0420; box-shadow: 3px 3px 0 rgba(26, 4, 32, 0.35); }
-[data-skin="arcade"] [data-element="coupons"] [data-part="stamp"] { color: #b0003f; border: 3px solid #b0003f; background: rgba(255, 255, 255, 0.6); font-family: var(--gk-font-display); font-size: 0.8rem; letter-spacing: 0.08em; animation: arcade-stamp 0.3s steps(3) both; }
-@keyframes arcade-stamp { from { opacity: 0; scale: 2; } to { opacity: 1; scale: 1; } }
-
-/* ---------- timeline: a level-select ladder; the handle is a pixel grip ---------- */
-[data-skin="arcade"] [data-element="timeline"] [data-part="card"] { background: #14082e; border: 3px solid var(--gk-border); border-left: 8px solid var(--gk-accent); border-radius: var(--gk-radius-s); box-shadow: var(--gk-shadow-1); }
-[data-skin="arcade"] [data-element="timeline"] [data-part="card"][data-state="correct"] { border-color: var(--gk-success); box-shadow: var(--gk-shadow-1), 0 0 12px rgba(61, 255, 160, 0.4); }
-[data-skin="arcade"] [data-element="timeline"] [data-part="card"][data-state="wrong"] { border-color: var(--gk-danger); }
-[data-skin="arcade"] [data-element="timeline"] [data-part="handle"] { background: #2b1766; color: var(--gk-accent); border: 2px solid var(--gk-border); border-radius: var(--gk-radius-s); box-shadow: var(--gk-shadow-1); font-weight: 900; }
-[data-skin="arcade"] [data-element="timeline"] [data-part="label"] { font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; font-size: 0.85rem; }
-[data-skin="arcade"] [data-element="timeline"] [data-part="detail"] { color: var(--gk-text-muted); font-size: 0.78rem; }
-[data-skin="arcade"] [data-element="timeline"] [data-part="date"] { color: #ffd447; font-family: var(--gk-font-mono); font-size: 0.75rem; letter-spacing: 0.08em; }
-[data-skin="arcade"] [data-element="timeline"] [data-part="up"],
-[data-skin="arcade"] [data-element="timeline"] [data-part="down"] { font-size: 0.9rem; padding: 0; }
-[data-skin="arcade"] [data-element="timeline"] [data-part="hint"] { color: #4df3ff; text-transform: uppercase; letter-spacing: 0.06em; font-size: 0.78rem; }
-[data-skin="arcade"] [data-element="timeline"] [data-part="message"] { color: var(--gk-accent); font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; font-size: 0.85rem; }
-
-/* ---------- hunt: a mission briefing on a green phosphor terminal ---------- */
-[data-skin="arcade"] [data-element="hunt"] [data-part="dot"] { background: #2b1766; border: 2px solid var(--gk-border); border-radius: 0; }
-[data-skin="arcade"] [data-element="hunt"] [data-part="dot"][data-state="current"] { border-color: var(--gk-accent); background: var(--gk-accent); animation: arcade-blink 0.8s steps(1) infinite; }
-[data-skin="arcade"] [data-element="hunt"] [data-part="dot"][data-state="solved"] { border-color: var(--gk-success); background: var(--gk-success); }
-[data-skin="arcade"] [data-element="hunt"] [data-part="step"] { font-family: var(--gk-font-display); color: #4df3ff; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; }
-[data-skin="arcade"] [data-element="hunt"] [data-part="clue"] { background: #07021a; color: #3dffa0; border: 2px solid #3dffa0; border-radius: var(--gk-radius-s); font-family: var(--gk-font-mono); text-shadow: 0 0 8px rgba(61, 255, 160, 0.55); box-shadow: inset 0 0 18px rgba(61, 255, 160, 0.12); }
-[data-skin="arcade"] [data-element="hunt"] [data-part="input"] { background: #07021a; color: #ffd447; border: 2px solid #4df3ff; border-radius: var(--gk-radius-s); font-family: var(--gk-font-mono); caret-color: #ffd447; }
-[data-skin="arcade"] [data-element="hunt"] [data-part="input"]:focus-visible { outline: 3px solid var(--gk-accent); outline-offset: 2px; }
-[data-skin="arcade"] [data-element="hunt"] [data-part="feedback"] { color: #ffd447; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; font-size: 0.85rem; }
-[data-skin="arcade"] [data-element="hunt"] [data-part="hint"] { color: #4df3ff; text-transform: uppercase; letter-spacing: 0.04em; font-size: 0.82rem; }
-[data-skin="arcade"] [data-element="hunt"] [data-part="reveal"] { background: #1a0b3d; color: #ffd447; border: 2px dashed #ffd447; border-radius: var(--gk-radius-s); animation: arcade-pop 0.2s steps(3) both; }
-[data-skin="arcade"] [data-element="hunt"] [data-part="done"] { font-family: var(--gk-font-display); color: var(--gk-success); text-transform: uppercase; letter-spacing: 0.08em; font-size: 0.85rem; text-shadow: 0 0 12px currentColor; }
-
-/* ---------- jigsaw: a tile puzzle with pixel gaps ---------- */
-[data-skin="arcade"] [data-element="jigsaw"] [data-part="board"] { background: #07021a; }
-[data-skin="arcade"] [data-element="jigsaw"] [data-part="board"][data-state="solved"] { box-shadow: 0 0 18px rgba(61, 255, 160, 0.55); }
-[data-skin="arcade"] [data-element="jigsaw"] [data-part="piece"] { border: 2px solid var(--gk-border); border-radius: 0; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18), var(--gk-shadow-1); }
-[data-skin="arcade"] [data-element="jigsaw"] [data-part="piece"][data-state="selected"] { outline: 3px solid #ffd447; outline-offset: -3px; box-shadow: 0 0 12px rgba(255, 212, 71, 0.6); }
-[data-skin="arcade"] [data-element="jigsaw"] [data-part="piece"][data-state="placed"] { border-color: var(--gk-success); }
-[data-skin="arcade"] [data-element="jigsaw"] [data-part="piece"][data-state="dragging"] { box-shadow: var(--gk-shadow-2), var(--gk-glow); }
-[data-skin="arcade"] [data-element="jigsaw"] [data-part="board"][data-state="solved"] [data-part="piece"] { border-color: transparent; box-shadow: none; }
-[data-skin="arcade"] [data-element="jigsaw"] [data-part="peek"] { border: 3px solid #4df3ff; border-radius: 0; box-shadow: var(--gk-shadow-2), 0 0 16px rgba(77, 243, 255, 0.5); }
-[data-skin="arcade"] [data-element="jigsaw"] [data-part="preview"] { border: 2px solid var(--gk-accent); border-radius: 0; image-rendering: pixelated; }
-[data-skin="arcade"] [data-element="jigsaw"] [data-part="counter"] { font-family: var(--gk-font-display); color: #ffd447; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; }
-[data-skin="arcade"] [data-element="jigsaw"] [data-part="message"] { color: var(--gk-accent); font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.85rem; }
-
-/* ---------- music: a jukebox - the record spins in 12 clicks, the track list glows like LEDs ---------- */
-[data-skin="arcade"] [data-element="music"] [data-part="cover"] { background: repeating-radial-gradient(circle at center, #07021a 0 2px, #1d0f45 2px 4px); border: 3px solid var(--gk-accent); box-shadow: var(--gk-shadow-1), var(--gk-glow); }
-[data-skin="arcade"] [data-element="music"] [data-part="cover"]::after { background: #ffd447; border: 4px solid #07021a; }
-[data-skin="arcade"] [data-element="music"] [data-part="player"][data-state="playing"] [data-part="cover"] { animation: arcade-spin 2.4s steps(12) infinite; }
-[data-skin="arcade"] [data-element="music"] [data-part="now-title"] { font-family: var(--gk-font-display); color: #ffd447; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.06em; text-shadow: 0 0 10px rgba(255, 212, 71, 0.5); }
-[data-skin="arcade"] [data-element="music"] [data-part="now-artist"] { color: #4df3ff; text-transform: uppercase; letter-spacing: 0.1em; font-size: 0.78rem; }
-[data-skin="arcade"] [data-element="music"] [data-part="play"] { border-radius: var(--gk-radius-m); }
-[data-skin="arcade"] [data-element="music"] [data-part="seek"] { accent-color: #ffd447; }
-[data-skin="arcade"] [data-element="music"] [data-part="elapsed"],
-[data-skin="arcade"] [data-element="music"] [data-part="duration"] { font-family: var(--gk-font-mono); color: #3dffa0; text-shadow: 0 0 8px rgba(61, 255, 160, 0.6); }
-[data-skin="arcade"] [data-element="music"] [data-part="message"] { color: var(--gk-text-muted); text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.78rem; }
-[data-skin="arcade"] [data-element="music"] [data-part="player"][data-state="error"] [data-part="message"] { color: var(--gk-danger); }
-[data-skin="arcade"] [data-element="music"] [data-part="track"] { background: #14082e; border: 2px solid var(--gk-border); border-radius: var(--gk-radius-s); font-family: var(--gk-font-mono); font-weight: 700; letter-spacing: 0.04em; }
-[data-skin="arcade"] [data-element="music"] [data-part="track"][data-state="current"] { border-color: #ffd447; }
-[data-skin="arcade"] [data-element="music"] [data-part="track"][data-state="playing"] { border-color: var(--gk-success); color: var(--gk-success); text-shadow: 0 0 8px rgba(61, 255, 160, 0.6); }
-[data-skin="arcade"] [data-element="music"] [data-part="track"][data-state="playing"]::before { content: "\25b6  "; }
-@keyframes arcade-spin { to { rotate: 360deg; } }
-
-/* ---------- gallery: a slide machine; the viewer is a CRT in a bezel ---------- */
-[data-skin="arcade"] [data-element="gallery"] [data-part="thumb"] { background: #14082e; border: 2px solid var(--gk-border); border-radius: var(--gk-radius-s); box-shadow: var(--gk-shadow-1); }
-[data-skin="arcade"] [data-element="gallery"] [data-part="thumb"]:hover { border-color: var(--gk-accent); }
-[data-skin="arcade"] [data-element="gallery"] [data-part="thumb"]:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
-[data-skin="arcade"] [data-element="gallery"] [data-part="thumb-photo"] { border-radius: 0; }
-[data-skin="arcade"] [data-element="gallery"] [data-part="thumb-photo"][data-state="error"] { background: repeating-linear-gradient(45deg, #2b1766 0 6px, #14082e 6px 12px); }
-[data-skin="arcade"] [data-element="gallery"] [data-part="viewer"] { background: #07021a; border: 4px solid var(--gk-accent); box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.85), var(--gk-glow); }
-[data-skin="arcade"] [data-element="gallery"] [data-part="viewer-photo"] { border: 3px solid #000; box-shadow: var(--gk-shadow-2); }
-[data-skin="arcade"] [data-element="gallery"] [data-part="viewer-caption"] { color: #3dffa0; font-family: var(--gk-font-mono); text-shadow: 0 0 8px rgba(61, 255, 160, 0.55); text-transform: uppercase; letter-spacing: 0.05em; }
-[data-skin="arcade"] [data-element="gallery"] [data-part="viewer-counter"] { font-family: var(--gk-font-display); color: #ffd447; font-size: 0.7rem; letter-spacing: 0.1em; }
-[data-skin="arcade"] [data-element="gallery"] [data-part="message"] { color: var(--gk-text-muted); text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.8rem; }
-
-/* ---------- notes: a terminal - a list of messages, then an amber page ---------- */
-[data-skin="arcade"] [data-element="notes"] [data-part="note-row"] { background: #07021a; border: 2px solid var(--gk-border); border-left: 6px solid var(--gk-accent); border-radius: var(--gk-radius-s); box-shadow: var(--gk-shadow-1); text-align: left; }
-[data-skin="arcade"] [data-element="notes"] [data-part="note-row"]:hover { border-color: var(--gk-accent); }
-[data-skin="arcade"] [data-element="notes"] [data-part="note-row"]:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
-[data-skin="arcade"] [data-element="notes"] [data-part="note-row"][data-state="unread"] { border-left-color: #ffd447; }
-[data-skin="arcade"] [data-element="notes"] [data-part="note-row"][data-state="read"] { opacity: 0.85; }
-[data-skin="arcade"] [data-element="notes"] [data-part="note-dot"] { background: #ffd447; border-radius: 0; box-shadow: 0 0 8px rgba(255, 212, 71, 0.7); animation: arcade-blink 1s steps(1) infinite; }
-[data-skin="arcade"] [data-element="notes"] [data-part="note-row"][data-state="read"] [data-part="note-dot"] { background: transparent; border: 2px solid var(--gk-border); box-shadow: none; animation: none; }
-[data-skin="arcade"] [data-element="notes"] [data-part="note-row-title"] { font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; color: var(--gk-text); }
-[data-skin="arcade"] [data-element="notes"] [data-part="note-row-preview"] { color: var(--gk-text-muted); }
-[data-skin="arcade"] [data-element="notes"] [data-part="note-row-date"] { color: #4df3ff; font-family: var(--gk-font-mono); font-size: 0.75rem; }
-[data-skin="arcade"] [data-element="notes"] [data-part="note-page"] { background: #07021a; border: 3px solid var(--gk-accent); box-shadow: inset 0 0 24px rgba(0, 0, 0, 0.8), var(--gk-glow); }
-[data-skin="arcade"] [data-element="notes"] [data-part="note-heading"] { font-family: var(--gk-font-display); color: #ffd447; text-transform: uppercase; letter-spacing: 0.06em; font-size: 1rem; text-shadow: 0 0 10px rgba(255, 212, 71, 0.5); }
-[data-skin="arcade"] [data-element="notes"] [data-part="note-date"] { color: #4df3ff; font-family: var(--gk-font-mono); font-size: 0.78rem; letter-spacing: 0.08em; }
-[data-skin="arcade"] [data-element="notes"] [data-part="note-paragraph"] { color: #ffe3a0; font-family: var(--gk-font-mono); line-height: 1.7; text-shadow: 0 0 6px rgba(255, 212, 71, 0.3); }
-[data-skin="arcade"] [data-element="notes"] [data-part="note-count"] { color: #ffd447; font-family: var(--gk-font-mono); font-size: 0.8rem; letter-spacing: 0.08em; }
-
-/* ---------- motion safety: every animation above is switched off here ---------- */
-@media (prefers-reduced-motion: reduce) {
-  [data-skin="arcade"] [data-element="wordle"] [data-part="tile"][data-state="filled"],
-  [data-skin="arcade"] [data-element="wordle"] [data-part="tile"][data-state="correct"],
-  [data-skin="arcade"] [data-element="wordle"] [data-part="tile"][data-state="present"],
-  [data-skin="arcade"] [data-element="wordle"] [data-part="tile"][data-state="absent"],
-  [data-skin="arcade"] [data-element="quiz"] [data-part="option"]::before,
-  [data-skin="arcade"] [data-element="quiz"] [data-part="option"]:hover:not(:disabled)::before,
-  [data-skin="arcade"] [data-element="quiz"] [data-part="option"]:focus-visible::before,
-  [data-skin="arcade"] [data-element="quiz"] [data-part="option"][data-state="selected"]::before,
-  [data-skin="arcade"] [data-element="vault"] [data-part="slot"][data-state="error"],
-  [data-skin="arcade"] [data-element="coupons"] [data-part="stamp"],
-  [data-skin="arcade"] [data-element="hunt"] [data-part="dot"][data-state="current"],
-  [data-skin="arcade"] [data-element="hunt"] [data-part="reveal"],
-  [data-skin="arcade"] [data-element="music"] [data-part="player"][data-state="playing"] [data-part="cover"],
-  [data-skin="arcade"] [data-element="notes"] [data-part="note-dot"] { animation: none !important; }
-}
-
-/* ---------- reveal variants: envelope, memory film, cake (neon pixel) ---------- */
 /* envelope: a chunky pixel envelope with hard shadows and a coin for a seal */
 [data-skin="arcade"] [data-element="reveal"] [data-part="env-back"] { background: repeating-linear-gradient(90deg, #2b1766 0 8%, #321a78 8% 16%); border: 3px solid #000; border-radius: 0; box-shadow: 6px 6px 0 #000, 0 0 0 3px #4df3ff; }
 [data-skin="arcade"] [data-element="reveal"] [data-part="env-pocket"] { background: #3a1f86; border-radius: 0; filter: drop-shadow(0 -3px 0 #000); }
@@ -387,7 +60,6 @@
 [data-skin="arcade"] [data-element="reveal"] [data-part="env-polaroid"] { background: #f6f2ff; color: #14082e; border: 3px solid #000; border-radius: 0; box-shadow: 4px 4px 0 #000; }
 [data-skin="arcade"] [data-element="reveal"] [data-part="env-caption"] { font-family: var(--gk-font-mono); font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; }
 @keyframes arcade-env-blink { 50% { opacity: 0; } }
-
 /* memory film: a CRT with scanlines, neon progress blocks and square buttons */
 [data-skin="arcade"] [data-element="reveal"] [data-part="film-slide"] { background: #04121a; filter: saturate(1.2) contrast(1.08); }
 [data-skin="arcade"] [data-element="reveal"] [data-part="film-slide"]::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: repeating-linear-gradient(180deg, rgba(0, 0, 0, 0.3) 0 1px, transparent 1px 3px); }
@@ -399,7 +71,6 @@
 [data-skin="arcade"] [data-element="reveal"] [data-part="film-prev"],
 [data-skin="arcade"] [data-element="reveal"] [data-part="film-pause"],
 [data-skin="arcade"] [data-element="reveal"] [data-part="film-next"] { background: #1d0f45; border: 3px solid #000; border-radius: 0; box-shadow: 3px 3px 0 #000, 0 0 0 2px #4df3ff; color: #f6f2ff; }
-
 /* cake: a blocky pixel cake with blinking pixel flames */
 [data-skin="arcade"] [data-element="reveal"] [data-part="cake-cake"] { filter: drop-shadow(5px 5px 0 #000); }
 [data-skin="arcade"] [data-element="reveal"] [data-part="cake-tier"] { background: repeating-linear-gradient(90deg, #ff4fb0 0 10%, #ff8ac8 10% 20%); border: 3px solid #000; border-radius: 0; }
@@ -415,9 +86,8 @@
 [data-skin="arcade"] [data-element="reveal"] [data-part="cake-bit"][style*="--k:3"] { background: #3dffa0; }
 [data-skin="arcade"] [data-element="reveal"] [data-part="cake-bit"][style*="--k:4"] { background: #f6f2ff; }
 @keyframes arcade-flame { 50% { transform: translateX(-50%) scale(1.1, 0.9); } }
-
 @media (prefers-reduced-motion: reduce) {
   [data-skin="arcade"] [data-element="reveal"] [data-part="env-hint"],
-  [data-skin="arcade"] [data-element="reveal"] [data-part="cake-flame"] { animation: none !important; }
+[data-skin="arcade"] [data-element="reveal"] [data-part="cake-flame"] { animation: none !important; }
 }
 [data-skin="arcade"] [data-element="reveal"] [data-part="env-envelope"]:focus-visible { outline: 3px solid #ffd447; outline-offset: 8px; }

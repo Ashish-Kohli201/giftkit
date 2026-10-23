@@ -1,18 +1,24 @@
 /* ==========================================================================
-   core.css - loaded once, before any theme.
+   core.css - loaded once, before the skin.
    Two kinds of rules, on purpose:
    1. STRUCTURE (normal selectors): positioning, layout, z-index, a11y. Rarely overridden.
    2. DEFAULT PAINT (wrapped in :where() = zero specificity): a token-driven fallback look,
-      so a brand-new theme with only tokens.css already looks coherent. Any theme rule wins.
-   z-index scale: sheet 100 / finale 200 / dialog 1000 / fx 1100
+      so a brand-new skin with only tokens.css already looks coherent. Any skin rule wins.
+   The product fills the screen: [data-gift] is the root, [data-part="stage"] is the full-height area a format draws in.
+   z-index scale: stage 1 / music button 50 / fx 1100
    ========================================================================== */
 
 /* ---- reset (zero specificity) ---- */
-:where([data-theme]) { position: relative; color: var(--gk-text); background: var(--gk-bg); font-family: var(--gk-font-body); -webkit-tap-highlight-color: transparent; }
-:where([data-theme] *, [data-theme] *::before, [data-theme] *::after) { box-sizing: border-box; }
-:where([data-theme] button) { font: inherit; color: inherit; cursor: pointer; touch-action: manipulation; }
-:where([data-theme] h1, [data-theme] h2, [data-theme] p) { margin: 0; }
-[data-theme] [hidden] { display: none !important; }
+:where([data-gift]) { position: relative; color: var(--gk-text); background: var(--gk-bg); font-family: var(--gk-font-body); -webkit-tap-highlight-color: transparent; }
+:where([data-gift] *, [data-gift] *::before, [data-gift] *::after) { box-sizing: border-box; }
+:where([data-gift] button) { font: inherit; color: inherit; cursor: pointer; touch-action: manipulation; }
+:where([data-gift] h1, [data-gift] h2, [data-gift] p) { margin: 0; }
+[data-gift] [hidden] { display: none !important; }
+
+/* ---- the screen: one full-height column; the format takes all of it (100dvh so the phone's address bar never hides a button) ---- */
+[data-gift] { height: 100%; }
+[data-part="stage"] { position: relative; z-index: 1; display: flex; flex-direction: column; width: 100%; height: 100%; padding-bottom: env(safe-area-inset-bottom); }
+[data-part="stage"] > [data-element] { flex: 1 1 0; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
 
 /* ---- generic button paint for any <button data-part> ---- */
 :where(button[data-part]) {
@@ -29,55 +35,9 @@
 /* ---- element container ---- */
 [data-element] { width: 100%; }
 
-/* ---- shake (any element may set data-shake briefly) ---- */
-@keyframes gk-shake { 0%, 100% { translate: 0 } 20% { translate: -7px 0 } 40% { translate: 7px 0 } 60% { translate: -5px 0 } 80% { translate: 5px 0 } }
-[data-shake] { animation: gk-shake 0.35s; }
-
-/* ---- sheets (structure) ---- */
-[data-part="sheet-backdrop"] { position: fixed; inset: 0; z-index: 100; display: flex; align-items: stretch; justify-content: center; opacity: 0; transition: opacity var(--gk-dur-med) var(--gk-ease); }
-[data-part="sheet-backdrop"][data-state="open"] { opacity: 1; }
-[data-part="sheet"], [data-part="finale"] { position: relative; display: flex; flex-direction: column; width: 100%; height: 100%; transform: translateY(28px); transition: transform var(--gk-dur-med) var(--gk-ease); padding-bottom: env(safe-area-inset-bottom); }
-[data-part="finale"] { z-index: 200; }
-[data-part="sheet"][data-state="open"], [data-part="finale"][data-state="open"] { transform: none; }
-/* Compact chrome: the header is ~52px (44px close button + 4px breathing room) so the element gets the screen. */
-[data-part="sheet-header"] { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: calc(4px + env(safe-area-inset-top)) 8px 4px 16px; flex: none; }
-/* The body is a column. Games and finales FIT the space left (see below); props and apps keep their natural height and the body scrolls. */
-[data-part="sheet-body"] { flex: 1; min-height: 0; display: flex; flex-direction: column; overflow-y: auto; overscroll-behavior: contain; outline: none; }
-[data-part="sheet-close"] { width: var(--gk-tap); height: var(--gk-tap); padding: 0; font-size: 1.6rem; line-height: 1; flex: none; }
-/* Fit-the-screen rule: a game or finale takes exactly the room the sheet body has (the basis only matters in the auto-height desktop card),
-   never grows the page, and scrolls inside itself as a last resort. Elements size their own contents from that room (see ELEMENT_GUIDE). */
-[data-part="sheet-body"] > [data-kind="game"],
-[data-part="sheet-body"] > [data-kind="finale"] { flex: 1 1 var(--gk-fit-basis, 600px); min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
-/* The optional note above a day's game stays slim: two lines on a phone, one when the screen is short. */
-[data-part="day-note"] { flex: none; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; line-height: 1.3; font-size: 0.85rem; }
-@media (max-height: 500px) { [data-part="day-note"] { -webkit-line-clamp: 1; } }
-/* Short landscape phones (under ~420px tall): the header is just the 44px close button, the title shrinks, nothing else spare. */
-@media (orientation: landscape) and (max-height: 420px) {
-  [data-part="sheet-header"] { padding-top: env(safe-area-inset-top); padding-bottom: 0; padding-left: 14px; }
-  [data-part="sheet-title"] { font-size: 0.95rem; }
-  [data-part="day-note"] { font-size: 0.78rem; line-height: 1.2; }
-}
-/* Desktop and tablet: a centered card. Short wide screens (landscape phones) stay full-screen so no height is wasted. */
-@media (min-width: 720px) and (min-height: 560px) {
-  [data-part="sheet-backdrop"]:has([data-part="sheet"]) { align-items: center; padding: 24px; }
-  [data-part="sheet"] { max-width: 600px; height: auto; max-height: min(92dvh, 820px); }
-}
-:where([data-part="sheet-backdrop"]) { background: rgba(0, 0, 0, 0.6); }
-:where([data-part="sheet"]) { background: var(--gk-bg-2); }
-:where([data-part="finale"]) { background: var(--gk-bg); }
-:where([data-part="sheet-title"]) { font-family: var(--gk-font-display); font-size: 1.05rem; }
-@media (min-width: 720px) and (min-height: 560px) { :where([data-part="sheet"]) { border: 1px solid var(--gk-border); border-radius: var(--gk-radius-l); box-shadow: var(--gk-shadow-2); } }
-
-/* ---- dialogs (structure + default paint) ---- */
-[data-part="dialog-backdrop"] { position: fixed; inset: 0; z-index: 1000; display: grid; place-items: center; padding: 16px; }
-[data-part="dialog"] { width: min(92vw, 380px); max-height: calc(100dvh - 32px); overflow-y: auto; padding: 20px; display: grid; gap: 12px; }
-[data-part="dialog-message"] { white-space: pre-line; }
-[data-part="dialog-actions"] { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
-:where([data-part="dialog-backdrop"]) { background: rgba(0, 0, 0, 0.6); }
-:where([data-part="dialog"]) { background: var(--gk-surface); border: 1px solid var(--gk-border); border-radius: var(--gk-radius-l); box-shadow: var(--gk-shadow-2); }
-:where([data-part="dialog"][data-tone="error"]) { border-color: var(--gk-danger); }
-:where([data-part="dialog-title"]) { font-family: var(--gk-font-display); font-size: 1.15rem; }
-:where([data-part="dialog-message"]) { color: var(--gk-text-muted); line-height: 1.5; }
+/* ---- the optional music button (a product with a song shows it in the top corner) ---- */
+[data-part="music"] { position: absolute; z-index: 50; top: calc(8px + env(safe-area-inset-top)); right: 8px; width: var(--gk-tap); height: var(--gk-tap); padding: 0; font-size: 1.2rem; line-height: 1; border-radius: 50%; }
+:where([data-part="music"]) { background: var(--gk-surface); border: 1px solid var(--gk-border); box-shadow: var(--gk-shadow-1); }
 
 /* ---- fx layer ---- */
 [data-part="fx-layer"] { position: fixed; inset: 0; z-index: 1100; pointer-events: none; overflow: hidden; }
@@ -89,16 +49,6 @@
 
 /* ---- reduced motion: kill transitions and decorative motion globally ---- */
 @media (prefers-reduced-motion: reduce) {
-  [data-theme] *, [data-theme] *::before, [data-theme] *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; scroll-behavior: auto !important; }
+  [data-gift] *, [data-gift] *::before, [data-gift] *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; scroll-behavior: auto !important; }
   [data-part="particle"] { display: none; }
-}
-
-/* ---- hub sheet on short landscape phones: the day icons scroll in their own area and the taskbar stays in view.
-   (The hub's structure lives in world.css; this sits here with the other sheet chrome and out-ranks it on specificity.) */
-@media (orientation: landscape) and (max-height: 500px) {
-  [data-part="sheet"] [data-part="sheet-body"] > [data-part="desktop"] { height: 100%; min-height: 0; padding: 8px 12px; gap: 6px; box-sizing: border-box; }
-  [data-part="sheet"] [data-part="desktop"] [data-part="apps"] { flex: 1 1 0; min-height: 0; overflow-y: auto; overscroll-behavior: contain; gap: 6px 8px; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); }
-  [data-part="sheet"] [data-part="desktop"] [data-part="app"] { min-height: 72px; padding: 4px; }
-  [data-part="sheet"] [data-part="desktop"] [data-part="taskbar"] { flex: none; padding: 4px 10px; }
-  [data-part="sheet"] [data-part="desktop"] [data-part="taskbar"] [data-part="app"] { min-height: 64px; }
 }

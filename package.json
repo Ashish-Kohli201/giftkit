@@ -1,20 +1,15 @@
 {
   "name": "giftkit",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
-  "description": "Themes + elements foundation for config-driven interactive gifts. Zero runtime dependencies.",
+  "description": "Spark products: pretty one-tap gift formats a customer fills in on their phone. Zero runtime dependencies.",
   "scripts": {
     "dev": "node scripts/serve.mjs",
     "check": "node scripts/check.mjs",
     "test": "node tests/unit.mjs && node scripts/check.mjs",
-    "test:browser": "node tests/smoke.mjs",
-    "test:engine": "node tests/engine.mjs",
-    "test:studio": "node tests/run-studio.mjs",
-    "test:responsive": "node tests/responsive.mjs",
-    "new-skin": "node scripts/new-skin.mjs",
-    "gift": "node engine/cli.mjs",
-    "new-theme": "node scripts/new-theme.mjs"
+    "test:browser": "node tests/browser.mjs",
+    "new-skin": "node scripts/new-skin.mjs"
   },
   "devDependencies": {
     "playwright": "^1.50.0"

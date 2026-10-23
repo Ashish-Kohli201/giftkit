@@ -1,0 +1,14 @@
+{
+  "options": {
+    "recipient": "Aria",
+    "sender": "Sam",
+    "title": "Happy Birthday, {{recipient}}!",
+    "message": "Dear {{recipient}},\n\nThis is a sample message so you can see the product with real words in it.\n\nEvery word you type here is shown on the gift.\n\nLove,\n{{sender}}",
+    "photos": [
+      "photo_a",
+      "photo_b",
+      "photo_c"
+    ],
+    "skin": "nightsky"
+  }
+}

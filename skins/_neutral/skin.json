@@ -2,8 +2,8 @@
   "id": "_neutral",
   "name": "Neutral Starter",
   "version": "1.0.0",
-  "contractVersion": 1,
-  "description": "Minimal, valid, fully working skin: tokens only. Copy it with `npm run new-skin -- <id>` to start a new look. Every world paints itself from tokens when a skin has no art for it.",
+  "contractVersion": 2,
+  "description": "Minimal, valid, fully working skin: tokens only. Copy it with npm run new-skin to start a new look.",
   "mood": [
     "neutral"
   ],
@@ -12,7 +12,6 @@
     "tokens.css",
     "parts.css"
   ],
-  "worlds": {},
   "preview": "",
   "license": "original"
 }
