@@ -16,7 +16,7 @@ How a payment works is in [`docs/spark/UPI.md`](../docs/spark/UPI.md). The code 
 | Account | Role |
 |---|---|
 | `kohliashish12@gmail.com` (the main admin) | Receives the HDFC alerts. Gets **one** kind of email from the shop: a customer's link was switched off. |
-| `fondyshop@gmail.com` (the shop) | **Runs this script**, so every customer email comes from it. It reads the HDFC alerts, which the admin account forwards to it (step 0). |
+| `fondlyshop.in@gmail.com` (the shop) | **Runs this script**, so every customer email comes from it. It reads the HDFC alerts, which the admin account forwards to it (step 0). |
 
 ## The emails Fondly sends (and no others)
 
@@ -48,8 +48,8 @@ To save typing, `npm run build:paste` builds `dist/Code.paste.gs` with the value
 
 ## Set it up (about 20 minutes)
 
-0. **Send the bank alerts to the shop account.** In `kohliashish12@gmail.com`: Settings, **See all settings**, **Forwarding and POP/IMAP**, **Add a forwarding address**, `fondyshop@gmail.com`. Google emails a confirmation code to `fondyshop@gmail.com`: type it in. Then **Filters and Blocked Addresses**, **Create a new filter**, From `alerts@hdfcbank.bank.in OR alerts@hdfcbank.net`, **Create filter**, tick **Forward it to** `fondyshop@gmail.com` (and **Never send it to Spam**), and save. Then in `fondyshop@gmail.com` make the same filter and tick **Never send it to Spam**. Check it worked by sending yourself Rs 1: the HDFC email should appear in `fondyshop`'s inbox.
-1. **Create the project.** Sign in to **`fondyshop@gmail.com`**, open <https://script.google.com>, choose **New project**, and name it (for example "Fondly backend").
+0. **Send the bank alerts to the shop account.** In `kohliashish12@gmail.com`: Settings, **See all settings**, **Forwarding and POP/IMAP**, **Add a forwarding address**, `fondlyshop.in@gmail.com`. Google emails a confirmation code to `fondlyshop.in@gmail.com`: type it in. Then **Filters and Blocked Addresses**, **Create a new filter**, From `alerts@hdfcbank.bank.in OR alerts@hdfcbank.net`, **Create filter**, tick **Forward it to** `fondlyshop.in@gmail.com` (and **Never send it to Spam**), and save. Then in `fondlyshop.in@gmail.com` make the same filter and tick **Never send it to Spam**. Check it worked by sending yourself Rs 1: the HDFC email should appear in `fondyshop`'s inbox.
+1. **Create the project.** Sign in to **`fondlyshop.in@gmail.com`**, open <https://script.google.com>, choose **New project**, and name it (for example "Fondly backend").
 2. **Paste the code.** Delete what is in `Code.gs`, then paste the whole of `dist/Code.paste.gs`. Open **Project Settings**, tick **Show "appsscript.json" manifest file in editor**, then replace that file's content with `dist/appsscript.json`.
 3. **Check the settings.** Near the top of `Code.gs`, `function settings_()` should show your values.
 4. **Run `setup`.** Pick the function **setup** and press **Run**. Google asks you to allow access. It says "Google hasn't verified this app": choose **Advanced**, then **Go to (your project) (unsafe)**, then **Allow**. `setup` creates the sheet and the Drive folder (in `fondyshop`'s Drive), saves the settings and starts the every-minute trigger.

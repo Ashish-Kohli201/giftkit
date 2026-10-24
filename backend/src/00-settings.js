@@ -6,7 +6,7 @@
 //   OWNER_EMAIL    the main admin's email. It gets ONE kind of email: a customer's link was switched off (a payment may have been missed).
 //                  Blank = the account that owns this script.
 //
-// Run this script as the Google account that SENDS the customer emails (for example fondyshop@gmail.com). It must also be able to read the
+// Run this script as the Google account that SENDS the customer emails (for example fondlyshop.in@gmail.com). It must also be able to read the
 // bank's alerts: in the bank's mailbox, forward them to this account (backend/README.md, step 0).
 //   BANK_SENDER    the address(es) your bank sends credit alerts from, comma separated, for example alerts@hdfcbank.net
 //   SITE_URL       where the storefront is hosted, no trailing slash, for example https://ashish-kohli201.github.io/giftkit

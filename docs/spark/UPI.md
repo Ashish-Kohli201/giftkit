@@ -43,7 +43,7 @@ For each order, `nextAction(order, now)` says what to do: `remind` once at 5 min
 
 ## Finding the payment: Gmail
 
-- The backend runs as the shop's Gmail account (`fondyshop@gmail.com`), which also sends every customer email. The bank's alerts reach it because the admin account forwards them (`backend/README.md`, step 0), so no password or token is involved. Use a dedicated Gmail for the shop: the script can read the whole account.
+- The backend runs as the shop's Gmail account (`fondlyshop.in@gmail.com`), which also sends every customer email. The bank's alerts reach it because the admin account forwards them (`backend/README.md`, step 0), so no password or token is involved. Use a dedicated Gmail for the shop: the script can read the whole account.
 - Every minute (only while an order is waiting) it searches for new mail from `BANK_SENDER`, runs `parseCreditEmail(text)`, then `matchCredit(credit, orders, usedUtrs)`, and settles the one order that matches.
 - **`parseCreditEmail` is tested against one real HDFC alert** (`tests/fixtures/hdfc-credit-email.txt`, from `alerts@hdfcbank.bank.in`: "Rs.1.00 has been successfully credited ... UPI Reference No.: ..."), plus common wordings of other banks. Another bank, or another kind of HDFC email, may word it differently: add a real sample as a test before relying on it. If the bank does not email for small credits, or emails late, this design needs another source.
 - Every email looked at is recorded in the Credits tab with its decision. A UTR settles at most one order.
