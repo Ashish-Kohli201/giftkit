@@ -5,10 +5,12 @@
 //   const draft = await shop.createDraft(productId);                      -> { id, token }
 //   const file  = await shop.uploadFile(draft, blob, 'image', onProgress) -> { id, type, url }
 //   const order = await shop.createOrder(draft, { options, contact })     -> { orderId, ... }
-//   const done  = await shop.pay(order, { contact })                      -> { status: 'paid', link }
+//   const done  = await shop.pay(order, { contact })                      -> { status: 'paid' | 'pending', link, orderId }
 //
 // DEMO MODE (config.api is empty): files stay on this phone as blob: URLs, "payment" is a short pause and no link exists.
 // REAL MODE: the calls follow the API table in docs/spark/BACKEND.md. The price is never sent: the server works it out.
+import { payWithYoupi } from './pay-youpi.js';
+
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const newId = (prefix) => `${prefix}_${Math.random().toString(36).slice(2, 8)}`;
 
@@ -26,7 +28,7 @@ function createDemoShop() {
       return { id: newId('m'), type, url: URL.createObjectURL(file) };
     },
     async createOrder(_draft, { options }) { return { orderId: newId('o'), options }; },
-    async pay() { await sleep(1600); return { status: 'paid', link: '' }; },
+    async pay(order) { await sleep(1600); return { status: 'paid', link: '', orderId: order.orderId }; },
   };
 }
 
@@ -62,27 +64,45 @@ function createRealShop(base, config) {
       return { id: slot.id, type, url: URL.createObjectURL(file) };
     },
     createOrder: (draft, { options, contact }) => call('/api/orders', { method: 'POST', headers: auth(draft), body: JSON.stringify({ draftId: draft.id, options, contact }) }),
-    /** Opens Razorpay Checkout for the order, then waits for the backend to confirm it (the webhook is the only truth). */
+    /**
+     * Takes the payment with the configured provider (config.payments.provider: 'youpi' or 'razorpay'), then asks the backend
+     * whether the order is confirmed. The backend decides, from the provider's signed webhook; the browser's own "success" never does.
+     * Result: { status: 'paid', link } | { status: 'pending', review } (paid on screen, not confirmed yet), always with orderId.
+     */
     async pay(order, { contact }) {
-      await loadScript('https://checkout.razorpay.com/v1/checkout.js');
-      await new Promise((resolve, reject) => {
-        const rz = new window.Razorpay({
-          key: order.razorpayKeyId, order_id: order.razorpayOrderId, amount: order.amount, currency: 'INR', name: config.brand,
-          prefill: { contact: contact.phone, email: contact.email || undefined }, theme: { color: '#1b1410' },
-          handler: () => resolve(),
-          modal: { ondismiss: () => reject(new Error('The payment was not completed.')) },
-        });
-        rz.open();
-      });
-      // the thank-you screen waits until the webhook has marked the order paid and made the link
-      for (let i = 0; i < 30; i++) {
-        const s = await call(`/api/orders/${order.orderId}/status`);
-        if (s.status === 'ready' || s.status === 'delivered') return { status: 'paid', link: s.link };
-        await sleep(1500);
+      const provider = config.payments?.provider ?? 'youpi';
+      let review = false;
+      if (provider === 'youpi') {
+        const outcome = await payWithYoupi({ ...config.payments.youpi, order, contact, brand: config.brand });
+        review = outcome === 'review';
+      } else {
+        await payWithRazorpay(order, contact);
       }
-      return { status: 'paid', link: '' };
+      if (review) return { status: 'pending', review: true, orderId: order.orderId, link: '' };
+      // the webhook usually lands within seconds; YouPI reads a bank alert, which can take longer, so wait a while before saying "pending"
+      const tries = Math.ceil((config.payments?.waitSeconds ?? 90) / 2);
+      for (let i = 0; i < tries; i++) {
+        const s = await call(`/api/orders/${order.orderId}/status`);
+        if (s.status === 'ready' || s.status === 'delivered') return { status: 'paid', link: s.link, orderId: order.orderId };
+        await sleep(2000);
+      }
+      return { status: 'pending', review: false, orderId: order.orderId, link: '' };
     },
   };
+}
+
+/** Razorpay Checkout: resolves when the customer has paid on screen, rejects if they close it. */
+async function payWithRazorpay(order, contact) {
+  await loadScript('https://checkout.razorpay.com/v1/checkout.js');
+  await new Promise((resolve, reject) => {
+    const rz = new window.Razorpay({
+      key: order.razorpayKeyId, order_id: order.razorpayOrderId, amount: order.amount, currency: 'INR', name: order.brand,
+      prefill: { contact: contact.phone, email: contact.email || undefined }, theme: { color: '#1b1410' },
+      handler: () => resolve(),
+      modal: { ondismiss: () => reject(new Error('The payment was not completed.')) },
+    });
+    rz.open();
+  });
 }
 
 function loadScript(src) {

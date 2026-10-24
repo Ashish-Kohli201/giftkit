@@ -27,5 +27,6 @@ This is the `spark` branch: a stripped-down base for one-tap gift products. The 
 - `skins/<id>/` a look: tokens, element parts, fx, copy. List in `skins/skins.json`.
 - `core/` shared plumbing: `product.js` (host), `options.js` (check + price, no DOM, shared with the backend), `look.js`, `fx.js`, `resolver.js`, `store.js`, `validate.js`, `util.js`.
 - `site/` the storefront (landing, guided builder, payment seam in `site/lib/api.js`); see `docs/spark/SITE.md`.
+- Payments: `docs/spark/PAYMENTS.md` (YouPI-PG: the flow, the backend checklist, what is untested). `core/payments/youpi.js` checks webhooks.
 - `host/` the page a recipient opens. `playground/` the dev form + live phone frame.
 - Guides: `docs/spark/PRODUCT_GUIDE.md`, `docs/spark/BACKEND.md`, `docs/SKIN_GUIDE.md`.

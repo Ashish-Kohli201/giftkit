@@ -418,20 +418,29 @@ export function openBuilder({ catalog, productId, config }) {
     saved.delete(product.id);
     const name = state.values.recipient;
     const options = previewOptions();
+    // paid and confirmed, or paid on screen but not yet confirmed by the bank alert: the second must never look like a failure
+    const pending = result.status === 'pending';
+    const headline = shop.demo ? 'That is how it feels.'
+      : pending ? (result.review ? 'We are checking your payment.' : 'We are confirming your payment.')
+        : `It is on its way${name ? `, with love for ${name}` : ''}.`;
+    const body = shop.demo
+      ? 'This was a demo, so nothing was charged. With the backend connected, this is the moment the private link lands on your WhatsApp.'
+      : pending
+        ? `Your private link will arrive on ${contact.phone} on WhatsApp as soon as the bank confirms it. This can take a few minutes. If it has not come in 15 minutes, message us with the order number below and we will sort it out.`
+        : `Your private link is on its way to ${contact.phone} on WhatsApp. It stays alive for a full year.`;
     const play = el('button', { class: 'btn btn-gold btn-big', type: 'button', onclick: () => player(product, options, state.media) }, 'Play it now');
     const screen = el('section', { class: 'b-done' },
       el('div', { class: 'tick', 'aria-hidden': 'true' }, el('span')),
-      el('h2', { tabindex: '-1' }, shop.demo ? 'That is how it feels.' : `It is on its way${name ? `, with love for ${name}` : ''}.`),
-      el('p', {}, shop.demo
-        ? 'This was a demo, so nothing was charged. With the backend connected, this is the moment the private link lands on your WhatsApp.'
-        : `Your private link is on its way to ${contact.phone} on WhatsApp. It stays alive for a full year.`),
+      el('h2', { tabindex: '-1' }, headline),
+      el('p', {}, body),
+      result.orderId && !shop.demo ? el('p', { class: 'order-no' }, `Order ${result.orderId}`) : null,
       result.link ? el('p', { class: 'link-box' }, result.link) : null,
       play,
       el('button', { class: 'btn btn-quiet', type: 'button', onclick: () => { state.values = {}; state.media = {}; state.step = 0; closeBuilder(); } }, 'Make another'));
     root.append(screen);
     root.classList.add('is-done');
     screen.querySelector('h2').focus({ preventScroll: true });
-    confetti();
+    if (!pending) confetti();
     buzz([30, 50, 30]);
   }
 

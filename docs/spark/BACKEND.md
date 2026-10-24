@@ -10,7 +10,7 @@ Everything the business needs behind the products. Goal: a customer pays on thei
 | Backend (API, webhooks) | Cloudflare Workers with Hono (TypeScript) | One small codebase, no servers, scales to zero, cheap |
 | Database | Cloudflare D1 (SQLite) | Orders and drafts are small relational data; free tier is generous |
 | Media storage | Cloudflare R2 | No egress fees (videos are the expensive part); direct uploads from the phone |
-| Payments | Razorpay (Orders API + Checkout, UPI first) | Best India documentation, UPI intent on mobile, signed webhooks, test mode |
+| Payments | YouPI-PG, self-hosted UPI (see `PAYMENTS.md`); Razorpay stays a drop-in alternative | No gateway fee, paid straight to our bank; confirmation comes from a signed webhook that must be checked (and reconciled, because it reads bank alerts) |
 | Delivery | Thank-you page + email (Resend) + WhatsApp (a provider such as AiSensy or Interakt) | The link is shown first, then sent, so a failed message never loses a customer |
 | Instagram to website | ManyChat (comment or DM to an automatic reply) to a Superprofile link | Already in your plan; no code |
 | Website (storefront) | A small mobile-first app: Astro or Next.js, pages read each product's `product.json` | Pick what the website builder knows; the API contract below is what matters |

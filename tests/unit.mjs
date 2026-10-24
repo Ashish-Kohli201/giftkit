@@ -108,4 +108,34 @@ test('price: computed from the manifest only, a client-sent price is ignored', (
   assert.deepEqual(mediaIdsIn(m, withExtras).sort(), ['m1', 'v1']);
 });
 
+// ---------------------------------------------------------------- payments: YouPI webhook checks
+{
+  const { sign, verifySignature, checkPayment } = await import('../core/payments/youpi.js');
+  const secret = 'test-secret';
+  const payload = { event: 'SUCCESS', paymentId: 'p1', orderId: 'o_1', amountPaise: 14900, currency: 'INR', method: 'UPI', utr: '123456789012' };
+  const raw = JSON.stringify(payload);
+  const header = `sha256=${await sign(raw, secret)}`;
+
+  assert.equal(header, 'sha256=' + (await sign(raw, secret)));
+  assert.ok(await verifySignature(raw, header, secret));
+  assert.ok(!(await verifySignature(raw + ' ', header, secret)), 'a changed body fails');
+  assert.ok(!(await verifySignature(raw, header, 'other-secret')), 'a different secret fails');
+  assert.ok(!(await verifySignature(raw, header.replace('sha256=', ''), secret)), 'a missing prefix fails');
+  assert.ok(!(await verifySignature(raw, header, '')), 'an empty secret never verifies');
+  assert.ok(!(await verifySignature(raw, undefined, secret)), 'a missing header fails');
+  n++; console.log('  ok  youpi: signatures verify only for the exact body, secret and format');
+
+  const order = { id: 'o_1', amountPaise: 14900 };
+  assert.deepEqual(checkPayment(payload, order), { ok: true, paymentId: 'p1', utr: '123456789012', method: 'UPI' });
+  for (const [change, why] of [
+    [{ event: 'FAILED' }, /not SUCCESS/], [{ orderId: 'o_2' }, /different order/], [{ amountPaise: 100 }, /order is 14900/],
+    [{ amountPaise: '14900' }, /order is 14900/], [{ paymentId: '' }, /no id/], [{ utr: '' }, /UTR/], [{ currency: 'USD' }, /currency/],
+  ]) {
+    const result = checkPayment({ ...payload, ...change }, order);
+    assert.ok(!result.ok && why.test(result.reason), `${JSON.stringify(change)} -> ${result.reason}`);
+  }
+  assert.ok(!checkPayment(null, order).ok);
+  n++; console.log('  ok  youpi: a payment settles an order only for the right order, the exact priced amount and a bank reference');
+}
+
 console.log(`\n${n} tests passed`);
