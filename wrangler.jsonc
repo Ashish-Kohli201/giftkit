@@ -1,0 +1,10 @@
+// Cloudflare Workers static hosting for Fondly: the files that make up the site, served as they are (no build, no code).
+// .assetsignore (next to this file) lists what is NOT uploaded: tests, the backend source, docs, node_modules and so on.
+// The custom domain (fondlyshop.in) is added in the Cloudflare dashboard: Workers & Pages, this project, Settings, Domains & Routes.
+{
+  "name": "fondly",
+  "compatibility_date": "2026-10-19",
+  "assets": {
+    "directory": "."
+  }
+}

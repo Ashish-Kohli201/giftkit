@@ -1,0 +1,23 @@
+# What Cloudflare must NOT upload as part of the site (same rules as .gitignore). Only the site's own files go up:
+#   index.html, _redirects, _headers, site/, host/, core/, elements/, products/, skins/
+node_modules/
+.git/
+.github/
+.claude/
+.engine/
+gifts/
+dist-gifts/
+tests/
+backend/
+docs/
+scripts/
+playground/
+package.json
+package-lock.json
+wrangler.jsonc
+.assetsignore
+.gitignore
+.nojekyll
+README.md
+RULES.md
+CLAUDE.md
