@@ -8,6 +8,8 @@
 // It tells the embedding page what happened: postMessage({ type: 'gift', event: 'ready' | 'opened' | 'finished' | 'error', message? }).
 import { startProduct } from '../core/product.js';
 import { config } from '../site/config.js';
+import { getIp } from '../site/lib/ip.js';
+import { showReply } from './reply.js';
 
 const query = new URL(location.href).searchParams;
 const root = document.getElementById('gift-root');
@@ -27,6 +29,36 @@ async function readJson(url) {
   return body;
 }
 
+/** Talk to the backend the way the storefront does: a text/plain POST (Apps Script cannot answer a CORS preflight). */
+async function backend(action, payload) {
+  const res = await fetch(config.api, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ action, ...payload }) });
+  return res.json();
+}
+
+/** Tell the backend this gift was opened (it emails the buyer if they asked, and only if this is a different network). Never shown, never blocks. */
+let openedReported = false;
+async function reportOpened(slug) {
+  if (openedReported) return;
+  openedReported = true;
+  try { await backend('opened', { slug, ip: await getIp() }); } catch { /* the gift works the same without it */ }
+}
+
+/** After the gift has finished, let the person who got it write back. Once per visit. */
+let replyOffered = false;
+function offerReply(slug, options) {
+  if (replyOffered) return;
+  replyOffered = true;
+  setTimeout(() => showReply({
+    sender: String(options.sender || '').trim(), name: String(options.recipient || '').trim().split(/\s+/)[0],
+    brand: config.brand, shopHref: new URL('../site/', location.href).href,
+    send: async ({ message, name }) => {
+      let answer;
+      try { answer = await backend('reply', { slug, message, name }); } catch { throw new Error('That did not send. Check your connection and try again.'); }
+      if (!answer.ok) throw new Error(answer.message || 'That did not send. Please try again.');
+    },
+  }), 1200);
+}
+
 // A preview sits inside the storefront while the customer types. A format that focuses its own button when it starts
 // (the envelope does) would pull focus out of the text box, and on a phone that closes the keyboard on every keystroke.
 // So in a preview, code cannot move focus; taps and keys from a real person still work.
@@ -44,7 +76,11 @@ try {
   const options = { ...(gift.options ?? {}), ...(preview && query.get('skin') ? { skin: query.get('skin') } : {}) };
   const running = await startProduct({
     root, productId, options, media: gift.media ?? {}, preview,
-    hooks: { onReady: () => tell('ready'), onOpened: () => tell('opened'), onFinished: () => tell('finished') },
+    hooks: {
+      onReady: () => tell('ready'),
+      onOpened: () => { tell('opened'); if (slug) reportOpened(slug); },
+      onFinished: () => { tell('finished'); if (slug) offerReply(slug, gift.options ?? {}); },
+    },
   });
 
   // live preview: the embedding page sends new values as the customer types

@@ -144,3 +144,7 @@
 .upi-bar { grid-column: 1 / -1; height: 6px; border-radius: 6px; background: rgba(27, 20, 16, 0.12); overflow: hidden; }
 .upi-bar-fill { display: block; height: 100%; width: 100%; background: var(--ink); transform-origin: left; transition: transform 1s linear; }
 .upi-fine { font-size: 0.82rem; color: var(--muted); }
+
+.was { font-weight: 400; opacity: 0.55; text-decoration: line-through; }
+.consent { font-size: 0.85rem; color: var(--muted); }
+.consent a { color: inherit; }

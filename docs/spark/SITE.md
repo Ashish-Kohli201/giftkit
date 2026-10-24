@@ -34,6 +34,13 @@ Every call to a server goes through `createShop(config)`. With `config.api` empt
 
 Set `api` and `delivery` in `site/config.js`. The gift link is emailed, so the email is required and the mobile number optional; turn `delivery.whatsapp` on only once a WhatsApp sender is wired into the backend.
 
+## Policies, prices, replies
+
+- **Policy pages** (`site/policies/`: terms, privacy, refunds, contact) are plain HTML linked from the footer and from the pay step ("By paying you agree to..."). Review them before launch: they state the 24 to 48 hour refund promise, the 5 and 10 minute payment checks, and what is collected (including IP addresses and ipify). They are written in plain words, not legal advice.
+- **Prices:** every gift is Rs 29 with Rs 100 shown crossed out (`price.compareAt` in each `product.json`: display only, never charged); add-ons are Rs 19 (video) and Rs 9 (song).
+- **A reply** (`host/reply.js`): after a delivered gift finishes, the person who got it can "Send a message back to <sender>"; the backend emails it to the buyer as a postcard. A quiet "Make your own gift" link stays at the bottom.
+- **Tell me when it is opened:** a switch on the extras step (on by default). The host page reports the opener's address (from ipify) and the backend emails the buyer, twice at most, only from a different network.
+
 ## Where things are
 
 ```

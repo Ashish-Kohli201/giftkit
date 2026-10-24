@@ -1,0 +1,13 @@
+/* The policy pages: plain, readable, phone first. */
+.policy-top { padding: calc(14px + var(--safe-top)) var(--pad) 8px; }
+.policy-top .brand { display: inline-flex; align-items: center; gap: 9px; text-decoration: none; font-family: var(--display); font-weight: 700; font-size: 1.3rem; letter-spacing: -0.02em; }
+.policy-top .brand-mark { width: 18px; height: 18px; border-radius: 50% 50% 50% 4px; background: linear-gradient(135deg, var(--gold), var(--pink)); transform: rotate(-12deg); }
+.policy { max-width: 680px; margin: 0 auto; padding: 18px var(--pad) 56px; }
+.policy h1 { font-family: var(--display); font-size: clamp(2rem, 9vw, 3rem); line-height: 1.02; letter-spacing: -0.02em; margin: 6px 0 16px; }
+.policy h2 { font-family: var(--display); font-size: 1.35rem; margin: 30px 0 8px; }
+.policy p, .policy li { line-height: 1.65; color: #3b322a; }
+.policy ul { list-style: disc; padding-left: 1.2em; display: grid; gap: 8px; margin: 8px 0; }
+.policy a { text-decoration-thickness: 1px; text-underline-offset: 3px; }
+.policy .big { font-family: var(--display); font-size: clamp(1.4rem, 6vw, 2rem); margin: 8px 0 24px; }
+.policy-foot { display: flex; flex-wrap: wrap; gap: 6px 18px; padding: 22px var(--pad) calc(30px + var(--safe-bottom)); border-top: 1px solid var(--line); font-size: 0.9rem; }
+.policy-foot a { color: var(--muted); }

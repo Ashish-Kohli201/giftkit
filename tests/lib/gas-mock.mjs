@@ -180,6 +180,6 @@ export async function createBackend({ settings = {}, startTime = Date.UTC(2026, 
 }
 
 export const DEFAULT_SETTINGS = {
-  UPI_VPA: 'shop@okhdfcbank', UPI_NAME: 'Notepark', OWNER_EMAIL: 'owner@example.com', BANK_SENDER: 'alerts@hdfcbank.net',
-  SITE_URL: 'https://shop.example/giftkit', BRAND: 'Notepark', SUPPORT_NOTE: 'reply to this email',
+  UPI_VPA: 'shop@okhdfcbank', UPI_NAME: 'Fondly', OWNER_EMAIL: 'owner@example.com', BANK_SENDER: 'alerts@hdfcbank.net',
+  SITE_URL: 'https://shop.example/giftkit', BRAND: 'Fondly', SUPPORT_NOTE: 'reply to this email',
 };

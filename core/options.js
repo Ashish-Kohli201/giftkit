@@ -9,6 +9,7 @@
 //   date              "YYYY-MM-DD"
 //   toggle            true / false, price? (added when true)
 //   image / video / audio   the id of an uploaded file ("m_x7k2"), price? (added when one is given)
+// price: { base, compareAt? } where compareAt is the "was" price the shop shows struck through (display only; never charged)
 //   images            a list of uploaded file ids, max (default 6), pricePerExtra? (for each one beyond `free`)
 // Prices are integers in paise (1 rupee = 100 paise).
 import { MEDIA_TYPES, OPTION_TYPES } from './contract.js';
@@ -24,6 +25,7 @@ export function checkManifest(manifest) {
   if (!manifest || typeof manifest !== 'object') return ['product.json must be an object'];
   for (const k of ['id', 'name', 'tagline', 'format', 'skins']) if (!manifest[k]) problems.push(`"${k}" is required`);
   if (!Number.isInteger(manifest.price?.base) || manifest.price.base < 0) problems.push('price.base must be a whole number of paise');
+  if (manifest.price?.compareAt !== undefined && !(Number.isInteger(manifest.price.compareAt) && manifest.price.compareAt > manifest.price.base)) problems.push('price.compareAt (the struck-through price) must be a whole number of paise above price.base');
   if (!Array.isArray(manifest.options)) return [...problems, 'options must be a list'];
   for (const o of manifest.options) {
     const at = `option "${o?.key}"`;

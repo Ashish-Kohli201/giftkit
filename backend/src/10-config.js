@@ -37,7 +37,7 @@ function token_(length) {
 }
 
 const SITE_ = () => requireProp_('SITE_URL').replace(/\/$/, '');
-const BRAND_ = () => prop_('BRAND', 'Notepark');
+const BRAND_ = () => prop_('BRAND', 'Fondly');
 const ownerEmail_ = () => prop_('OWNER_EMAIL', '') || Session.getEffectiveUser().getEmail();
 
 /** The private address of a gift. The storefront's host page reads ?s=<slug> and asks this backend for the gift. */
@@ -55,3 +55,8 @@ const CHUNK_BYTES = 6 * 256 * 1024;
 
 // ---------------------------------------------------------------- abuse limits
 const MAX_CLAIMS_PER_CONTACT_PER_DAY = 3;
+const MAX_REPLIES_PER_GIFT = 3;
+const MAX_REPLY_CHARS = 600;
+const MAX_OPEN_NOTICES = 2;
+const GIFT_LIFETIME_MS = 365 * 24 * 60 * 60 * 1000; // a gift link works for a year after the payment is confirmed
+const IP_ADDRESS = /^[0-9a-fA-F:.]{3,45}$/;

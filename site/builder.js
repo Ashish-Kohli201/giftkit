@@ -30,6 +30,8 @@ const el = (tag, attrs = {}, ...kids) => {
 const put = (node, ...kids) => node.append(...kids.flat().filter((k) => k != null && k !== false));
 /** "2 minutes", "5 minutes": a length of time, in words. */
 const minutes = (seconds) => { const m = Math.max(1, Math.round(seconds / 60)); return `${m} minute${m === 1 ? '' : 's'}`; };
+/** A link to one of the policy pages, opened in a new tab so the gift being made is not lost. */
+const policyLink = (page, label) => el('a', { href: `./policies/${page}.html`, target: '_blank', rel: 'noopener' }, label);
 const root = document.getElementById('builder');
 const saved = new Map(); // product id -> { values, media, step }: closing and reopening keeps what was typed
 let session = null;
@@ -236,6 +238,7 @@ export function openBuilder({ catalog, productId, config }) {
     } else if (option.type === 'video' || option.type === 'audio' || option.type === 'image') {
       put(wrap, label, fileCard(option, set), option.hint ? el('p', { class: 'f-hint' }, option.hint) : null, error);
     } else if (option.type === 'toggle') {
+      state.values[option.key] ??= !!option.default;
       const box = el('input', { type: 'checkbox', id: `f-${option.key}`, role: 'switch' });
       box.checked = !!state.values[option.key];
       box.addEventListener('change', () => set(box.checked));
@@ -362,7 +365,8 @@ export function openBuilder({ catalog, productId, config }) {
 
   function payStep(step) {
     const options = normalizeOptions(product, state.values).options;
-    const lines = [el('li', {}, el('span', {}, product.name), el('b', {}, rupees(product.price.base)))];
+    const wasPrice = product.price.compareAt ? [el('s', { class: 'was' }, rupees(product.price.compareAt)), ' '] : [];
+    const lines = [el('li', {}, el('span', {}, product.name), el('b', {}, ...wasPrice, rupees(product.price.base)))];
     for (const o of product.options) {
       const v = options[o.key];
       if (v === undefined || v === false) continue;
@@ -384,6 +388,7 @@ export function openBuilder({ catalog, productId, config }) {
     return el('div', { class: 'b-step' },
       el('h2', { tabindex: '-1' }, step.title), el('p', { class: 'b-hint' }, step.hint),
       el('ul', { class: 'receipt' }, lines, el('li', { class: 'receipt-total' }, el('span', {}, 'Total'), el('b', {}, rupees(total())))),
+      el('p', { class: 'consent' }, 'By paying you agree to the ', policyLink('terms', 'Terms'), ', the ', policyLink('refunds', 'Refund policy'), ' and the ', policyLink('privacy', 'Privacy policy'), '.'),
       el('div', { class: 'f' }, el('label', { class: 'f-label', for: 'f-email' }, byWhatsapp ? 'Email (optional)' : 'Your email'), emailInput,
         el('p', { class: 'f-hint' }, byWhatsapp ? 'A copy of the link, in case WhatsApp is slow.' : 'Your private link is sent here.'), emailError),
       el('div', { class: 'f' }, el('label', { class: 'f-label', for: 'f-phone' }, byWhatsapp ? 'Your WhatsApp number' : 'Mobile number (optional)'), el('div', { class: 'phone-field' }, el('span', {}, '+91'), phoneInput),

@@ -1,6 +1,6 @@
 // The storefront's settings. Change the brand here; nothing else in the site hardcodes it.
 export const config = {
-  brand: 'Notepark',
+  brand: 'Fondly',
   // The backend: the address of the deployed Apps Script web app (backend/README.md), ending in /exec.
   // Leave it empty for DEMO MODE: the whole flow works, but nothing is paid, stored or sent.
 // (This address is public by design: the page has to call it. What protects the backend is its own checks, not hiding the address.)

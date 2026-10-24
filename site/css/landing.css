@@ -55,6 +55,7 @@ body.is-building .nav { display: none; }
 .card { position: sticky; top: calc(16px + var(--i) * 12px); min-height: 78svh; display: flex; flex-direction: column; padding: 26px 24px 0; border-radius: 34px; background: var(--accent); color: var(--ink); overflow: hidden; box-shadow: 0 -10px 40px rgba(27, 20, 16, 0.14); }
 .card-copy { display: grid; gap: 10px; justify-items: start; }
 .card .eyebrow { opacity: 0.7; }
+.card .was { opacity: 0.55; font-weight: 600; }
 .card-headline { font-family: var(--display); font-weight: 600; font-size: 1.35rem; line-height: 1.15; max-width: 18ch; }
 .card-blurb { max-width: 32ch; opacity: 0.78; }
 .card .btn { margin-top: 8px; background: var(--ink); color: #fff; --arrow-ink: var(--accent); }
@@ -88,7 +89,9 @@ details p { padding: 0 0 18px; color: var(--muted); animation: open 0.5s var(--e
 
 /* ---- final ---- */
 .final { display: grid; gap: 26px; justify-items: start; padding: 84px var(--pad) 90px; background: var(--night); color: #fff; border-radius: 32px 32px 0 0; position: relative; z-index: 2; background-image: radial-gradient(80% 60% at 20% 100%, rgba(255, 79, 154, 0.35), transparent); }
-.foot { display: flex; justify-content: space-between; padding: 22px var(--pad) calc(26px + var(--safe-bottom)); background: var(--night); color: rgba(255, 255, 255, 0.55); font-size: 0.85rem; }
+.foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 20px; padding: 22px var(--pad) calc(26px + var(--safe-bottom)); background: var(--night); color: rgba(255, 255, 255, 0.55); font-size: 0.85rem; }
+.foot nav { display: flex; flex-wrap: wrap; gap: 6px 16px; }
+.foot a { color: rgba(255, 255, 255, 0.7); }
 
 /* ---- wider screens: two columns, same story ---- */
 @media (min-width: 900px) {

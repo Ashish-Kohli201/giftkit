@@ -7,9 +7,10 @@
 
 // column name -> type: 's' text, 'n' number, 'j' JSON
 const TABLES = {
-  Orders: { id: 's', productId: 's', options: 'j', baseAmount: 'n', amount: 'n', state: 's', createdAt: 'n', claimedAt: 'n', remindedAt: 'n', paidAt: 'n', revokedAt: 'n', slug: 's', phone: 's', email: 's', utr: 's', draftId: 's', contactKey: 's' },
+  Orders: { id: 's', productId: 's', options: 'j', baseAmount: 'n', amount: 'n', state: 's', createdAt: 'n', claimedAt: 'n', remindedAt: 'n', paidAt: 'n', revokedAt: 'n', slug: 's', phone: 's', email: 's', utr: 's', draftId: 's', contactKey: 's', buyerIp: 's', openNotices: 'n', lastOpenIp: 's', replies: 'n' },
   Drafts: { id: 's', token: 's', productId: 's', createdAt: 'n' },
   Media: { id: 's', draftId: 's', type: 's', driveId: 's', bytes: 'n', mime: 's', createdAt: 'n' },
+  Replies: { at: 'n', orderId: 's', name: 's', message: 's' },
   Credits: { messageId: 's', receivedAt: 'n', amount: 'n', utr: 's', orderId: 's', decision: 's' },
   Events: { at: 'n', orderId: 's', type: 's', detail: 's' },
 };

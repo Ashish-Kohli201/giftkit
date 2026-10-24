@@ -74,7 +74,7 @@ catalog.forEach((p, i) => {
   const holder = el('div', { class: 'card-phone', 'aria-hidden': 'true' });
   const card = el('article', { class: 'card', style: `--accent:${p.shop.accent};--ink:${p.shop.ink};--i:${i}`, 'data-reveal': '' },
     el('div', { class: 'card-copy' },
-      el('p', { class: 'eyebrow' }, `From ${rupees(p.price.base)}`),
+      el('p', { class: 'eyebrow' }, 'From ', rupees(p.price.base), p.price.compareAt ? ' ' : null, p.price.compareAt ? el('s', { class: 'was' }, rupees(p.price.compareAt)) : null),
       el('h3', { class: 'display display-m' }, p.name),
       el('p', { class: 'card-headline' }, p.shop.headline),
       el('p', { class: 'card-blurb' }, p.shop.blurb),

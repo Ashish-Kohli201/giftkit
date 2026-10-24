@@ -26,7 +26,7 @@ const get = async (action, params = {}) => {
 
 console.log('\n[the deployed backend]');
 const health = await fetch(api).then((r) => r.json());
-check(health.ok && health.service === 'notepark-backend', `it answers a health check (${lap()})`);
+check(health.ok && health.service === 'fondly-backend', `it answers a health check (${lap()})`);
 
 const draft = (await post('createDraft', { productId: 'cake' })).json;
 check(draft.ok && draft.id && draft.token, `a draft is created (${draft.id})`);
@@ -39,7 +39,8 @@ check(chunk.ok && chunk.done && chunk.id, `the picture reaches Drive and is reco
 
 const placed = (await post('createOrder', { draftId: draft.id, token: draft.token, amount: 1, options: { recipient: 'Live Check', message: 'Hello', photos: [chunk.id] }, contact: { email } })).json;
 check(placed.ok && placed.orderId, `an order is placed: ${placed.orderId}`);
-check(placed.amount >= 200 && placed.amount < 300, `the SERVER priced it, ignoring the amount we sent (${placed.amount / 100} rupees)`);
+const cake = JSON.parse((await import('node:fs')).readFileSync(new URL('../products/cake/product.json', import.meta.url), 'utf8'));
+check(placed.amount >= cake.price.base && placed.amount < cake.price.base + 100, `the SERVER priced it from the manifest, ignoring the amount we sent (${placed.amount / 100} rupees)`);
 check(placed.upi?.vpa?.includes('@') && placed.upi.remindAfterSeconds > 0, `the UPI details and timings come back (${placed.upi?.vpa}, remind ${placed.upi?.remindAfterSeconds}s, revoke ${placed.upi?.revokeAfterSeconds}s)`);
 
 const status = (await get('status', { orderId: placed.orderId })).json;

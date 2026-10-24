@@ -14,6 +14,8 @@
 // REAL MODE: talks to the Apps Script web app at config.api. Apps Script cannot read headers or send HTTP errors, so every call is plain
 // HTTP 200 with JSON { ok, ... }, and POSTs are sent as text/plain (a "simple" request: the browser needs no CORS preflight).
 // The price is never sent: the server works it out from the product's manifest.
+import { getIp } from './ip.js';
+
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const newId = (prefix) => `${prefix}_${Math.random().toString(36).slice(2, 8)}`;
 
@@ -80,7 +82,8 @@ function createRealShop(base) {
       }
       return { id: last.id, type, url: URL.createObjectURL(file) };
     },
-    createOrder: (draft, { options, contact }) => post('createOrder', { draftId: draft.id, token: draft.token, options, contact }),
+    // the buyer's own address travels with the order only so "tell me when it is opened" can tell it is someone else opening the gift
+    createOrder: async (draft, { options, contact }) => post('createOrder', { draftId: draft.id, token: draft.token, options, contact, ip: await getIp() }),
     status: (orderId) => get('status', { orderId }),
     /** The customer pays our UPI ID and says so; the backend opens the link on trust and checks the bank's email (docs/spark/UPI.md). */
     async pay(order, { ui }) {

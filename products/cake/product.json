@@ -9,8 +9,9 @@
     "arcade"
   ],
   "price": {
-    "base": 200,
-    "currency": "INR"
+    "base": 2900,
+    "currency": "INR",
+    "compareAt": 10000
   },
   "options": [
     {
@@ -80,14 +81,21 @@
       "type": "video",
       "label": "A video (optional)",
       "hint": "Up to 30 MB, about a minute",
-      "price": 100
+      "price": 1900
     },
     {
       "key": "music",
       "type": "audio",
       "label": "A song (optional)",
       "hint": "Your own song file, up to 15 MB",
-      "price": 100
+      "price": 900
+    },
+    {
+      "key": "notifyOpen",
+      "type": "toggle",
+      "label": "Tell me when it is opened",
+      "hint": "We email you the first 2 times someone on another network opens it.",
+      "default": true
     },
     {
       "key": "skin",
@@ -143,10 +151,11 @@
       {
         "id": "extras",
         "title": "Make it unforgettable",
-        "hint": "A video message or your song. Both are optional.",
+        "hint": "A video message or your song (both optional), and whether we tell you when it is opened.",
         "keys": [
           "video",
-          "music"
+          "music",
+          "notifyOpen"
         ],
         "optional": true
       },

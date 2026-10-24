@@ -25,10 +25,12 @@ const ctl = (path, body) => fetch(`${emulator.url}${path}`, { method: body ? 'PO
 
 const browser = await chromium.launch();
 
-async function phone(viewport = { width: 390, height: 844 }) {
+async function phone(viewport = { width: 390, height: 844 }, ip = '1.1.1.1') {
   const ctx = await browser.newContext({ viewport, hasTouch: true, isMobile: true });
   // the site's settings, as they would be once deployed: pointing at the backend
-  await ctx.route('**/site/config.js', (route) => route.fulfill({ contentType: 'text/javascript', body: `export const config = { brand: 'Notepark', api: '${emulator.url}/exec', delivery: { whatsapp: false } };` }));
+  await ctx.route('**/site/config.js', (route) => route.fulfill({ contentType: 'text/javascript', body: `export const config = { brand: 'Fondly', api: '${emulator.url}/exec', delivery: { whatsapp: false } };` }));
+  // the browser's own address, from ipify: each phone in the test is a different "network"
+  await ctx.route('**/api.ipify.org/**', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({ ip }) }));
   // Drive is Google's: in a test, the photo address answers with the same tiny picture
   await ctx.route('**/drive.google.com/**', (route) => route.fulfill({ contentType: 'image/png', body: PNG }));
   const page = await ctx.newPage();
@@ -107,14 +109,47 @@ try {
   check(s.orders[0].state === 'provisional', 'the server holds it as provisional');
   const mail = s.outbox.find((m) => m.to === 'meera.buyer@example.com');
   check(mail && mail.body.includes(link), 'the customer was emailed the same link');
-  check(s.outbox.some((m) => m.to === 'owner@example.com' && /New order/.test(m.subject)), 'the owner was told');
+  check(!s.outbox.some((m) => m.to === 'owner@example.com'), 'the main admin is NOT emailed about an order');
 
   // the recipient opens it (a different phone, with nothing but the link)
-  const recipient = await phone();
+  const recipient = await phone(undefined, '2.2.2.2');
   await recipient.page.goto(link);
   await recipient.page.waitForSelector('[data-part="env-address"]', { timeout: 10000 });
   check((await recipient.page.locator('[data-part="env-address"]').innerText()).includes('Meera'), 'the recipient\'s page opens the gift, addressed to Meera');
   check(await recipient.page.locator('html[data-gift-event="ready"], html[data-gift-event]').count() === 1, 'the gift page reported that it is ready');
+
+  // the recipient plays it to the end, and writes back
+  await recipient.page.locator('[data-part="env-envelope"]').click();
+  // the envelope opens, then holds on the video until it ends or is skipped (this test's video is not a real one, so it is skipped once), then
+  // shows the letter one paragraph per tap, then the photos. Each round: do whatever is on offer.
+  let skipped = false;
+  const page = recipient.page;
+  for (let round = 0; round < 20 && await page.locator('.reply').count() === 0; round++) {
+    for (let waited = 0; waited < 6000; waited += 200) {
+      if (!skipped && await page.locator('[data-part="skip"]').isVisible()) { skipped = true; await page.locator('[data-part="skip"]').click(); break; }
+      if (await page.locator('[data-part="env-next"]').isVisible()) { await page.locator('[data-part="env-next"]').click(); break; }
+      await page.waitForTimeout(200);
+    }
+    await page.waitForTimeout(250);
+  }
+  await recipient.page.waitForSelector('.reply', { timeout: 10000 }).catch(async (error) => {
+    const seen = await recipient.page.evaluate(() => ({ event: document.documentElement.dataset.giftEvent, parts: [...new Set([...document.querySelectorAll('[data-part]')].filter((n) => n.offsetParent).map((n) => n.dataset.part))] }));
+    await recipient.page.screenshot({ path: 'tests/shots/e2e-no-reply.png' }).catch(() => {});
+    throw new Error(`the reply card never appeared. Last event: ${seen.event}. Visible parts: ${seen.parts.join(', ')}. ${error.message}`);
+  });
+  check(/Send a message back to Ashish/.test(await recipient.page.locator('.reply h2').innerText()), 'at the end of the gift: "Send a message back to Ashish"');
+  check((await recipient.page.locator('.reply-make').getAttribute('href')).endsWith('/site/'), 'with a quiet "Make your own gift" link');
+  check(await recipient.page.locator('.reply-name').inputValue() === 'Meera', "the reader's own name is prefilled");
+  await recipient.page.locator('.reply-send').click();
+  check(await recipient.page.locator('.reply-problem').innerText() === 'Write a message first.', 'an empty reply is not sent');
+  await recipient.page.fill('.reply-text', '<b>Thank you</b> so much, I loved it');
+  await recipient.page.locator('.reply-send').click();
+  await recipient.page.waitForFunction(() => /Sent\./.test(document.querySelector('.reply h2')?.textContent ?? ''), null, { timeout: 10000 });
+  let after = await state();
+  const postcard = after.outbox.find((m) => m.to === 'meera.buyer@example.com' && /sent you a message/.test(m.subject));
+  check(postcard && postcard.htmlBody.includes('&lt;b&gt;Thank you&lt;/b&gt; so much') && !postcard.htmlBody.includes('<b>Thank'), 'the buyer got a postcard email with the words, escaped');
+  const opened = after.outbox.filter((m) => /was just opened/.test(m.subject));
+  check(opened.length === 1 && opened[0].to === 'meera.buyer@example.com', 'the buyer was told the gift was opened (a different network), once');
 
   // the bank email arrives; the thank-you screen (still open on the buyer's phone) turns permanent by itself
   await ctl('/ctl/bank-email', { amountPaise: order.amount, utr: '629512345678' });

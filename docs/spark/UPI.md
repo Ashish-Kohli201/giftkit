@@ -39,11 +39,11 @@ Apps Script cannot send HTTP error codes, so every answer is HTTP 200 with `ok` 
 
 ## The clock (a job every minute)
 
-For each order, `nextAction(order, now)` says what to do: `remind` once at 5 minutes after the claim, `revoke` at 10 (both are settings: `REMIND_AFTER_MINUTES` and `REVOKE_AFTER_MINUTES`; use 2 and 3 while testing), `expire` for an unclaimed order past its pay window. Times live in `RULES` in `core/payments/upi.js`.
+For each order, `nextAction(order, now)` says what to do: `remind` once at 5 minutes after the claim, `revoke` at 10 (both are settings: `REMIND_AFTER_MINUTES` and `REVOKE_AFTER_MINUTES`; blank means 5 and 10), `expire` for an unclaimed order past its pay window. Times live in `RULES` in `core/payments/upi.js`.
 
 ## Finding the payment: Gmail
 
-- The backend runs as the Google account that receives the bank's credit alerts, so it can read them with no password or token (use a dedicated Gmail, not a personal mailbox: the script can read the whole account).
+- The backend runs as the shop's Gmail account (`fondyshop@gmail.com`), which also sends every customer email. The bank's alerts reach it because the admin account forwards them (`backend/README.md`, step 0), so no password or token is involved. Use a dedicated Gmail for the shop: the script can read the whole account.
 - Every minute (only while an order is waiting) it searches for new mail from `BANK_SENDER`, runs `parseCreditEmail(text)`, then `matchCredit(credit, orders, usedUtrs)`, and settles the one order that matches.
 - **`parseCreditEmail` is tested against one real HDFC alert** (`tests/fixtures/hdfc-credit-email.txt`, from `alerts@hdfcbank.bank.in`: "Rs.1.00 has been successfully credited ... UPI Reference No.: ..."), plus common wordings of other banks. Another bank, or another kind of HDFC email, may word it differently: add a real sample as a test before relying on it. If the bank does not email for small credits, or emails late, this design needs another source.
 - Every email looked at is recorded in the Credits tab with its decision. A UTR settles at most one order.
@@ -51,11 +51,12 @@ For each order, `nextAction(order, now)` says what to do: `remind` once at 5 min
 
 ## What the customer reads
 
-Keep the tone friendly; they paid, or they are about to.
+Fondly sends exactly five kinds of email (see `backend/README.md`): the **booking** (the link, when they say they have paid), the **reminder** (5 minutes, if the payment cannot be found), the **revoked** notice (10 minutes), a **reply** from the person who got the gift (an HTML postcard) and, if they asked, an **opened** notice (twice at most). The main admin is emailed only when a link is switched off.
 
-- **Reminder (5 min):** "Hi, we cannot see your payment for order ORD-123 yet. If you have paid, it can take a few minutes to reach us, and you do not need to do anything. If not, please pay Rs 149.37 to shop@bank so your gift keeps working. The link will switch off in 5 minutes if we still cannot find it."
-- **Revoked:** "We could not find a payment for order ORD-123, so the gift link has been switched off. If you did pay, reply with a screenshot of the payment and we will switch it straight back on."
-- **Confirmed:** "Payment received, thank you. Your gift link will work for a year."
+- **Reminder:** "We cannot see your payment for order ORD-123 yet. If you have paid, it can take a few minutes and you do not need to do anything. If not, please pay exactly Rs 29.37 to the UPI ID so your gift keeps working. The link will switch off in about 5 minutes."
+- **Revoked:** "We could not find a payment for order ORD-123, so the gift link has been switched off. If you did pay, reply with a screenshot and we will switch it straight back on."
+
+A payment that is found later switches the link back on by itself, with no email.
 
 ## Risks to know about (and what limits them)
 

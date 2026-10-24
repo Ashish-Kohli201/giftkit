@@ -1,4 +1,4 @@
-# Notepark (giftkit)
+# Fondly (giftkit)
 
 Small, very pretty, one-tap gift products. A customer fills in a short form on their phone, pays, and gets a private link.
 Zero runtime dependencies in gift code.
@@ -26,6 +26,7 @@ Needs Node 18+. No install step is needed to run the playground.
 | `docs/spark/PRODUCT_GUIDE.md` | How to build a product (for the frontend) |
 | `docs/spark/SITE.md` | The storefront: the guided buying flow and its seam to the backend |
 | `site/` | The storefront customers use (landing, guided builder, payment). `npm run dev` then /site/ |
+| `site/policies/` | Terms, privacy, refund and contact pages (linked from the footer and the pay step) |
 | `backend/` | The server: one Google Apps Script project (Sheet database, Drive files, Gmail bank alerts, email, a one-minute clock). Setup in `backend/README.md` |
 | `docs/spark/BACKEND.md`, `docs/spark/UPI.md` | How the backend is built; how a payment is decided |
 | `docs/SKIN_GUIDE.md` | Build a skin (a look) |

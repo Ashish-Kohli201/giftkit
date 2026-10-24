@@ -3,7 +3,7 @@
   "version": "0.2.0",
   "private": true,
   "type": "module",
-  "description": "Notepark products: pretty one-tap gift formats a customer fills in on their phone. Zero runtime dependencies.",
+  "description": "Fondly products: pretty one-tap gift formats a customer fills in on their phone. Zero runtime dependencies.",
   "scripts": {
     "dev": "node scripts/serve.mjs",
     "check": "node scripts/check.mjs",

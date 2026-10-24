@@ -26,7 +26,7 @@ const shot = async (page, name) => { if (process.env.SHOTS) { await page.waitFor
 async function newPage(browser, viewport) {
   const ctx = await browser.newContext({ viewport, hasTouch: true, isMobile: true });
   // these tests are about DEMO MODE: whatever site/config.js points at, they must never reach a real backend
-  await ctx.route('**/site/config.js', (route) => route.fulfill({ contentType: 'text/javascript', body: "export const config = { brand: 'Notepark', api: '', delivery: { whatsapp: false } };" }));
+  await ctx.route('**/site/config.js', (route) => route.fulfill({ contentType: 'text/javascript', body: "export const config = { brand: 'Fondly', api: '', delivery: { whatsapp: false } };" }));
   const page = await ctx.newPage();
   const problems = [];
   const external = [];
@@ -101,10 +101,10 @@ try {
     while (guard++ < 8) {
       const title = (await page.locator('.b-step h2').textContent()).trim();
       if (/almost there/i.test(title)) break;
+      if (/photos/i.test(title) && id !== 'film') check(/skip/i.test(await page.locator('.b-next').textContent()), 'an optional step (the photos) offers "Skip for now" until something is added');
       await answerStep(page, title);
       if (/photos/i.test(title)) sawPhotos = true;
       if (/unforgettable/i.test(title)) {
-        check(/skip/i.test(await page.locator('.b-next').textContent()), 'an optional step offers "Skip for now"');
         // a video is a paid extra: the price must move
         await page.waitForTimeout(700);
         const before = await price(page);
@@ -173,6 +173,49 @@ try {
   }
 
   // ---------------------------------------------------------------- the small phone: the builder still fits
+  console.log('\n[prices and policies]');
+  {
+    const t = await newPage(browser, SCREENS[0]);
+    await t.page.goto(`${BASE}/site/`);
+    await t.page.waitForSelector('.card');
+    const eyebrows = await t.page.locator('.card .eyebrow').allInnerTexts();
+    check(eyebrows.every((e) => /from \u20B929/i.test(e) && /\u20B9100/.test(e)), `every card shows \u20B929 with \u20B9100 crossed out (${eyebrows[0].replace(/\s+/g, ' ')})`);
+    check(await t.page.locator('.card .eyebrow s.was').count() === 4 && await t.page.locator('.card .eyebrow s.was').first().evaluate((n) => getComputedStyle(n).textDecorationLine) === 'line-through', 'the old price is struck through');
+    const links = await t.page.locator('.foot nav a').evaluateAll((as) => as.map((a) => a.getAttribute('href')));
+    check(links.length === 4, `the footer links to the four policy pages (${links.join(', ')})`);
+    for (const [name, heading] of [['terms', /Terms of use/], ['privacy', /Privacy policy/], ['refunds', /Refund and cancellation policy/], ['contact', /Contact us/]]) {
+      const res = await t.page.goto(`${BASE}/site/policies/${name}.html`);
+      check(res.status() === 200 && heading.test(await t.page.locator('h1').innerText()), `policies/${name}.html opens`);
+    }
+    const refund = await t.page.goto(`${BASE}/site/policies/refunds.html`).then(() => t.page.locator('main').innerText());
+    check(/24 to 48 hours/.test(refund) && /5 minutes/.test(refund) && /10 minutes/.test(refund), 'the refund policy states the 24 to 48 hours and the 5 and 10 minute checks');
+    check(await t.page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'a policy page does not scroll sideways');
+
+    // inside the builder: the receipt shows the old price, the policies are linked, and "tell me when it is opened" is on by default
+    await t.page.goto(`${BASE}/site/`);
+    await t.page.waitForSelector('.card');
+    await t.page.locator('.card [data-make="envelope"]').click();
+    await t.page.waitForSelector('.b-step h2');
+    await t.page.fill('#f-recipient', 'Meera');
+    await t.page.locator('.b-next').click();
+    await t.page.locator('.starter').first().click();
+    await t.page.locator('.b-next').click();
+    await t.page.waitForTimeout(450);
+    await t.page.locator('.b-next').click(); // photos: skip
+    await t.page.waitForTimeout(450);
+    check(await t.page.locator('#f-notifyOpen').isChecked(), '"Tell me when it is opened" is on by default');
+    await t.page.locator('.switch').click();
+    check(!(await t.page.locator('#f-notifyOpen').isChecked()), 'and it can be switched off');
+    await t.page.locator('.switch').click();
+    await t.page.locator('.b-next').click();
+    await t.page.waitForTimeout(450);
+    await t.page.locator('.b-next').click();
+    await t.page.waitForFunction(() => /almost there/i.test(document.querySelector('.b-step h2')?.textContent ?? ''));
+    check(/\u20B9100/.test(await t.page.locator('.receipt li').first().innerText()) && /29/.test(await t.page.locator('.receipt li').first().innerText()), 'the receipt shows \u20B929 with \u20B9100 crossed out');
+    check(await t.page.locator('.consent a').count() === 3, 'paying says you agree to the Terms, the Refund policy and the Privacy policy (three links)');
+    await t.ctx.close();
+  }
+
   console.log('\n[builder on a 360x640 phone]');
   const small = await newPage(browser, SCREENS[1]);
   await small.page.goto(`${BASE}/site/`);

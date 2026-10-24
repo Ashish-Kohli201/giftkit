@@ -27,12 +27,12 @@ const mailsTo = (b, to) => b.world.outbox.filter((m) => m.to === to);
 const orderRow = (b, id) => b.sheet('Orders').find((o) => o.id === id);
 
 /** A complete order up to the pay sheet: draft, optional photo, order. Returns what the storefront would hold. */
-function order(b, { product = 'cake', email = 'buyer@example.com', phone = '', photos = 0, extra = {} } = {}) {
+function order(b, { product = 'cake', email = 'buyer@example.com', phone = '', photos = 0, extra = {}, ip } = {}) {
   const draft = b.call('createDraft', { productId: product });
   const ids = [];
   for (let i = 0; i < photos; i++) ids.push(b.upload(draft, { bytes: PNG }).id);
   const options = { recipient: 'Meera', sender: 'Ashish', message: 'Happy birthday!', ...(photos ? { photos: ids } : {}), ...extra };
-  const placed = b.call('createOrder', { draftId: draft.id, token: draft.token, options, contact: { email, phone } });
+  const placed = b.call('createOrder', { draftId: draft.id, token: draft.token, options, contact: { email, phone }, ...(ip !== undefined ? { ip } : {}) });
   return { draft, ids, options, placed };
 }
 const claim = (b, placed) => { b.advance(20 * 1000); return b.call('claim', { orderId: placed.orderId }); };
@@ -118,7 +118,7 @@ await test('happy path: draft, photo, order, "I have paid" opens the link, the b
   const { placed, ids } = order(b, { photos: 1 });
   assert.equal(placed.ok, true, JSON.stringify(placed));
   assert.equal(placed.amount, CAKE, 'cake base price, no add-ons, first order gets the plain price');
-  assert.deepEqual(placed.upi, { vpa: 'shop@okhdfcbank', name: 'Notepark', minSeconds: 15, payWindowSeconds: 300, remindAfterSeconds: 300, revokeAfterSeconds: 600 });
+  assert.deepEqual(placed.upi, { vpa: 'shop@okhdfcbank', name: 'Fondly', minSeconds: 15, payWindowSeconds: 300, remindAfterSeconds: 300, revokeAfterSeconds: 600 });
   assert.equal(b.get('status', { orderId: placed.orderId }).status, 'awaiting_payment');
 
   const early = b.call('claim', { orderId: placed.orderId });
@@ -132,7 +132,7 @@ await test('happy path: draft, photo, order, "I have paid" opens the link, the b
   assert.equal(live.length, 1);
   assert.match(live[0].subject, /Your gift is ready/);
   assert.ok(live[0].body.includes(claimed.link) && live[0].body.includes(rs(CAKE)));
-  assert.ok(mailsTo(b, 'owner@example.com').some((m) => /New order/.test(m.subject)), 'the owner hears about it');
+  assert.equal(mailsTo(b, 'owner@example.com').length, 0, 'the main admin is NOT emailed about a new order');
 
   const slug = new URL(claimed.link).searchParams.get('s');
   const gift = b.get('gift', { slug });
@@ -148,7 +148,8 @@ await test('happy path: draft, photo, order, "I have paid" opens the link, the b
   const scan = b.tick();
   assert.deepEqual(scan, { settled: 1, unmatched: 0 });
   assert.equal(b.get('status', { orderId: placed.orderId }).status, 'paid');
-  assert.match(mailsTo(b, 'buyer@example.com').at(-1).subject, /Payment received/);
+  assert.equal(mailsTo(b, 'buyer@example.com').length, 1, 'no second email when the payment is found: they already have their link');
+  assert.equal(mailsTo(b, 'owner@example.com').length, 0, 'and the main admin is not emailed about payments either');
   assert.equal(orderRow(b, placed.orderId).utr, '629512345678');
   const sent = b.world.outbox.length;
   b.tick();
@@ -227,7 +228,7 @@ await test('a late payment brings a revoked link back, by itself', async () => {
   b.tick();
   assert.equal(b.get('status', { orderId: placed.orderId }).status, 'paid');
   assert.equal(b.get('gift', { slug }).ok, true, 'the very same link works again');
-  assert.match(mailsTo(b, 'buyer@example.com').at(-1).subject, /back on/);
+  assert.equal(mailsTo(b, 'buyer@example.com').filter((m) => /back on|received/i.test(m.subject)).length, 0, 'no extra email: the five kinds of email are the only ones');
   assert.ok(b.sheet('Credits').some((c) => c.decision === 'restored'));
 });
 
@@ -239,7 +240,9 @@ await test('paying without tapping "I have paid" still settles the order and sen
   const row = orderRow(b, placed.orderId);
   assert.equal(row.state, 'paid');
   assert.match(row.slug, /^[a-z0-9]{20}$/);
-  assert.ok(mailsTo(b, 'buyer@example.com').at(-1).body.includes(row.slug));
+  const booking = mailsTo(b, 'buyer@example.com');
+  assert.equal(booking.length, 1, 'one booking email');
+  assert.ok(booking[0].body.includes(row.slug) && /has reached us/.test(booking[0].body), 'it carries the link and says the payment arrived');
 });
 
 await test('an order nobody pays for expires and frees its amount; open orders always get different amounts', async () => {
@@ -301,7 +304,7 @@ await test('unknown actions, writes over GET, garbage bodies and surprise errors
   assert.equal(b.get('createDraft', { productId: 'cake' }).ok, false, 'a write cannot be done through GET');
   assert.equal(b.get('claim', { orderId: 'x' }).ok, false);
   assert.equal(b.get('gift', { slug: 'nothing' }).error, 'missing');
-  assert.equal(b.sandbox.doGet({ parameter: {} }).text.includes('notepark-backend'), true, 'a health check with no action');
+  assert.equal(b.sandbox.doGet({ parameter: {} }).text.includes('fondly-backend'), true, 'a health check with no action');
   assert.equal(b.get('status', { orderId: 'ORD-NOPE' }).ok, false);
   b.world.spreadsheets.clear(); // the sheet vanishes: an unexpected failure
   const r = b.call('createDraft', { productId: 'cake' });
@@ -309,8 +312,8 @@ await test('unknown actions, writes over GET, garbage bodies and surprise errors
 });
 
 // ---------------------------------------------------------------- reading the bank
-await test('bank emails: unmatched credits alert the owner once, repeats and other senders are ignored, OTPs are not credits', async () => {
-  const b = await fresh();
+await test('bank emails: an unmatched credit goes to Telegram once (never to the owner\'s email); repeats and other senders are ignored; OTPs are not credits', async () => {
+  const b = await fresh({ ...DEFAULT_SETTINGS, TELEGRAM_BOT_TOKEN: 'bot1', TELEGRAM_CHAT_ID: '7' });
   const { placed } = order(b);
   b.bankEmail({ amountPaise: 99999, utr: '111000000001' });                                  // matches nothing
   b.bankEmail({ amountPaise: CAKE, utr: '111000000002', from: 'someone@else.com' });        // not the bank
@@ -319,9 +322,10 @@ await test('bank emails: unmatched credits alert the owner once, repeats and oth
   const first = b.tick();
   assert.deepEqual(first, { settled: 0, unmatched: 1 });
   assert.equal(orderRow(b, placed.orderId).state, 'awaiting_payment');
-  const alerts = () => mailsTo(b, 'owner@example.com').filter((m) => /matched no order/.test(m.subject));
+  const alerts = () => b.world.telegram.filter((m) => /matched no order/.test(m.text));
   assert.equal(alerts().length, 1);
-  assert.ok(alerts()[0].body.includes('Rs 999.99') && alerts()[0].body.includes('markPaid'));
+  assert.ok(alerts()[0].text.includes('Rs 999.99') && alerts()[0].text.includes('markPaid'));
+  assert.equal(mailsTo(b, 'owner@example.com').length, 0, 'the main admin is not emailed');
   b.tick();
   assert.equal(alerts().length, 1, 'the same email is never looked at twice');
   assert.equal(b.sheet('Credits').filter((c) => c.decision === 'not-a-credit').length, 1);
@@ -393,8 +397,8 @@ await test('the pay window is enforced: claiming after it ran out expires the or
 });
 
 // ---------------------------------------------------------------- when things break
-await test('a failing mailbox or Gmail never breaks an order; the owner is told once an hour', async () => {
-  const b = await fresh();
+await test('a failing mailbox or Gmail never breaks an order; Telegram is told once an hour (never an email)', async () => {
+  const b = await fresh({ ...DEFAULT_SETTINGS, TELEGRAM_BOT_TOKEN: 'bot1', TELEGRAM_CHAT_ID: '7' });
   b.world.failMail = true;
   const { placed } = order(b);
   const claimed = claim(b, placed);
@@ -405,7 +409,8 @@ await test('a failing mailbox or Gmail never breaks an order; the owner is told 
   b.sandbox.GmailApp.search = () => { throw new Error('Gmail is down'); };
   b.tick();
   b.tick();
-  const problems = () => mailsTo(b, 'owner@example.com').filter((m) => /Problem scanning/.test(m.subject));
+  const problems = () => b.world.telegram.filter((m) => /Problem scanning/.test(m.text));
+  assert.equal(mailsTo(b, 'owner@example.com').length, 0);
   assert.equal(problems().length, 1, 'one alert, not one a minute');
   b.advance(61 * MIN);
   b.tick();
@@ -424,10 +429,10 @@ await test('Telegram alerts go out when it is set up, and not otherwise', async 
   assert.equal(b.world.telegram.length, 1);
   assert.equal(b.world.telegram[0].chat_id, '42');
   assert.match(b.world.telegram[0].text, /New order/);
-  assert.equal(mailsTo(b, 'owner@example.com').length, 0, 'with Telegram on, routine alerts do not use up the email quota');
+  assert.equal(mailsTo(b, 'owner@example.com').length, 0, 'Telegram carries the routine news; the main admin is not emailed');
   b.advance(11 * MIN);
   b.tick();
-  assert.ok(mailsTo(b, 'owner@example.com').some((m) => /Revoked/.test(m.subject)), 'but a revoke is always emailed too');
+  assert.ok(mailsTo(b, 'owner@example.com').some((m) => /Revoked/.test(m.subject)), 'but a revoke is always emailed to the main admin');
 });
 
 await test('with nothing waiting the clock stops at once and reads no email (Apps Script has a daily trigger-time quota)', async () => {
@@ -446,6 +451,114 @@ await test('with nothing waiting the clock stops at once and reads no email (App
   searches = 0;
   b.tick();
   assert.equal(searches, 0, 'paid and done: idle again');
+});
+
+await test('the main admin gets exactly one kind of email: a link was switched off', async () => {
+  const b = await fresh();
+  const a = order(b, { email: 'a@example.com' }).placed;
+  claim(b, a);
+  const c = order(b, { email: 'c@example.com' }).placed;
+  claim(b, c);
+  b.bankEmail({ amountPaise: a.amount, utr: '600000000001' });
+  b.bankEmail({ amountPaise: 99999, utr: '600000000002' });
+  b.tick();
+  b.advance(6 * MIN);
+  b.tick(); // the 5-minute reminder
+  b.advance(5 * MIN);
+  b.tick(); // the 10-minute revoke
+  const adminMail = mailsTo(b, 'owner@example.com');
+  assert.equal(adminMail.length, 1, JSON.stringify(adminMail.map((m) => m.subject)));
+  assert.match(adminMail[0].subject, /Revoked: .*Rs /);
+  assert.ok(adminMail[0].body.includes('c@example.com') && adminMail[0].body.includes('markPaid'));
+  const kinds = new Set(b.world.outbox.filter((m) => m.to !== 'owner@example.com').map((m) => m.subject.replace(/ \(order .*\)/, '')));
+  assert.deepEqual([...kinds].sort(), ['We cannot see your payment yet', 'Your gift is ready', 'Your gift link has been switched off'].sort(), 'customers get only the booking, the reminder and the revoke');
+});
+
+await test('the person who got the gift can write back: the buyer gets a postcard (HTML, escaped), a few per gift', async () => {
+  const b = await fresh();
+  const { placed } = order(b, { email: 'sender@example.com' });
+  const slug = new URL(claim(b, placed).link).searchParams.get('s');
+  const before = b.world.outbox.length;
+  const nasty = '<script>alert(1)</script> Thank you & "love" you\nsecond line';
+  const sent = b.call('reply', { slug, message: nasty, name: 'Meera <b>' });
+  assert.deepEqual(sent, { ok: true, sent: true });
+  const mail = b.world.outbox[before];
+  assert.equal(mail.to, 'sender@example.com');
+  assert.match(mail.subject, /Meera <b> sent you a message/);
+  assert.ok(mail.htmlBody.includes('&lt;script&gt;alert(1)&lt;/script&gt;') && !mail.htmlBody.includes('<script>'), 'what the reader typed can never run in the email');
+  assert.ok(mail.htmlBody.includes('Thank you &amp; &quot;love&quot; you<br>second line'), 'line breaks survive');
+  assert.ok(mail.htmlBody.includes('Dear Ashish,') && mail.htmlBody.includes('Meera &lt;b&gt;'), 'addressed to the sender, signed by the reader');
+  assert.ok(mail.body.includes('<script>alert(1)</script>'), 'the plain-text fallback carries the words as typed');
+  assert.ok(mail.htmlBody.includes('https://shop.example/giftkit/site/'), 'a quiet link to make a gift of your own');
+  assert.equal(b.sheet('Replies').length, 1);
+  assert.equal(orderRow(b, placed.orderId).replies, 1);
+
+  const refuse = (payload, re) => { const r = b.call('reply', { slug, ...payload }); assert.ok(!r.ok && re.test(r.message), JSON.stringify(r)); };
+  refuse({ message: '   ' }, /write a message first/);
+  refuse({ message: 'x'.repeat(601) }, /under 600/);
+  assert.ok(b.call('reply', { slug, message: 'two' }).ok);
+  assert.ok(b.call('reply', { slug, message: 'three' }).ok);
+  refuse({ message: 'four' }, /already sent a few/);
+  assert.ok(!b.call('reply', { slug: 'nope', message: 'hi' }).ok);
+
+  b.advance(11 * MIN);
+  b.tick();
+  const gone = b.call('reply', { slug, message: 'too late' });
+  assert.ok(!gone.ok && /no longer available/.test(gone.message), 'a switched-off gift cannot be replied to');
+});
+
+await test('"tell me when it is opened": an email to the buyer, only for another network, never twice for one address, at most two', async () => {
+  const b = await fresh();
+  const { placed } = order(b, { email: 'sender@example.com', ip: '1.1.1.1' });
+  const slug = new URL(claim(b, placed).link).searchParams.get('s');
+  const notices = () => b.world.outbox.filter((m) => /was just opened/.test(m.subject));
+  assert.equal(orderRow(b, placed.orderId).buyerIp, '1.1.1.1');
+
+  b.call('opened', { slug, ip: '1.1.1.1' });
+  assert.equal(notices().length, 0, 'the buyer opening their own gift is not news');
+  b.call('opened', { slug, ip: 'not an address' });
+  b.call('opened', { slug, ip: '' });
+  b.call('opened', { slug });
+  assert.equal(notices().length, 0, 'an unreadable address is never guessed');
+  b.call('opened', { slug, ip: '2.2.2.2' });
+  assert.equal(notices().length, 1);
+  assert.equal(notices()[0].to, 'sender@example.com');
+  assert.match(notices()[0].subject, /Your gift for Meera was just opened/);
+  assert.ok(notices()[0].htmlBody.includes('notice 1 of 2'));
+  b.call('opened', { slug, ip: '2.2.2.2' });
+  assert.equal(notices().length, 1, 'the same address twice is one notice');
+  b.call('opened', { slug, ip: '3.3.3.3' });
+  assert.equal(notices().length, 2);
+  assert.ok(notices()[1].body.includes('notice 2 of 2'));
+  b.call('opened', { slug, ip: '4.4.4.4' });
+  assert.equal(notices().length, 2, 'two is the most');
+
+  const off = order(b, { email: 'quiet@example.com', ip: '1.1.1.1', extra: { notifyOpen: false } }).placed;
+  const offSlug = new URL(claim(b, off).link).searchParams.get('s');
+  b.call('opened', { slug: offSlug, ip: '9.9.9.9' });
+  assert.equal(notices().length, 2, 'switched off by the buyer: no email');
+
+  const unknown = order(b, { email: 'nobuyerip@example.com' }).placed; // the buyer's address could not be read
+  const unknownSlug = new URL(claim(b, unknown).link).searchParams.get('s');
+  b.call('opened', { slug: unknownSlug, ip: '9.9.9.9' });
+  assert.equal(notices().length, 2, 'without the buyer\'s address there is nothing to compare');
+  assert.equal(orderRow(b, unknown.orderId).buyerIp, '');
+  assert.equal(b.call('opened', { slug: 'missing', ip: '5.5.5.5' }).ok, true, 'it always answers ok and reveals nothing');
+});
+
+await test('a gift link works for a year after the payment is confirmed, then it is gone', async () => {
+  const b = await fresh();
+  const { placed } = order(b, { email: 'sender@example.com' });
+  const slug = new URL(claim(b, placed).link).searchParams.get('s');
+  b.bankEmail({ amountPaise: placed.amount, utr: '650000000001' });
+  b.tick();
+  const DAY = 24 * 60 * MIN;
+  b.advance(364 * DAY);
+  assert.equal(b.get('gift', { slug }).ok, true, 'still open on day 364');
+  assert.ok(b.call('reply', { slug, message: 'hello' }).ok);
+  b.advance(2 * DAY);
+  assert.deepEqual(b.get('gift', { slug }), { ok: false, error: 'gone' });
+  assert.ok(!b.call('reply', { slug, message: 'late' }).ok);
 });
 
 await test('the delivered Code.gs is up to date with its sources', async () => {

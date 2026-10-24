@@ -25,7 +25,7 @@ function scanBank_() {
       if (result.orderId) settled += 1; else unmatched.push(`${rupees_(credit.amountPaise)} ref ${credit.utr}: ${result.reason}`);
     }
   }
-  if (unmatched.length) alertOwner_(`${unmatched.length} bank credit(s) matched no order`, `${unmatched.join('\n')}\n\nIf one of these is a customer, find their order in the sheet and use markPaid('ORDER-ID', 'UTR').`);
+  if (unmatched.length) notify_(`${unmatched.length} bank credit(s) matched no order`, `${unmatched.join('\n')}\n\nIf one of these is a customer, find their order in the sheet and use markPaid('ORDER-ID', 'UTR').`);
   return { settled, unmatched: unmatched.length };
 }
 
@@ -40,12 +40,13 @@ function applyCredit_(credit, messageId) {
   return match;
 }
 
-/** An order is paid: permanent link, confirmation mail. Also used by markPaid() for the day an email never reads. */
+/** An order is paid: the link becomes permanent. No email is sent, because the customer already has the link (unless they never tapped "I have paid": then this is their booking email). Also used by markPaid() for the day an email never reads. */
 function settle_(order, utr, restored) {
+  const neverClaimed = !order.slug;
   const paid = patch_('Orders', order, { state: 'paid', paidAt: now_(), utr, slug: order.slug || token_(20) });
   log_(paid.id, restored ? 'restored' : 'paid', `utr ${utr}`);
-  mailPaid_(paid, restored);
-  alertOwner_(`${restored ? 'Restored' : 'Paid'}: ${paid.id} ${rupees_(paid.amount)}`, `${paid.productId} for ${paid.email}, UTR ${utr}`, true);
+  if (neverClaimed) mailLive_(paid, true);
+  notify_(`${restored ? 'Restored' : 'Paid'}: ${paid.id} ${rupees_(paid.amount)}`, `${paid.productId} for ${paid.email}, UTR ${utr}`);
   return paid;
 }
 

@@ -12,6 +12,8 @@ const ACTIONS = {
   claim: claim_,
   status: status_,
   gift: gift_,
+  reply: reply_,
+  opened: opened_,
 };
 const READ_ONLY = { status: true, gift: true };
 
@@ -35,7 +37,7 @@ function handle_(action, payload, viaGet) {
 
 function doGet(e) {
   const p = (e && e.parameter) || {};
-  if (!p.action) return respond_({ ok: true, service: 'notepark-backend', time: now_() });
+  if (!p.action) return respond_({ ok: true, service: 'fondly-backend', time: now_() });
   return respond_(handle_(p.action, p, true));
 }
 
@@ -95,7 +97,8 @@ function selfTest() {
     need(done.done, 'the upload did not finish');
   });
   step('Gmail can be searched for bank alerts', () => { GmailApp.search(`from:(${bankSenders_().join(' OR ')}) newer_than:30d`, 0, 1); });
-  step('an email can be sent to you', () => MailApp.sendEmail({ to: ownerEmail_(), subject: `[${BRAND_()}] selfTest`, body: `If you can read this, sending mail works. Emails left today: ${MailApp.getRemainingDailyQuota()}.` }));
+  // to this account itself: the owner is emailed only when a link is switched off
+  step('an email can be sent (to this account)', () => MailApp.sendEmail({ to: Session.getEffectiveUser().getEmail(), subject: `[${BRAND_()}] selfTest`, body: `If you can read this, sending mail works. Emails left today: ${MailApp.getRemainingDailyQuota()}.` }));
   step('there is room in the daily email quota (each order sends 2 to 4 emails)', () => need(MailApp.getRemainingDailyQuota() >= 20, `only ${MailApp.getRemainingDailyQuota()} emails left today`));
   step('the every-minute clock is installed', () => need(ScriptApp.getProjectTriggers().some((t) => t.getHandlerFunction() === 'tick'), 'no tick trigger: run setup()'));
 

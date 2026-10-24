@@ -81,12 +81,23 @@ test('every product manifest is valid and its sample is a complete order', () =>
   }
 });
 
+test('a struck-through "was" price must be above the real price', () => {
+  const m = load('cake');
+  assert.equal(m.price.compareAt, 10000, 'the shop shows 100 crossed out');
+  assert.deepEqual(checkManifest(m), []);
+  assert.match(checkManifest({ ...m, price: { ...m.price, compareAt: m.price.base } })[0], /compareAt/);
+  assert.match(checkManifest({ ...m, price: { ...m.price, compareAt: 99.5 } })[0], /compareAt/);
+  assert.equal(priceFor(m, normalizeOptions(m, { recipient: 'A', message: 'B' }).options), m.price.base, 'compareAt is display only: never charged');
+});
+
 test('options: required, length, choice, media ids and defaults are checked', () => {
   const m = load('cake');
   const ok = { recipient: 'Aria', message: 'Hi' };
   const r = normalizeOptions(m, ok);
   assert.deepEqual(r.errors, {});
   assert.equal(r.options.candles, '5'); // default filled in
+  assert.equal(r.options.notifyOpen, true, 'tell me when it is opened is on unless switched off');
+  assert.equal(normalizeOptions(m, { ...ok, notifyOpen: false }).options.notifyOpen, false);
   assert.equal(r.options.title, 'Happy Birthday, {{recipient}}!');
   assert.ok(normalizeOptions(m, {}).errors.recipient); // required
   assert.ok(normalizeOptions(m, { ...ok, recipient: 'x'.repeat(31) }).errors.recipient);

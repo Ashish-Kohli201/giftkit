@@ -13,7 +13,7 @@ function runClock_() {
       if (action === 'revoke') {
         const revoked = patch_('Orders', order, { state: 'revoked', revokedAt: now });
         mailRevoked_(revoked);
-        alertOwner_(`Revoked: ${revoked.id} ${rupees_(revoked.amount)}`, `No payment found for ${revoked.email}. If they did pay, markPaid('${revoked.id}', 'UTR') switches it back on.`);
+        emailOwner_(`Revoked: ${revoked.id} ${rupees_(revoked.amount)}`, `No payment found for ${revoked.email}. If they did pay, markPaid('${revoked.id}', 'UTR') switches it back on.`);
         log_(revoked.id, 'revoked', '');
         done.revoked += 1;
       }
@@ -40,7 +40,7 @@ function tick() {
   }
 }
 
-/** Tell the owner about a failure, but at most once an hour per kind so a broken setup does not flood the inbox. */
+/** Record a failure and tell Telegram (never email: the owner is emailed only for a revoke), at most once an hour per kind. */
 function reportFailure_(what, error) {
   Logger.log(`${what} failed: ${error}`);
   log_('', 'error', `${what}: ${error}`);
@@ -48,5 +48,5 @@ function reportFailure_(what, error) {
   const cache = CacheService.getScriptCache();
   if (cache.get(key)) return;
   cache.put(key, '1', 60 * 60);
-  alertOwner_(`Problem ${what}`, `${error}\n\nPayments may not be found until this is fixed. Check the Events tab in the sheet and run selfTest() in the Apps Script editor.`);
+  notify_(`Problem ${what}`, `${error}\n\nPayments may not be found until this is fixed. Check the Events tab in the sheet and run selfTest() in the Apps Script editor.`);
 }
