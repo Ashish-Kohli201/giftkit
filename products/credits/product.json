@@ -71,7 +71,7 @@
       "key": "video",
       "type": "video",
       "label": "A video (optional)",
-      "hint": "Up to 60 MB, up to 1 minute",
+      "hint": "Up to 30 MB, about a minute",
       "price": 9900
     },
     {

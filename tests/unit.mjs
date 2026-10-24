@@ -108,39 +108,9 @@ test('price: computed from the manifest only, a client-sent price is ignored', (
   assert.deepEqual(mediaIdsIn(m, withExtras).sort(), ['m1', 'v1']);
 });
 
-// ---------------------------------------------------------------- payments: YouPI webhook checks
-{
-  const { sign, verifySignature, checkPayment } = await import('../core/payments/youpi.js');
-  const secret = 'test-secret';
-  const payload = { event: 'SUCCESS', paymentId: 'p1', orderId: 'o_1', amountPaise: 14900, currency: 'INR', method: 'UPI', utr: '123456789012' };
-  const raw = JSON.stringify(payload);
-  const header = `sha256=${await sign(raw, secret)}`;
-
-  assert.equal(header, 'sha256=' + (await sign(raw, secret)));
-  assert.ok(await verifySignature(raw, header, secret));
-  assert.ok(!(await verifySignature(raw + ' ', header, secret)), 'a changed body fails');
-  assert.ok(!(await verifySignature(raw, header, 'other-secret')), 'a different secret fails');
-  assert.ok(!(await verifySignature(raw, header.replace('sha256=', ''), secret)), 'a missing prefix fails');
-  assert.ok(!(await verifySignature(raw, header, '')), 'an empty secret never verifies');
-  assert.ok(!(await verifySignature(raw, undefined, secret)), 'a missing header fails');
-  n++; console.log('  ok  youpi: signatures verify only for the exact body, secret and format');
-
-  const order = { id: 'o_1', amountPaise: 14900 };
-  assert.deepEqual(checkPayment(payload, order), { ok: true, paymentId: 'p1', utr: '123456789012', method: 'UPI' });
-  for (const [change, why] of [
-    [{ event: 'FAILED' }, /not SUCCESS/], [{ orderId: 'o_2' }, /different order/], [{ amountPaise: 100 }, /order is 14900/],
-    [{ amountPaise: '14900' }, /order is 14900/], [{ paymentId: '' }, /no id/], [{ utr: '' }, /UTR/], [{ currency: 'USD' }, /currency/],
-  ]) {
-    const result = checkPayment({ ...payload, ...change }, order);
-    assert.ok(!result.ok && why.test(result.reason), `${JSON.stringify(change)} -> ${result.reason}`);
-  }
-  assert.ok(!checkPayment(null, order).ok);
-  n++; console.log('  ok  youpi: a payment settles an order only for the right order, the exact priced amount and a bank reference');
-}
-
 // ---------------------------------------------------------------- payments: UPI with provisional delivery
 {
-  const { RULES, upiUri, uniqueAmount, matchCredit, parseCreditEmail, nextAction, linkIsLive } = await import('../core/payments/upi.js');
+  const { RULES, upiUri, uniqueAmount, matchCredit, parseCreditEmail, nextAction, linkIsLive, isOpen, reservedAmounts } = await import('../core/payments/upi.js');
 
   const uri = upiUri({ vpa: 'shop@okhdfcbank', name: 'Spark Gifts', amountPaise: 14937, orderId: 'o_1' });
   const q = new URL(uri.replace('upi://pay', 'http://x/pay')).searchParams;
@@ -181,6 +151,17 @@ test('price: computed from the manifest only, a client-sent price is ignored', (
   assert.equal(parseCreditEmail('Your OTP is 123456. Rs. 149.00 will be debited'), null);
   assert.equal(parseCreditEmail('Rs. 149.37 credited to your account'), null, 'no reference, no guess');
   n++; console.log('  ok  upi: credit emails in the usual wordings give an amount and a bank reference; anything unclear gives nothing');
+
+  // an amount is reserved for exactly the orders a credit could still settle, so a new order can never collide with a revoked one
+  const mix = [
+    { state: 'awaiting_payment', amountPaise: 100, createdAt: 0 }, { state: 'provisional', amountPaise: 101, createdAt: 0 },
+    { state: 'revoked', amountPaise: 102, createdAt: 0 }, { state: 'paid', amountPaise: 103, createdAt: 0 }, { state: 'expired', amountPaise: 104, createdAt: 0 },
+  ];
+  assert.deepEqual(reservedAmounts(mix, 1000), [100, 101, 102]);
+  assert.deepEqual(reservedAmounts(mix, RULES.restoreWindowMs + 1), [100, 101], 'a revoked order frees its amount after the restore window');
+  assert.ok(isOpen(mix[2], 1000) && !isOpen(mix[3], 1000));
+  assert.equal(uniqueAmount(100, reservedAmounts(mix, 1000)), 103, 'a new order skips a revoked order amount');
+  n++; console.log('  ok  upi: amounts stay reserved for revoked orders for a day, so one payment can never match two orders');
 
   const base = { state: 'provisional', claimedAt: 1000, createdAt: 0 };
   assert.equal(nextAction(base, 1000 + RULES.remindAfterMs - 1), null);

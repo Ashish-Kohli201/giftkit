@@ -7,10 +7,14 @@
   "scripts": {
     "dev": "node scripts/serve.mjs",
     "check": "node scripts/check.mjs",
-    "test": "node tests/unit.mjs && node scripts/check.mjs",
+    "test": "node tests/unit.mjs && node tests/backend.mjs && node scripts/check.mjs",
     "test:browser": "node tests/browser.mjs",
     "new-skin": "node scripts/new-skin.mjs",
-    "test:site": "node tests/site.mjs"
+    "test:site": "node tests/site.mjs",
+    "build:backend": "node scripts/build-backend.mjs",
+    "test:backend": "node tests/backend.mjs",
+    "test:e2e": "node tests/e2e.mjs",
+    "dev:full": "node scripts/dev-full.mjs"
   },
   "devDependencies": {
     "jsqr": "^1.4.0",

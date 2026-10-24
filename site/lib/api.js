@@ -1,24 +1,24 @@
-// The storefront's only door to the backend (docs/spark/BACKEND.md). Everything the site needs from a server goes through here,
+// The storefront's only door to the backend (backend/, an Apps Script web app). Everything the site needs from a server goes through here,
 // so the screens never know whether they are talking to the real backend or to DEMO MODE.
 //
 //   const shop = createShop(config);
 //   const draft = await shop.createDraft(productId);                      -> { id, token }
 //   const file  = await shop.uploadFile(draft, blob, 'image', onProgress) -> { id, type, url }
-//   const order = await shop.createOrder(draft, { options, contact })     -> { orderId, ... }
-//   const done  = await shop.pay(order, { contact, ui })                  -> { status: 'paid' | 'provisional' | 'pending', link, orderId }
+//   const order = await shop.createOrder(draft, { options, contact })     -> { orderId, amount, upi: { vpa, name, minSeconds, payWindowSeconds } }
+//   const done  = await shop.pay(order, { ui })                           -> { status: 'provisional' | 'paid' | 'revoked', link, orderId }
 //   const now   = await shop.status(orderId)                              -> { status, link }   (the thank-you screen keeps asking)
 //
 // `ui.upi(order)` is the screen that shows the UPI QR and waits for the customer to say "I have paid" (the builder provides it).
 //
 // DEMO MODE (config.api is empty): files stay on this phone as blob: URLs, "payment" is a short pause and no link exists.
-// REAL MODE: the calls follow the API table in docs/spark/BACKEND.md. The price is never sent: the server works it out.
-import { payWithYoupi } from './pay-youpi.js';
-
+// REAL MODE: talks to the Apps Script web app at config.api. Apps Script cannot read headers or send HTTP errors, so every call is plain
+// HTTP 200 with JSON { ok, ... }, and POSTs are sent as text/plain (a "simple" request: the browser needs no CORS preflight).
+// The price is never sent: the server works it out from the product's manifest.
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const newId = (prefix) => `${prefix}_${Math.random().toString(36).slice(2, 8)}`;
 
 export function createShop(config) {
-  return config.api ? createRealShop(config.api.replace(/\/$/, ''), config) : createDemoShop();
+  return config.api ? createRealShop(config.api) : createDemoShop();
 }
 
 // ---------------------------------------------------------------- demo
@@ -43,93 +43,50 @@ function createDemoShop() {
   };
 }
 
-// ---------------------------------------------------------------- real backend
-function createRealShop(base, config) {
-  async function call(path, init = {}) {
-    const res = await fetch(`${base}${path}`, { ...init, headers: { 'Content-Type': 'application/json', ...(init.headers || {}) } });
-    if (!res.ok) {
-      const body = await res.json().catch(() => ({}));
-      throw new Error(body.message || `Something went wrong (${res.status}). Please try again.`);
-    }
-    return res.json();
-  }
-  const auth = (draft) => ({ Authorization: `Bearer ${draft.token}` });
+// ---------------------------------------------------------------- real backend (Apps Script)
+const UNREACHABLE = 'We could not reach the server. Check your connection and try again.';
 
-  /** PUT with progress (fetch cannot report upload progress, XHR can). */
-  const put = (url, blob, onProgress) => new Promise((resolve, reject) => {
-    const xhr = new XMLHttpRequest();
-    xhr.open('PUT', url);
-    xhr.setRequestHeader('Content-Type', blob.type || 'application/octet-stream');
-    xhr.upload.onprogress = (e) => e.lengthComputable && onProgress?.(e.loaded / e.total);
-    xhr.onload = () => (xhr.status < 300 ? resolve() : reject(new Error('The upload did not go through. Please try again.')));
-    xhr.onerror = () => reject(new Error('The upload did not go through. Check your connection and try again.'));
-    xhr.send(blob);
+function createRealShop(base) {
+  async function unwrap(request) {
+    let json;
+    try { json = await (await request).json(); } catch { throw new Error(UNREACHABLE); }
+    if (!json.ok) throw new Error(json.message || 'Something went wrong. Nothing was charged. Please try again.');
+    return json;
+  }
+  const post = (action, payload = {}) => unwrap(fetch(base, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ action, ...payload }) }));
+  const get = (action, params = {}) => unwrap(fetch(`${base}${base.includes('?') ? '&' : '?'}${new URLSearchParams({ action, ...params })}`));
+
+  /** A chunk of a file as base64 text (what travels inside the JSON). */
+  const base64 = (blob) => new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result).split(',')[1] ?? '');
+    reader.onerror = () => reject(new Error('Could not read that file.'));
+    reader.readAsDataURL(blob);
   });
 
   return {
     demo: false,
-    createDraft: (productId) => call('/api/drafts', { method: 'POST', body: JSON.stringify({ productId }) }),
+    createDraft: (productId) => post('createDraft', { productId }),
+    /** Files go up in chunks of about 1.5 MB (the backend says exactly how big); the last chunk finishes the file. */
     async uploadFile(draft, file, type, onProgress) {
-      const slot = await call(`/api/drafts/${draft.id}/uploads`, { method: 'POST', headers: auth(draft), body: JSON.stringify({ type, mime: file.type, bytes: file.size }) });
-      await put(slot.uploadUrl, file, onProgress);
-      return { id: slot.id, type, url: URL.createObjectURL(file) };
+      const start = await post('uploadStart', { draftId: draft.id, token: draft.token, type, mime: file.type, bytes: file.size });
+      let offset = 0;
+      let last;
+      while (offset < file.size) {
+        const chunk = file.slice(offset, offset + start.chunkBytes);
+        last = await post('uploadChunk', { uploadId: start.uploadId, token: draft.token, offset, data: await base64(chunk) });
+        offset += chunk.size;
+        onProgress?.(offset / file.size);
+      }
+      return { id: last.id, type, url: URL.createObjectURL(file) };
     },
-    status: (orderId) => call(`/api/orders/${orderId}/status`),
-    createOrder: (draft, { options, contact }) => call('/api/orders', { method: 'POST', headers: auth(draft), body: JSON.stringify({ draftId: draft.id, options, contact }) }),
-    /**
-     * Takes the payment with the configured provider (config.payments.provider: 'youpi' or 'razorpay'), then asks the backend
-     * whether the order is confirmed. The backend decides, from the provider's signed webhook; the browser's own "success" never does.
-     * Result: { status: 'paid', link } | { status: 'pending', review } (paid on screen, not confirmed yet), always with orderId.
-     */
-    async pay(order, { contact, ui }) {
-      const provider = config.payments?.provider ?? 'upi';
-      let review = false;
-      if (provider === 'upi') {
-        // the customer pays the exact amount to our UPI ID and says so; the backend opens the link on trust and checks the bank's email
-        await ui.upi(order);
-        const claim = await call(`/api/orders/${order.orderId}/claim`, { method: 'POST' });
-        return { ...claim, orderId: order.orderId };
-      }
-      if (provider === 'youpi') {
-        const outcome = await payWithYoupi({ ...config.payments.youpi, order, contact, brand: config.brand });
-        review = outcome === 'review';
-      } else {
-        await payWithRazorpay(order, contact);
-      }
-      if (review) return { status: 'pending', review: true, orderId: order.orderId, link: '' };
-      // the webhook usually lands within seconds; YouPI reads a bank alert, which can take longer, so wait a while before saying "pending"
-      const tries = Math.ceil((config.payments?.waitSeconds ?? 90) / 2);
-      for (let i = 0; i < tries; i++) {
-        const s = await call(`/api/orders/${order.orderId}/status`);
-        if (s.status === 'ready' || s.status === 'delivered') return { status: 'paid', link: s.link, orderId: order.orderId };
-        await sleep(2000);
-      }
-      return { status: 'pending', review: false, orderId: order.orderId, link: '' };
+    createOrder: (draft, { options, contact }) => post('createOrder', { draftId: draft.id, token: draft.token, options, contact }),
+    status: (orderId) => get('status', { orderId }),
+    /** The customer pays our UPI ID and says so; the backend opens the link on trust and checks the bank's email (docs/spark/UPI.md). */
+    async pay(order, { ui }) {
+      await ui.upi(order);
+      const claim = await post('claim', { orderId: order.orderId });
+      return { status: claim.status, link: claim.link, orderId: order.orderId };
     },
   };
-}
-
-/** Razorpay Checkout: resolves when the customer has paid on screen, rejects if they close it. */
-async function payWithRazorpay(order, contact) {
-  await loadScript('https://checkout.razorpay.com/v1/checkout.js');
-  await new Promise((resolve, reject) => {
-    const rz = new window.Razorpay({
-      key: order.razorpayKeyId, order_id: order.razorpayOrderId, amount: order.amount, currency: 'INR', name: order.brand,
-      prefill: { contact: contact.phone, email: contact.email || undefined }, theme: { color: '#1b1410' },
-      handler: () => resolve(),
-      modal: { ondismiss: () => reject(new Error('The payment was not completed.')) },
-    });
-    rz.open();
-  });
-}
-
-function loadScript(src) {
-  return new Promise((resolve, reject) => {
-    if (document.querySelector(`script[src="${src}"]`)) return resolve();
-    const s = document.createElement('script');
-    s.src = src;
-    s.onload = resolve;
-    s.onerror = () => reject(new Error('Could not open the payment window. Check your connection.'));
-    document.head.append(s);
-  });
 }

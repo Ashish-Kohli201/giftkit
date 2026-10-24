@@ -33,9 +33,19 @@ export function upiUri({ vpa, name, amountPaise, orderId, note }) {
 }
 
 /**
+ * Can a bank credit still settle this order? Waiting and provisional orders can, and so can a revoked one for a day (a late payment
+ * brings it back). `matchCredit` and `reservedAmounts` both use this, so what is matchable and what is reserved can never disagree.
+ */
+export const isOpen = (order, now) => order.state === 'awaiting_payment' || order.state === 'provisional'
+  || (order.state === 'revoked' && now - order.createdAt <= RULES.restoreWindowMs);
+
+/** The amounts (paise) no new order may use: every order a credit could still settle. Pass this to uniqueAmount. */
+export const reservedAmounts = (orders, now) => orders.filter((o) => isOpen(o, now)).map((o) => o.amountPaise);
+
+/**
  * The amount THIS order will pay: the price, plus the smallest number of paise (0 to 99) that no other open order is using.
  * Two open orders can never share an amount, so a credit of that amount can only mean one order.
- * @param takenPaise  amounts (in paise) of orders that are still waiting or provisional
+ * @param takenPaise  amounts (in paise) no new order may use: reservedAmounts(orders, now)
  * @returns the amount in paise, or null if all 100 are taken (ask the customer to wait a minute)
  */
 export function uniqueAmount(basePaise, takenPaise = []) {
@@ -53,7 +63,7 @@ export function uniqueAmount(basePaise, takenPaise = []) {
 export function matchCredit(credit, orders, usedUtrs = [], now = credit.at) {
   if (!credit?.utr) return { orderId: null, reason: 'no bank reference (UTR)' };
   if (new Set(usedUtrs).has(credit.utr)) return { orderId: null, reason: 'this payment was already used' };
-  const open = orders.filter((o) => (o.state === 'awaiting_payment' || o.state === 'provisional' || (o.state === 'revoked' && now - o.createdAt <= RULES.restoreWindowMs)) && o.amountPaise === credit.amountPaise);
+  const open = orders.filter((o) => isOpen(o, now) && o.amountPaise === credit.amountPaise);
   if (open.length === 0) return { orderId: null, reason: `no open order for ${credit.amountPaise} paise` };
   if (open.length > 1) return { orderId: null, reason: 'more than one open order has this amount, so it needs a person' };
   return { orderId: open[0].id, restore: open[0].state === 'revoked' };

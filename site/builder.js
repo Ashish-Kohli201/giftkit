@@ -14,7 +14,7 @@ const SKINS = {
   nightsky: { mood: 'Soft, dreamy, gold stars', a: '#0e1434', b: '#ffd479' },
   arcade: { mood: 'Neon, playful, a little loud', a: '#0b0420', b: '#ff4fb0' },
 };
-const LIMITS = { video: { mb: 60, accept: 'video/mp4,video/quicktime,video/webm', name: 'video' }, audio: { mb: 15, accept: 'audio/*', name: 'song' } };
+const LIMITS = { video: { mb: 30, accept: 'video/mp4,video/quicktime,video/webm', name: 'video' }, audio: { mb: 15, accept: 'audio/*', name: 'song' } };
 
 const el = (tag, attrs = {}, ...kids) => {
   const n = document.createElement(tag);
@@ -351,6 +351,8 @@ export function openBuilder({ catalog, productId, config }) {
   }
 
   // ---------------------------------------------------------------- the last step: contact and payment
+  const byWhatsapp = !!config.delivery?.whatsapp;
+
   function payStep(step) {
     const options = normalizeOptions(product, state.values).options;
     const lines = [el('li', {}, el('span', {}, product.name), el('b', {}, rupees(product.price.base)))];
@@ -375,8 +377,10 @@ export function openBuilder({ catalog, productId, config }) {
     return el('div', { class: 'b-step' },
       el('h2', { tabindex: '-1' }, step.title), el('p', { class: 'b-hint' }, step.hint),
       el('ul', { class: 'receipt' }, lines, el('li', { class: 'receipt-total' }, el('span', {}, 'Total'), el('b', {}, rupees(total())))),
-      el('div', { class: 'f' }, el('label', { class: 'f-label', for: 'f-phone' }, 'Your WhatsApp number'), el('div', { class: 'phone-field' }, el('span', {}, '+91'), phoneInput), el('p', { class: 'f-hint' }, 'Your private link is sent here.'), phoneError),
-      el('div', { class: 'f' }, el('label', { class: 'f-label', for: 'f-email' }, 'Email (optional)'), emailInput, el('p', { class: 'f-hint' }, 'A copy of the link, in case WhatsApp is slow.'), emailError),
+      el('div', { class: 'f' }, el('label', { class: 'f-label', for: 'f-email' }, byWhatsapp ? 'Email (optional)' : 'Your email'), emailInput,
+        el('p', { class: 'f-hint' }, byWhatsapp ? 'A copy of the link, in case WhatsApp is slow.' : 'Your private link is sent here.'), emailError),
+      el('div', { class: 'f' }, el('label', { class: 'f-label', for: 'f-phone' }, byWhatsapp ? 'Your WhatsApp number' : 'Mobile number (optional)'), el('div', { class: 'phone-field' }, el('span', {}, '+91'), phoneInput),
+        el('p', { class: 'f-hint' }, byWhatsapp ? 'Your private link is sent here.' : 'Only so we can help if something goes wrong.'), phoneError),
       shop.demo ? el('p', { class: 'demo-note' }, 'Demo mode: nothing is charged and no link is created. This is exactly where payment happens.') : null,
       failure);
   }
@@ -385,9 +389,11 @@ export function openBuilder({ catalog, productId, config }) {
 
   async function pay() {
     const phoneDigits = cleanPhone(state.contact.phone);
+    const email = state.contact.email.trim();
     let ok = true;
-    if (!/^[6-9]\d{9}$/.test(phoneDigits)) { fields.get('_phone').setError('Please enter a 10-digit mobile number.'); ok = false; }
-    if (state.contact.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(state.contact.email)) { fields.get('_email').setError('That email does not look right.'); ok = false; }
+    // the link is sent to the email (always) and to WhatsApp (only when that is switched on); the mobile number is otherwise just for help
+    if ((byWhatsapp || phoneDigits) && !/^[6-9]\d{9}$/.test(phoneDigits)) { fields.get('_phone').setError('Please enter a 10-digit mobile number.'); ok = false; }
+    if ((!byWhatsapp || email) && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { fields.get('_email').setError(email ? 'That email does not look right.' : 'Please enter your email, that is where your link is sent.'); ok = false; }
     // everything must be complete, not just this step: if an earlier answer is missing, take them back to it
     const { options, errors } = normalizeOptions(product, state.values);
     const bad = Object.keys(errors)[0];
@@ -404,7 +410,7 @@ export function openBuilder({ catalog, productId, config }) {
     next.disabled = true;
     state.showFailure('');
     try {
-      const contact = { phone: `+91${phoneDigits}`, email: state.contact.email.trim() };
+      const contact = { phone: phoneDigits ? `+91${phoneDigits}` : '', email };
       const draft = await ensureDraft();
       const order = await shop.createOrder(draft, { options, contact, quote: total() });
       const result = await shop.pay(order, { contact, ui: { upi: upiSheet } });
@@ -476,18 +482,17 @@ export function openBuilder({ catalog, productId, config }) {
   // ---------------------------------------------------------------- the end
   function done(result, contact) {
     saved.delete(product.id);
+    const sentTo = byWhatsapp ? `${contact.phone} on WhatsApp` : contact.email;
     const name = state.values.recipient;
     const options = previewOptions();
     const provisional = result.status === 'provisional' && !shop.demo;
-    const pending = result.status === 'pending';
     const say = {
       demo: ['That is how it feels.', 'This was a demo, so nothing was charged. With the backend connected, this is where your gift link opens and the bank check starts.'],
-      paid: [`It is on its way${name ? `, with love for ${name}` : ''}.`, `Your private link is on its way to ${contact.phone} on WhatsApp. It stays alive for a full year.`],
-      provisional: ['Your gift is ready.', `It is open now. We are checking your payment: if we cannot find it within 5 minutes we will remind you, and if it still has not arrived the link stops working. Already paid? Do nothing, it becomes permanent by itself. The link is also on its way to ${contact.phone} on WhatsApp.`],
-      pending: [result.review ? 'We are checking your payment.' : 'We are confirming your payment.', `Your private link will arrive on ${contact.phone} on WhatsApp as soon as the bank confirms it. This can take a few minutes. If it has not come in 15 minutes, message us with the order number below and we will sort it out.`],
+      paid: [`It is on its way${name ? `, with love for ${name}` : ''}.`, `Your private link is on its way to ${sentTo}. It stays alive for a full year.`],
+      provisional: ['Your gift is ready.', `It is open now. We are checking your payment: if we cannot find it within 5 minutes we will remind you, and if it still has not arrived the link stops working. Already paid? Do nothing, it becomes permanent by itself. The link is also on its way to ${sentTo}.`],
       revoked: ['We could not find your payment.', 'The link has been switched off. If you did pay, message us with the order number below and a screenshot of the payment and we will switch it straight back on.'],
     };
-    const key = shop.demo ? 'demo' : provisional ? 'provisional' : pending ? 'pending' : 'paid';
+    const key = shop.demo ? 'demo' : provisional ? 'provisional' : result.status === 'revoked' ? 'revoked' : 'paid';
     const title = el('h2', { tabindex: '-1' }, say[key][0]);
     const body = el('p', {}, say[key][1]);
     const link = result.link ? el('p', { class: 'link-box' }, result.link) : null;
@@ -502,11 +507,11 @@ export function openBuilder({ catalog, productId, config }) {
     root.append(screen);
     root.classList.add('is-done');
     title.focus({ preventScroll: true });
-    if (!pending) confetti();
+    if (key !== 'revoked') confetti();
     buzz([30, 50, 30]);
 
     // while the payment is still being checked, keep asking: it turns permanent, or it is switched off, and the customer should see which
-    if (provisional || pending) {
+    if (provisional) {
       timers.status = setInterval(async () => {
         try {
           const now = await shop.status(result.orderId);

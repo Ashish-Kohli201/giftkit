@@ -22,16 +22,17 @@ Nothing about a product is written in the site. `products/index.json` is the ord
 
 ## The seam to the backend: `site/lib/api.js`
 
-Every call to a server goes through `createShop(config)`:
+Every call to a server goes through `createShop(config)`. With `config.api` empty it is a demo; with the address of the deployed backend (`backend/README.md`) it is real.
 
 | Method | Real mode (`config.api` set) | Demo mode (`config.api` empty) |
 |---|---|---|
-| `createDraft` | `POST /api/drafts` | local id |
-| `uploadFile` | `POST /api/drafts/:id/uploads`, then `PUT` to the signed URL | the file stays on the phone as a `blob:` URL |
-| `createOrder` | `POST /api/orders` (the server prices it; the browser sends no price) | local id |
-| `pay` | default: the UPI pay sheet (QR, I have paid), then POST /api/orders/:id/claim opens the link at once (see UPI.md). Alternatives: YouPI or Razorpay, then polls `GET /api/orders/:id/status` until the backend has confirmed it; if not in time, the customer sees "we are confirming your payment" | a short pause, no charge, no link |
+| `createDraft` | `createDraft` | local id |
+| `uploadFile` | `uploadStart`, then `uploadChunk` for each ~1.5 MB piece | the file stays on the phone as a `blob:` URL |
+| `createOrder` | `createOrder` (the server prices it and picks the unique amount; the browser sends no price) | local id |
+| `pay` | the UPI pay sheet (QR, "I have paid"), then `claim` opens the link at once (`UPI.md`) | the same sheet, no charge, no link |
+| `status` | `status`, asked every 5 seconds on the thank-you screen | always "provisional" |
 
-Set `api`, `payments` and `supportWhatsapp` in `site/config.js`. Payments are covered in `docs/spark/PAYMENTS.md`. Real mode follows `docs/spark/BACKEND.md` but has not been run against a live backend or Razorpay yet.
+Set `api` and `delivery` in `site/config.js`. The gift link is emailed, so the email is required and the mobile number optional; turn `delivery.whatsapp` on only once a WhatsApp sender is wired into the backend.
 
 ## Where things are
 

@@ -15,6 +15,12 @@ const MIME = {
 createServer(async (req, res) => {
   try {
     let path = decodeURIComponent(new URL(req.url, 'http://x').pathname);
+    // DEV ONLY: `npm run dev:full` sets SPARK_API so the site talks to the local backend instead of running as a demo
+    if (path === '/site/config.js' && process.env.SPARK_API) {
+      res.writeHead(200, { 'Content-Type': MIME['.js'], 'Cache-Control': 'no-store' });
+      res.end(`export const config = { brand: 'Spark', api: ${JSON.stringify(process.env.SPARK_API)}, delivery: { whatsapp: false } };\n`);
+      return;
+    }
     if (path.endsWith('/')) path += 'index.html';
     const file = normalize(join(ROOT, path));
     if (!file.startsWith(ROOT)) { res.writeHead(403).end('Forbidden'); return; } // path traversal guard

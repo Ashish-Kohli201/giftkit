@@ -123,11 +123,15 @@ try {
     check(skin === 'arcade', `the live phone wears the look that was chosen (${skin})`);
     check((await frame.locator('body').innerText()).length > 0, 'the live phone is showing the gift');
 
-    // payment: a bad number is refused, a good one goes through
+    // payment: the link goes to an email, so a missing or wrong one is refused with a reason; the mobile number is optional but checked if given
+    await page.locator('.b-next').click();
+    check(await page.locator('.f:has(#f-email) .f-error').first().isVisible(), 'a missing email is explained');
+    await page.fill('#f-email', 'not-an-email');
     await page.fill('#f-phone', '12345');
     await page.locator('.b-next').click();
-    check(await page.locator('#f-phone ~ .f-error, .f:has(#f-phone) .f-error').first().isVisible(), 'a bad phone number is refused with a reason');
-    await page.fill('#f-phone', '98765 43210');
+    check(await page.locator('.f:has(#f-phone) .f-error').first().isVisible(), 'a wrong mobile number is refused with a reason');
+    await page.fill('#f-phone', '');
+    await page.fill('#f-email', 'meera@example.com');
     await shot(page, `${id}-pay`);
     await page.locator('.b-next').click();
     await page.waitForSelector('.b-upi', { timeout: 6000 });
@@ -147,177 +151,6 @@ try {
     check(problems.length === 0, `no console errors${problems.length ? ` (${problems[0]})` : ''}`);
     check(external.length === 0, `no third-party requests${external.length ? ` (${external[0]})` : ''}`);
     await ctx.close();
-  }
-
-  // ---------------------------------------------------------------- real mode with YouPI: a stand-in for its script and a stub backend
-  // The stand-in follows YouPI's documented browser API (Youpi.pay with handler / onFailed / onClose, and the suspicious event). It proves OUR
-  // side: what we send it, that the browser's "success" alone never decides, and what the customer sees in each case. It is not YouPI itself.
-  const HOST = `${BASE}/fake-youpi`;
-  const stubCheckout = (mode) => `window.Youpi = { pay(o) {
-    window.__youpiCall = o;
-    setTimeout(() => {
-      if (${JSON.stringify(mode)} === 'failed') o.onFailed({ reason: 'bank declined' });
-      else if (${JSON.stringify(mode)} === 'closed') o.onClose();
-      else if (${JSON.stringify(mode)} === 'review') dispatchEvent(new CustomEvent('youpi:payment:suspicious', { detail: { order_id: o.order_id } }));
-      else o.handler({ status: 'SUCCESS', order_id: o.order_id });
-    }, 300);
-  } };`;
-
-  async function realModePage(mode, confirmed) {
-    const t = await newPage(browser, SCREENS[0]);
-    t.requests = [];
-    // the site's settings, as they would be once the backend and the gateway exist
-    await t.page.route('**/site/config.js', (route) => route.fulfill({ contentType: 'text/javascript', body: `export const config = { brand: 'Spark', api: '${BASE}/stub', supportWhatsapp: '',
-      payments: { provider: 'youpi', youpi: { host: '${HOST}', key: 'pk_test_public' }, waitSeconds: 4 } };` }));
-    await t.page.route('**/fake-youpi/youpi.js', (route) => route.fulfill({ contentType: 'text/javascript', body: stubCheckout(mode) }));
-    await t.page.route('**/stub/**', async (route) => {
-      const req = route.request();
-      const path = new URL(req.url()).pathname.replace('/stub', '');
-      t.requests.push({ method: req.method(), path, body: req.postData() });
-      const json = (body) => route.fulfill({ contentType: 'application/json', body: JSON.stringify(body) });
-      if (path === '/api/drafts') return json({ id: 'd1', token: 'tok' });
-      if (path === '/api/orders') return json({ orderId: 'ord_123', amount: 14900 });
-      if (path.endsWith('/status')) return json(confirmed ? { status: 'ready', link: 'https://gifts.example/g/abc123' } : { status: 'awaiting_payment' });
-      return json({});
-    });
-    return t;
-  }
-  async function toPayStep(page) {
-    await page.goto(`${BASE}/site/`);
-    await page.waitForSelector('.card');
-    await page.locator('.card [data-make="envelope"]').click();
-    await page.waitForSelector('.b-step h2');
-    await page.fill('#f-recipient', 'Meera');
-    await page.locator('.b-next').click();
-    await page.locator('.starter').first().click();
-    for (let i = 0; i < 4; i++) { await page.waitForTimeout(450); await page.locator('.b-next').click(); }
-    await page.waitForFunction(() => /almost there/i.test(document.querySelector('.b-step h2')?.textContent ?? ''));
-    await page.fill('#f-phone', '98765 43210');
-  }
-
-  console.log('\n[real mode: paid and confirmed by the backend]');
-  {
-    const t = await realModePage('success', true);
-    await toPayStep(t.page);
-    await t.page.locator('.b-next').click();
-    await t.page.waitForSelector('.b-done', { timeout: 10000 });
-    const done = await t.page.locator('.b-done').innerText();
-    check(/on its way/i.test(done) && /gifts\.example\/g\/abc123/.test(done), 'a confirmed payment shows the link and "on its way"');
-    check(/ord_123/.test(done), 'the order number is shown');
-    const call = await t.page.evaluate(() => ({ id: window.__youpiCall?.order_id, amount: window.__youpiCall?.amount, phone: window.__youpiCall?.customer?.phone }));
-    check(call.id === 'ord_123' && call.amount === 149 && call.phone === '9876543210', `the gateway got the server's order id and price (${JSON.stringify(call)})`);
-    const order = t.requests.find((r) => r.path === '/api/orders');
-    check(order && !/amount|price/i.test(order.body), 'the order request carries no price from the browser');
-    check(t.requests.some((r) => r.path === '/api/orders/ord_123/status'), 'the site asked the backend whether it was confirmed');
-    check(t.problems.length === 0, `no console errors${t.problems.length ? ` (${t.problems[0]})` : ''}`);
-    await t.ctx.close();
-  }
-
-  console.log('\n[real mode: paid on screen, the bank alert is late]');
-  {
-    const t = await realModePage('success', false);
-    await toPayStep(t.page);
-    await t.page.locator('.b-next').click();
-    await t.page.waitForSelector('.b-done', { timeout: 15000 });
-    const done = await t.page.locator('.b-done').innerText();
-    check(/confirming your payment/i.test(done), 'an unconfirmed payment says "we are confirming", never "failed"');
-    check(/ord_123/.test(done) && /message us/i.test(done), 'it gives the order number and what to do if the link is late');
-    check(!/gifts\.example/.test(done), 'no link is shown before the backend confirms');
-    await t.ctx.close();
-  }
-
-  console.log('\n[real mode: held for review, failed, closed]');
-  for (const [mode, expectDone, expectText] of [['review', true, /checking your payment/i], ['failed', false, /bank declined/], ['closed', false, /not completed/]]) {
-    const t = await realModePage(mode, false);
-    await toPayStep(t.page);
-    await t.page.locator('.b-next').click();
-    if (expectDone) {
-      await t.page.waitForSelector('.b-done', { timeout: 8000 });
-      check(expectText.test(await t.page.locator('.b-done').innerText()), `${mode}: ${expectText}`);
-    } else {
-      await t.page.waitForSelector('.b-failure:not(:empty)', { timeout: 8000 });
-      check(expectText.test(await t.page.locator('.b-failure').innerText()), `${mode}: the customer is told (${await t.page.locator('.b-failure').innerText()})`);
-      check(await t.page.locator('.b-done').count() === 0 && await t.page.locator('.b-next').isEnabled(), `${mode}: no thank-you screen, and they can try again`);
-    }
-    await t.ctx.close();
-  }
-
-  // ---------------------------------------------------------------- real mode with UPI and provisional delivery
-  async function upiPage({ statusAfterClaim = 'paid', minSeconds = 1, payWindowSeconds = 300 } = {}) {
-    const t = await newPage(browser, SCREENS[0]);
-    t.requests = [];
-    await t.page.route('**/site/config.js', (route) => route.fulfill({ contentType: 'text/javascript', body: `export const config = { brand: 'Spark', api: '${BASE}/stub', supportWhatsapp: '', payments: { provider: 'upi' } };` }));
-    await t.page.route('**/stub/**', async (route) => {
-      const req = route.request();
-      const path = new URL(req.url()).pathname.replace('/stub', '');
-      t.requests.push({ method: req.method(), path, body: req.postData() });
-      const json = (body) => route.fulfill({ contentType: 'application/json', body: JSON.stringify(body) });
-      if (path === '/api/drafts') return json({ id: 'd1', token: 'tok' });
-      if (path === '/api/orders') return json({ orderId: 'ord_777', amount: 14937, upi: { vpa: 'shop@okhdfcbank', name: 'Spark Gifts', minSeconds, payWindowSeconds } });
-      if (path === '/api/orders/ord_777/claim') return json({ status: 'provisional', link: 'https://gifts.example/g/live1' });
-      if (path === '/api/orders/ord_777/status') return json({ status: statusAfterClaim });
-      return json({});
-    });
-    return t;
-  }
-
-  console.log('\n[real mode: UPI, link opens at once, the bank check confirms]');
-  {
-    const t = await upiPage({ statusAfterClaim: 'paid' });
-    await toPayStep(t.page);
-    await t.page.locator('.b-next').click();
-    await t.page.waitForSelector('.b-upi');
-    const href = await t.page.locator('.b-upi a[href^="upi://pay?"]').getAttribute('href');
-    const q = new URL(href.replace('upi://pay', 'http://x/pay')).searchParams;
-    check(q.get('pa') === 'shop@okhdfcbank' && q.get('am') === '149.37' && q.get('tr') === 'ord_777', `the UPI link is the server's UPI ID, unique amount and order (${q.get('pa')}, ${q.get('am')})`);
-    check((await t.page.locator('.b-upi').innerText()).includes('149.37'), 'the exact amount is on screen');
-    const order = t.requests.find((r) => r.path === '/api/orders');
-    check(order && !/amount|price|quote/i.test(order.body), 'the order request carries no price from the browser');
-    await t.page.waitForFunction(() => !document.querySelector('.b-upi .btn-ink').disabled, null, { timeout: 5000 });
-    await t.page.locator('.b-upi .btn-ink').click();
-    await t.page.waitForSelector('.b-done', { timeout: 8000 });
-    const done = await t.page.locator('.b-done').innerText();
-    check(/gift is ready/i.test(done) && /5 minutes/.test(done) && /gifts\.example\/g\/live1/.test(done), 'tapping "I have paid" opens the gift at once, with the 5-minute warning');
-    check(t.requests.some((r) => r.method === 'POST' && r.path === '/api/orders/ord_777/claim'), 'the backend was told the customer says they have paid');
-    await t.page.waitForFunction(() => /on its way/i.test(document.querySelector('.b-done h2')?.textContent ?? ''), null, { timeout: 9000 });
-    check(true, 'when the bank check confirms, the screen turns to "it is on its way"');
-    check(t.problems.length === 0, `no console errors${t.problems.length ? ` (${t.problems[0]})` : ''}`);
-    await t.ctx.close();
-  }
-
-  console.log('\n[real mode: UPI, the payment never arrives]');
-  {
-    const t = await upiPage({ statusAfterClaim: 'revoked' });
-    await toPayStep(t.page);
-    await t.page.locator('.b-next').click();
-    await t.page.waitForFunction(() => !document.querySelector('.b-upi .btn-ink')?.disabled, null, { timeout: 5000 });
-    await t.page.locator('.b-upi .btn-ink').click();
-    await t.page.waitForSelector('.b-done', { timeout: 8000 });
-    await t.page.waitForFunction(() => /could not find your payment/i.test(document.querySelector('.b-done h2')?.textContent ?? ''), null, { timeout: 9000 });
-    const done = await t.page.locator('.b-done').innerText();
-    check(/switched off/.test(done) && /ord_777/.test(done), 'a revoked link says so, with the order number to quote');
-    check(await t.page.locator('.b-done .link-box').count() === 0 && await t.page.locator('.b-done .btn-gold').isHidden(), 'the link and "Play it now" are gone');
-    await t.ctx.close();
-  }
-
-  console.log('\n[real mode: UPI, time runs out or the customer cancels]');
-  {
-    const t = await upiPage({ payWindowSeconds: 3, minSeconds: 1 });
-    await toPayStep(t.page);
-    await t.page.locator('.b-next').click();
-    await t.page.waitForSelector('.b-upi');
-    await t.page.waitForSelector('.b-failure:not(:empty)', { timeout: 8000 });
-    check(/ran out/.test(await t.page.locator('.b-failure').innerText()) && await t.page.locator('.b-upi').count() === 0, 'when the time runs out the sheet closes and says nothing was charged');
-    check(!t.requests.some((r) => r.path.endsWith('/claim')), 'no claim was made');
-    await t.ctx.close();
-    const c = await upiPage({});
-    await toPayStep(c.page);
-    await c.page.locator('.b-next').click();
-    await c.page.waitForSelector('.b-upi');
-    await c.page.locator('.b-upi-close').click();
-    await c.page.waitForSelector('.b-failure:not(:empty)');
-    check(/not completed/.test(await c.page.locator('.b-failure').innerText()) && !c.requests.some((r) => r.path.endsWith('/claim')), 'cancelling closes the sheet and claims nothing');
-    await c.ctx.close();
   }
 
   // ---------------------------------------------------------------- the page a recipient opens

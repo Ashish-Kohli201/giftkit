@@ -2,18 +2,18 @@
 
 No payment gateway. The customer pays our own UPI ID, taps "I have paid", and the gift link opens at once. The backend then looks for the bank's credit email. Found: the link becomes permanent. Not found: a reminder, then the link is switched off.
 
-The site side is built and tested (`site/builder.js`, `site/lib/api.js`, `site/lib/qr.js`). The rules the backend needs are in `core/payments/upi.js` (pure functions, tested). **The backend does not exist yet**; this page is its spec.
+It is built: the site (`site/builder.js`, `site/lib/api.js`, `site/lib/qr.js`), the shared rules (`core/payments/upi.js`, pure and tested) and the backend (`backend/`, a Google Apps Script project: see `backend/README.md` to set it up and `docs/spark/BACKEND.md` for how it is built). This page is how a payment is decided.
 
 ## The flow
 
 ```
-1  customer taps Pay          site  -> POST /api/orders            backend prices it, picks a UNIQUE amount, returns the order
+1  customer taps Pay          site  -> createOrder                backend prices it, picks a UNIQUE amount, returns the order
 2  pay sheet                  site shows: exact amount, "Open my UPI app", UPI ID, QR, a 5:00 clock
 3  customer pays in their app (the money goes straight to our account)
-4  "I have paid" (after 15s)  site  -> POST /api/orders/:id/claim  backend: state provisional, link opens, WhatsApp + email the link
-5  every minute               backend reads the bank's emails (Gmail API), matches credits to orders by exact amount
+4  "I have paid" (after 15s)  site  -> claim                      backend: state provisional, link opens, the link is emailed
+5  every minute               backend reads the bank's emails (Gmail), matches credits to orders by exact amount
 6  match found                state paid: link permanent, "payment confirmed"
-7  5 min, no match            reminder email + WhatsApp: "we cannot see your payment yet"
+7  5 min, no match            reminder email: "we cannot see your payment yet"
 8  10 min, no match           state revoked: gift page answers 410, customer told, Telegram alert to us
 9  money turns up late        the match restores a revoked order within 24 hours and switches the link back on
 ```
@@ -26,14 +26,16 @@ The site side is built and tested (`site/builder.js`, `site/lib/api.js`, `site/l
 
 The bank's email says "Rs 149.37 credited" and a reference number (UTR), not who paid. So **no two open orders may have the same amount**: `uniqueAmount(basePaise, takenAmounts)` adds the smallest free number of paise (0 to 99) to the price. A credit of exactly that amount can only be one order (`matchCredit`). If all 100 are taken the backend answers 503 "lots of people paying right now, try again in a minute".
 
-## API the site calls
+## What the site calls (see `site/lib/api.js`, `backend/src/50-orders.js`)
 
 | Call | Does |
 |---|---|
-| `POST /api/orders` | re-checks the options, prices the order itself, picks the unique amount, returns `{ orderId, amount (paise), upi: { vpa, name, minSeconds, payWindowSeconds } }`. The browser sends no price. |
-| `POST /api/orders/:id/claim` | the customer says they have paid. Only from `awaiting_payment` and inside the pay window. Moves to `provisional` (sets `claimedAt`), creates the gift link, sends it, returns `{ status: 'provisional', link }`. Safe to call twice. |
-| `GET /api/orders/:id/status` | `{ status: 'provisional' or 'paid' or 'revoked', link }`. The thank-you screen asks every 5 seconds. |
-| `GET /api/gifts/:slug` | `410 Gone` when the order is not `linkIsLive`. The gift page then says "This gift is no longer available." |
+| `createOrder` | re-checks the options, prices the order itself, picks the unique amount, returns `{ orderId, amount (paise), upi: { vpa, name, minSeconds, payWindowSeconds } }`. The browser sends no price. |
+| `claim` | the customer says they have paid. Only from `awaiting_payment`, inside the pay window and not before `minSeconds` (enforced here too). Moves to `provisional`, makes the link, emails it, returns `{ status: 'provisional', link }`. Safe to call twice. |
+| `status` | `{ status, link }` with the state (`awaiting_payment`, `provisional`, `paid`, `revoked`, `expired`); the link only while it is live. The thank-you screen asks every 5 seconds. |
+| `gift` | the recipient's page asks for a gift by its slug; a switched-off one answers `{ ok: false, error: 'gone' }` and the page says "This gift is no longer available." |
+
+Apps Script cannot send HTTP error codes, so every answer is HTTP 200 with `ok` true or false.
 
 ## The clock (a job every minute)
 
@@ -41,11 +43,11 @@ For each order, `nextAction(order, now)` says what to do: `remind` once at 5 min
 
 ## Finding the payment: Gmail
 
-- Connect a Gmail account that receives the bank's credit alerts (a dedicated one, not your personal mailbox). Use the Gmail API with read-only access and a refresh token. **Publish the Google Cloud app to production**: an app left in "Testing" has its token expire after 7 days and payments silently stop being found.
-- Every minute, read new emails from the bank's alert address, run `parseCreditEmail(text)`, then `matchCredit(credit, orders, usedUtrs)`.
-- **`parseCreditEmail` is written from common wordings, not from your bank's real emails.** Before launch: send yourself Rs 1 a few times, save the emails, and add them as test cases in `tests/unit.mjs`. If the bank does not email for small credits, or emails late, this design needs another source (YouPI's observers, or the bank's own statement API).
-- Keep every email's id, the parsed amount and UTR, and what was decided. Store the UTR with a unique constraint: **one UTR settles at most one order**.
-- Anything the code will not decide (no match, two orders with one amount, an amount that matches nothing) goes to a Telegram message for a person.
+- The backend runs as the Google account that receives the bank's credit alerts, so it can read them with no password or token (use a dedicated Gmail, not a personal mailbox: the script can read the whole account).
+- Every minute (only while an order is waiting) it searches for new mail from `BANK_SENDER`, runs `parseCreditEmail(text)`, then `matchCredit(credit, orders, usedUtrs)`, and settles the one order that matches.
+- **`parseCreditEmail` is written from common wordings, not from your bank's real emails.** Before launch: pay yourself Rs 1 a few times, save the emails, and add them as test cases in `tests/unit.mjs`. If the bank does not email for small credits, or emails late, this design needs another source.
+- Every email looked at is recorded in the Credits tab with its decision. A UTR settles at most one order.
+- Anything the code will not decide (no match, an amount that matches nothing) emails you; settle it by hand with `markPaid('ORD-XXXXXX', 'UTR')` after checking the bank statement.
 
 ## What the customer reads
 
@@ -65,7 +67,7 @@ Keep the tone friendly; they paid, or they are about to.
 
 ## Test plan
 
-1. Unit tests exist (`npm test`) for the link, unique amounts, matching, email parsing and the clock.
+1. Automatic: `npm test` (the rules and the whole backend against a mock of Google) and `npm run test:e2e` (the real site and backend in a phone-sized browser). `selfTest()` in the Apps Script editor checks the real Google services.
 2. Before launch, with real money: pay Rs 1 to yourself three times, and check the emails arrive and parse.
 3. Tap "I have paid" without paying and confirm the reminder at 5 minutes and the revoke at 10.
 4. Pay after a revoke and confirm the link comes back.
