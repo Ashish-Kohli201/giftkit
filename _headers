@@ -1,0 +1,5 @@
+# Cloudflare Pages: headers for every page. (No frame or content-security rules: the shop shows its own gift pages in a frame.)
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=()

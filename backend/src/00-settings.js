@@ -9,7 +9,7 @@
 // Run this script as the Google account that SENDS the customer emails (for example fondlyshop.in@gmail.com). It must also be able to read the
 // bank's alerts: in the bank's mailbox, forward them to this account (backend/README.md, step 0).
 //   BANK_SENDER    the address(es) your bank sends credit alerts from, comma separated, for example alerts@hdfcbank.net
-//   SITE_URL       where the storefront is hosted, no trailing slash, for example https://ashish-kohli201.github.io/giftkit
+//   SITE_URL       where the storefront is hosted, no trailing slash, for example https://fondlyshop.in
 //   BRAND          the name in customer emails
 //   SUPPORT_NOTE   one line telling customers how to reach you, for example "reply to this email"
 //   REMIND_AFTER_MINUTES / REVOKE_AFTER_MINUTES   how long after "I have paid" to remind and to switch the link off. Blank = 5 and 10.

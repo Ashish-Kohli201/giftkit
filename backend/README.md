@@ -41,7 +41,7 @@ The 5 and 10 minutes are settings (`REMIND_AFTER_MINUTES`, `REVOKE_AFTER_MINUTES
 | The **name** shown in customers' UPI apps | `Fondly` | `UPI_NAME` |
 | The main admin's email | `kohliashish12@gmail.com` | `OWNER_EMAIL` |
 | The address(es) the bank sends **credit alerts from**. HDFC now uses `alerts@hdfcbank.bank.in`; list the old `alerts@hdfcbank.net` too | `alerts@hdfcbank.bank.in,alerts@hdfcbank.net` | `BANK_SENDER` |
-| Where the storefront is hosted, no trailing slash | `https://ashish-kohli201.github.io/giftkit` | `SITE_URL` |
+| Where the storefront is hosted, no trailing slash | `https://fondlyshop.in` | `SITE_URL` |
 | Optional: a Telegram bot for alerts on your phone | token and chat id | `TELEGRAM_*` |
 
 To save typing, `npm run build:paste` builds `dist/Code.paste.gs` with the values from your own `backend/my-settings.json` already filled in (neither file is committed). Paste that one.

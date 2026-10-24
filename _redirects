@@ -1,0 +1,2 @@
+# Cloudflare Pages: the front door goes to the shop (index.html does the same where this file is not read, for example GitHub Pages)
+/  /site/  302

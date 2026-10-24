@@ -32,7 +32,7 @@ Every call to a server goes through `createShop(config)`. With `config.api` empt
 | `pay` | the UPI pay sheet (QR, "I have paid"), then `claim` opens the link at once (`UPI.md`) | the same sheet, no charge, no link |
 | `status` | `status`, asked every 5 seconds on the thank-you screen | always "provisional" |
 
-Set `api` and `delivery` in `site/config.js`. The gift link is emailed, so the email is required and the mobile number optional; turn `delivery.whatsapp` on only once a WhatsApp sender is wired into the backend.
+Set `api` and `delivery` in `site/config.js`. Hosting is on Cloudflare Pages: see `docs/spark/HOSTING.md`. The gift link is emailed, so the email is required and the mobile number optional; turn `delivery.whatsapp` on only once a WhatsApp sender is wired into the backend.
 
 ## Policies, prices, replies
 
