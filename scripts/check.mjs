@@ -176,6 +176,7 @@ async function checkProduct(id) {
   if (m.id !== id) err(s, `product.json id "${m.id}" must equal folder name "${id}"`);
   if (m.contractVersion !== CONTRACT_VERSION) err(s, `contractVersion must be ${CONTRACT_VERSION}`);
   for (const p of checkManifest(m)) err(s, p);
+  if (m.price?.base < 5000) warn(s, `price.base is ${m.price.base / 100} rupees: that is a TEST price, set the real one before launch`);
   for (const sk of m.skins ?? []) if (!skinIds.includes(sk)) err(s, `skins lists "${sk}", which is not in skins/skins.json`);
   const skinOption = m.options?.find((o) => o.key === 'skin');
   if (skinOption && !skinOption.choices?.every((c) => m.skins?.includes(c.value))) err(s, 'every choice of the "skin" option must be listed in skins');

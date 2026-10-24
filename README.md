@@ -1,4 +1,4 @@
-# giftkit (Spark)
+# Notepark (giftkit)
 
 Small, very pretty, one-tap gift products. A customer fills in a short form on their phone, pays, and gets a private link.
 Zero runtime dependencies in gift code.

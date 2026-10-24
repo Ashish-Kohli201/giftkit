@@ -86,14 +86,15 @@ export function parseCreditEmail(text) {
 
 /**
  * What should the clock do to an order now? One answer per call, so a job that runs every minute can act on it.
+ * `rules` defaults to RULES; the backend passes its own timings (REMIND_AFTER_MINUTES / REVOKE_AFTER_MINUTES).
  * @returns 'remind' | 'revoke' | 'expire' | null
  */
-export function nextAction(order, now) {
-  if (order.state === 'awaiting_payment' && now - order.createdAt >= RULES.payWindowMs + 60 * 1000) return 'expire';
+export function nextAction(order, now, rules = RULES) {
+  if (order.state === 'awaiting_payment' && now - order.createdAt >= rules.payWindowMs + 60 * 1000) return 'expire';
   if (order.state === 'provisional') {
     const waited = now - order.claimedAt;
-    if (waited >= RULES.revokeAfterMs) return 'revoke';
-    if (waited >= RULES.remindAfterMs && !order.remindedAt) return 'remind';
+    if (waited >= rules.revokeAfterMs) return 'revoke';
+    if (waited >= rules.remindAfterMs && !order.remindedAt) return 'remind';
   }
   return null;
 }

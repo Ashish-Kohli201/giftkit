@@ -1,0 +1,24 @@
+From: HDFC Bank InstaAlerts <alerts@hdfcbank.bank.in>
+Subject: View: Account update for your HDFC Bank A/c
+
+Dear Customer,
+
+Greetings from HDFC Bank!
+
+We're writing to inform you that Rs.1.00 has been successfully credited to
+your HDFC Bank account ending in XXXX.
+
+Transaction Details:
+a. Date: 24-10-26
+b. Sender: Mr A B (VPA: ********abcd@xyz)
+c. UPI Reference No.: 629000000001
+
+Need Help?
+India (Toll-Free): 1800 258 6161
+International: 91 22 6160 6160
+Or, you can visit your nearest HDFC Bank branch.
+
+Thank you for banking with HDFC Bank.
+
+Warm Regards,
+HDFC Bank

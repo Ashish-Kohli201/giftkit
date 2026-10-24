@@ -11,6 +11,10 @@ import { normalizeOptions } from '../core/options.js';
 let passed = 0;
 const test = async (name, fn) => { await fn(); passed += 1; console.log(`  ok  ${name}`); };
 
+const manifest = (id) => JSON.parse(readFileSync(`products/${id}/product.json`, 'utf8'));
+const CAKE = manifest('cake').price.base;
+const VIDEO = manifest('cake').options.find((o) => o.key === 'video').price;
+const rs = (paise) => `Rs ${(paise / 100).toFixed(2)}`;
 const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64');
 const MIN = 60 * 1000;
 
@@ -113,8 +117,8 @@ await test('happy path: draft, photo, order, "I have paid" opens the link, the b
   const b = await fresh();
   const { placed, ids } = order(b, { photos: 1 });
   assert.equal(placed.ok, true, JSON.stringify(placed));
-  assert.equal(placed.amount, 14900, 'cake base price, no add-ons, first order gets the plain price');
-  assert.deepEqual(placed.upi, { vpa: 'shop@okhdfcbank', name: 'Spark Gifts', minSeconds: 15, payWindowSeconds: 300 });
+  assert.equal(placed.amount, CAKE, 'cake base price, no add-ons, first order gets the plain price');
+  assert.deepEqual(placed.upi, { vpa: 'shop@okhdfcbank', name: 'Notepark', minSeconds: 15, payWindowSeconds: 300, remindAfterSeconds: 300, revokeAfterSeconds: 600 });
   assert.equal(b.get('status', { orderId: placed.orderId }).status, 'awaiting_payment');
 
   const early = b.call('claim', { orderId: placed.orderId });
@@ -127,7 +131,7 @@ await test('happy path: draft, photo, order, "I have paid" opens the link, the b
   const live = mailsTo(b, 'buyer@example.com');
   assert.equal(live.length, 1);
   assert.match(live[0].subject, /Your gift is ready/);
-  assert.ok(live[0].body.includes(claimed.link) && live[0].body.includes('Rs 149.00'));
+  assert.ok(live[0].body.includes(claimed.link) && live[0].body.includes(rs(CAKE)));
   assert.ok(mailsTo(b, 'owner@example.com').some((m) => /New order/.test(m.subject)), 'the owner hears about it');
 
   const slug = new URL(claimed.link).searchParams.get('s');
@@ -140,7 +144,7 @@ await test('happy path: draft, photo, order, "I have paid" opens the link, the b
   const manifest = JSON.parse(readFileSync('products/cake/product.json', 'utf8'));
   assert.deepEqual(normalizeOptions(manifest, gift.options).errors, {});
 
-  b.bankEmail({ amountPaise: 14900, utr: '629512345678' });
+  b.bankEmail({ amountPaise: CAKE, utr: '629512345678' });
   const scan = b.tick();
   assert.deepEqual(scan, { settled: 1, unmatched: 0 });
   assert.equal(b.get('status', { orderId: placed.orderId }).status, 'paid');
@@ -167,7 +171,7 @@ await test('no payment: a reminder at 5 minutes (once), the link is revoked at 1
   b.tick();
   const reminders = mailsTo(b, 'buyer@example.com').filter((m) => /cannot see your payment/.test(m.subject));
   assert.equal(reminders.length, 1, 'the reminder is sent once');
-  assert.ok(reminders[0].body.includes('Rs 149.00') && reminders[0].body.includes('shop@okhdfcbank'));
+  assert.ok(reminders[0].body.includes(rs(CAKE)) && reminders[0].body.includes('shop@okhdfcbank'));
   assert.equal(b.get('gift', { slug }).ok, true, 'still open between 5 and 10 minutes');
   b.advance(5 * MIN);
   b.tick();
@@ -179,6 +183,39 @@ await test('no payment: a reminder at 5 minutes (once), the link is revoked at 1
   assert.equal(b.call('claim', { orderId: placed.orderId }).status, 'revoked', 'claiming a revoked order does not reopen it');
 });
 
+await test('the real HDFC alert (from alerts@hdfcbank.bank.in) settles an order through the whole pipeline', async () => {
+  const b = await fresh({ ...DEFAULT_SETTINGS, BANK_SENDER: 'alerts@hdfcbank.bank.in, alerts@hdfcbank.net' });
+  const { placed } = order(b);
+  claim(b, placed);
+  const real = readFileSync('tests/fixtures/hdfc-credit-email.txt', 'utf8').split('\n\n').slice(1).join('\n\n').replace('Rs.1.00', `Rs.${(placed.amount / 100).toFixed(2)}`);
+  b.bankEmail({ amountPaise: 0, utr: '', from: 'HDFC Bank InstaAlerts <alerts@hdfcbank.bank.in>', subject: 'View: Account update for your HDFC Bank A/c', body: real });
+  assert.deepEqual(b.tick(), { settled: 1, unmatched: 0 });
+  assert.equal(orderRow(b, placed.orderId).state, 'paid');
+  assert.equal(orderRow(b, placed.orderId).utr, '629000000001');
+});
+
+await test('the clock timings are settings: 2 minutes to the reminder and 3 to the revoke, quoted in the emails and sent to the site', async () => {
+  const b = await fresh({ ...DEFAULT_SETTINGS, REMIND_AFTER_MINUTES: '2', REVOKE_AFTER_MINUTES: '3' });
+  const { placed } = order(b);
+  assert.equal(placed.upi.remindAfterSeconds, 120);
+  assert.equal(placed.upi.revokeAfterSeconds, 180);
+  claim(b, placed);
+  assert.match(mailsTo(b, 'buyer@example.com')[0].body, /within 3 minutes/);
+  b.advance(1 * MIN);
+  b.tick();
+  assert.equal(mailsTo(b, 'buyer@example.com').length, 1, 'nothing before 2 minutes');
+  b.advance(1 * MIN + 5000);
+  b.tick();
+  const reminder = mailsTo(b, 'buyer@example.com').at(-1);
+  assert.match(reminder.subject, /cannot see your payment/);
+  assert.match(reminder.body, /in about 1 minute /);
+  b.advance(1 * MIN);
+  b.tick();
+  assert.equal(b.get('status', { orderId: placed.orderId }).status, 'revoked');
+  const bad = await createBackend({ settings: { ...DEFAULT_SETTINGS, REMIND_AFTER_MINUTES: '5', REVOKE_AFTER_MINUTES: '3' } });
+  assert.throws(() => bad.sandbox.setup(), /REVOKE_AFTER_MINUTES must be bigger/);
+});
+
 await test('a late payment brings a revoked link back, by itself', async () => {
   const b = await fresh();
   const { placed } = order(b);
@@ -186,7 +223,7 @@ await test('a late payment brings a revoked link back, by itself', async () => {
   b.advance(11 * MIN);
   b.tick();
   assert.equal(b.get('gift', { slug }).error, 'gone');
-  b.bankEmail({ amountPaise: 14900, utr: '700000000001' });
+  b.bankEmail({ amountPaise: CAKE, utr: '700000000001' });
   b.tick();
   assert.equal(b.get('status', { orderId: placed.orderId }).status, 'paid');
   assert.equal(b.get('gift', { slug }).ok, true, 'the very same link works again');
@@ -210,11 +247,11 @@ await test('an order nobody pays for expires and frees its amount; open orders a
   const a = order(b, { email: 'a@example.com' }).placed;
   const c = order(b, { email: 'c@example.com' }).placed;
   const d = order(b, { email: 'd@example.com' }).placed;
-  assert.deepEqual([a.amount, c.amount, d.amount], [14900, 14901, 14902]);
+  assert.deepEqual([a.amount, c.amount, d.amount], [CAKE, CAKE + 1, CAKE + 2]);
   b.advance(7 * MIN);
   b.tick();
   assert.equal(orderRow(b, a.orderId).state, 'expired');
-  assert.equal(order(b, { email: 'e@example.com' }).placed.amount, 14900, 'the freed amount is handed out again');
+  assert.equal(order(b, { email: 'e@example.com' }).placed.amount, CAKE, 'the freed amount is handed out again');
   const e = b.call('claim', { orderId: a.orderId });
   assert.ok(e.status === 'revoked', 'an expired order cannot be claimed');
 });
@@ -238,10 +275,10 @@ await test('price, options and files are re-checked on the server; a price sent 
   const draft = b.call('createDraft', { productId: 'cake' });
   const base = { draftId: draft.id, token: draft.token, contact: { email: 'x@example.com' } };
   const ok = b.call('createOrder', { ...base, amount: 1, price: 1, quote: 1, options: { recipient: 'Meera', message: 'Hi', candles: '9' } });
-  assert.equal(ok.amount, 14900, 'the cake costs what the manifest says');
+  assert.equal(ok.amount, CAKE, 'the cake costs what the manifest says');
   const video = b.upload(draft, { type: 'video', mime: 'video/mp4', bytes: Buffer.alloc(1024, 2) });
   const withVideo = b.call('createOrder', { ...base, contact: { email: 'y@example.com' }, options: { recipient: 'Meera', message: 'Hi', video: video.id } });
-  assert.equal(withVideo.amount, 14900 + 9900, 'a video adds its price, worked out here');
+  assert.equal(withVideo.amount, CAKE + VIDEO, 'a video adds its price, worked out here');
 
   const refuse = (extra, re) => { const r = b.call('createOrder', { ...base, contact: { email: 'z@example.com' }, ...extra }); assert.ok(!r.ok && re.test(r.message), JSON.stringify(r)); };
   refuse({ options: { message: 'Hi' } }, /needed/);
@@ -264,7 +301,7 @@ await test('unknown actions, writes over GET, garbage bodies and surprise errors
   assert.equal(b.get('createDraft', { productId: 'cake' }).ok, false, 'a write cannot be done through GET');
   assert.equal(b.get('claim', { orderId: 'x' }).ok, false);
   assert.equal(b.get('gift', { slug: 'nothing' }).error, 'missing');
-  assert.equal(b.sandbox.doGet({ parameter: {} }).text.includes('spark-backend'), true, 'a health check with no action');
+  assert.equal(b.sandbox.doGet({ parameter: {} }).text.includes('notepark-backend'), true, 'a health check with no action');
   assert.equal(b.get('status', { orderId: 'ORD-NOPE' }).ok, false);
   b.world.spreadsheets.clear(); // the sheet vanishes: an unexpected failure
   const r = b.call('createDraft', { productId: 'cake' });
@@ -276,9 +313,9 @@ await test('bank emails: unmatched credits alert the owner once, repeats and oth
   const b = await fresh();
   const { placed } = order(b);
   b.bankEmail({ amountPaise: 99999, utr: '111000000001' });                                  // matches nothing
-  b.bankEmail({ amountPaise: 14900, utr: '111000000002', from: 'someone@else.com' });        // not the bank
-  b.bankEmail({ amountPaise: 14900, utr: '111000000003', body: 'Your OTP is 123456. Rs 149.00 will be debited.' }); // not a credit
-  b.bankEmail({ amountPaise: 14900, utr: '111000000004', ageMs: 5 * 24 * 60 * MIN });        // too old to look at
+  b.bankEmail({ amountPaise: CAKE, utr: '111000000002', from: 'someone@else.com' });        // not the bank
+  b.bankEmail({ amountPaise: CAKE, utr: '111000000003', body: `Your OTP is 123456. ${rs(CAKE)} will be debited.` }); // not a credit
+  b.bankEmail({ amountPaise: CAKE, utr: '111000000004', ageMs: 5 * 24 * 60 * MIN });        // too old to look at
   const first = b.tick();
   assert.deepEqual(first, { settled: 0, unmatched: 1 });
   assert.equal(orderRow(b, placed.orderId).state, 'awaiting_payment');

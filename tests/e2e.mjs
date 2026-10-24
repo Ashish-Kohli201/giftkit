@@ -4,6 +4,7 @@
 // email confirming the payment, and the other road: no payment, revoked link, late payment, link back.
 // Run: npm run test:e2e
 import { spawn } from 'node:child_process';
+import { readFileSync } from 'node:fs';
 import { chromium } from 'playwright';
 import { startEmulator } from './lib/gas-server.mjs';
 
@@ -27,7 +28,7 @@ const browser = await chromium.launch();
 async function phone(viewport = { width: 390, height: 844 }) {
   const ctx = await browser.newContext({ viewport, hasTouch: true, isMobile: true });
   // the site's settings, as they would be once deployed: pointing at the backend
-  await ctx.route('**/site/config.js', (route) => route.fulfill({ contentType: 'text/javascript', body: `export const config = { brand: 'Spark', api: '${emulator.url}/exec', delivery: { whatsapp: false } };` }));
+  await ctx.route('**/site/config.js', (route) => route.fulfill({ contentType: 'text/javascript', body: `export const config = { brand: 'Notepark', api: '${emulator.url}/exec', delivery: { whatsapp: false } };` }));
   // Drive is Google's: in a test, the photo address answers with the same tiny picture
   await ctx.route('**/drive.google.com/**', (route) => route.fulfill({ contentType: 'image/png', body: PNG }));
   const page = await ctx.newPage();
@@ -86,7 +87,9 @@ try {
   s = await state();
   const order = s.orders[0];
   check(order && order.state === 'awaiting_payment' && order.productId === 'envelope', 'the order exists on the server, waiting for payment');
-  check(order.baseAmount === 14900 + 9900 && order.amount === order.baseAmount, `the SERVER priced it: envelope + video = ${order.amount / 100} rupees`);
+  const envelope = JSON.parse(readFileSync('products/envelope/product.json', 'utf8'));
+  const expected = envelope.price.base + envelope.options.find((o) => o.key === 'video').price;
+  check(order.baseAmount === expected && order.amount === order.baseAmount, `the SERVER priced it: envelope + video = ${order.amount / 100} rupees`);
   const shown = await buyer.page.locator('.b-upi h2').innerText();
   check(shown.includes((order.amount / 100).toFixed(2)), `the pay sheet shows the server's exact amount (${shown})`);
   const href = await buyer.page.locator('.b-upi a[href^="upi://pay?"]').getAttribute('href');

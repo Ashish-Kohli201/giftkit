@@ -8,6 +8,8 @@
 //   SITE_URL       where the storefront is hosted, no trailing slash, for example https://ashish-kohli201.github.io/giftkit
 //   BRAND          the name in customer emails
 //   SUPPORT_NOTE   one line telling customers how to reach you, for example "reply to this email"
+//   REMIND_AFTER_MINUTES / REVOKE_AFTER_MINUTES   how long after "I have paid" to remind and to switch the link off. Blank = 5 and 10.
+//                  While testing use 2 and 3 (the clock looks once a minute).
 //   TELEGRAM_*     optional: alerts on your phone. Create a bot with @BotFather, send it a message, and use its token and your chat id.
 function settings_() {
   return {
@@ -16,8 +18,10 @@ function settings_() {
     OWNER_EMAIL: '',
     BANK_SENDER: '',
     SITE_URL: '',
-    BRAND: 'Spark',
+    BRAND: 'Notepark',
     SUPPORT_NOTE: 'reply to this email',
+    REMIND_AFTER_MINUTES: '',
+    REVOKE_AFTER_MINUTES: '',
     TELEGRAM_BOT_TOKEN: '',
     TELEGRAM_CHAT_ID: '',
   };

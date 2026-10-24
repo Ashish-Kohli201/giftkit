@@ -148,6 +148,11 @@ test('price: computed from the manifest only, a client-sent price is ignored', (
   assert.deepEqual(parseCreditEmail('Dear Customer, Rs. 149.37 has been credited to your a/c XX1234 on 22-10-26 by UPI. UPI Ref No 629512345678.'), { amountPaise: 14937, utr: '629512345678' });
   assert.deepEqual(parseCreditEmail('INR 1,299.00 received via UPI. UTR: 410123456789012'), { amountPaise: 129900, utr: '410123456789012' });
   assert.deepEqual(parseCreditEmail('₹ 149 credited. RRN 629512345678'), { amountPaise: 14900, utr: '629512345678' });
+  // a real HDFC alert (a UPI credit of Rs 1, sent from alerts@hdfcbank.bank.in; name and account number redacted)
+  const hdfc = readFileSync(new URL('./fixtures/hdfc-credit-email.txt', import.meta.url), 'utf8');
+  assert.deepEqual(parseCreditEmail(hdfc), { amountPaise: 100, utr: '629000000001' }, 'the real HDFC wording gives the amount and the UPI reference');
+  assert.deepEqual(parseCreditEmail(hdfc.replace('Rs.1.00', 'Rs.2.37')), { amountPaise: 237, utr: '629000000001' });
+  assert.deepEqual(parseCreditEmail(hdfc.replace('Rs.1.00', 'Rs.1,299.50')), { amountPaise: 129950, utr: '629000000001' });
   assert.equal(parseCreditEmail('Your OTP is 123456. Rs. 149.00 will be debited'), null);
   assert.equal(parseCreditEmail('Rs. 149.37 credited to your account'), null, 'no reference, no guess');
   n++; console.log('  ok  upi: credit emails in the usual wordings give an amount and a bank reference; anything unclear gives nothing');
@@ -164,6 +169,10 @@ test('price: computed from the manifest only, a client-sent price is ignored', (
   n++; console.log('  ok  upi: amounts stay reserved for revoked orders for a day, so one payment can never match two orders');
 
   const base = { state: 'provisional', claimedAt: 1000, createdAt: 0 };
+  const fast = { ...RULES, remindAfterMs: 2 * 60000, revokeAfterMs: 3 * 60000 };
+  assert.equal(nextAction(base, 1000 + 2 * 60000 - 1, fast), null);
+  assert.equal(nextAction(base, 1000 + 2 * 60000, fast), 'remind', 'the test timings (2 and 3 minutes) are honoured');
+  assert.equal(nextAction({ ...base, remindedAt: 5 }, 1000 + 3 * 60000, fast), 'revoke');
   assert.equal(nextAction(base, 1000 + RULES.remindAfterMs - 1), null);
   assert.equal(nextAction(base, 1000 + RULES.remindAfterMs), 'remind');
   assert.equal(nextAction({ ...base, remindedAt: 5 }, 1000 + RULES.remindAfterMs + 10), null, 'the reminder is sent once');

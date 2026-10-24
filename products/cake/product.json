@@ -9,7 +9,7 @@
     "arcade"
   ],
   "price": {
-    "base": 14900,
+    "base": 200,
     "currency": "INR"
   },
   "options": [
@@ -80,14 +80,14 @@
       "type": "video",
       "label": "A video (optional)",
       "hint": "Up to 30 MB, about a minute",
-      "price": 9900
+      "price": 100
     },
     {
       "key": "music",
       "type": "audio",
       "label": "A song (optional)",
       "hint": "Your own song file, up to 15 MB",
-      "price": 4900
+      "price": 100
     },
     {
       "key": "skin",

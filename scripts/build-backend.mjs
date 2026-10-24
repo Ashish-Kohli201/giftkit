@@ -47,10 +47,30 @@ export async function buildBackend() {
   return { code, manifest };
 }
 
+/**
+ * The same bundle with YOUR settings filled in, ready to paste into the Apps Script editor (backend/dist/Code.paste.gs, not committed).
+ * Values come from a JSON file such as backend/my-settings.json (not committed either).
+ */
+export function withSettings(code, settings) {
+  const start = code.indexOf('function settings_() {');
+  const end = code.indexOf('\n}\n', start) + 3;
+  if (start < 0 || end < 3) throw new Error('settings_() not found in the bundle');
+  const original = new Function(`${code.slice(start, end)}; return settings_();`)();
+  const merged = { ...original, ...settings };
+  const lines = Object.entries(merged).map(([k, v]) => `    ${k}: ${JSON.stringify(String(v))},`);
+  return `${code.slice(0, start)}function settings_() {\n  return {\n${lines.join('\n')}\n  };\n}\n${code.slice(end)}`;
+}
+
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   const { code, manifest } = await buildBackend();
   await mkdir(join(ROOT, 'backend/dist'), { recursive: true });
   await writeFile(join(ROOT, 'backend/dist/Code.gs'), code);
   await writeFile(join(ROOT, 'backend/dist/appsscript.json'), manifest);
   console.log(`backend/dist/Code.gs  ${code.split('\n').length} lines`);
+  const at = process.argv.indexOf('--settings');
+  if (at > 0) {
+    const mine = JSON.parse(await readFile(join(ROOT, process.argv[at + 1]), 'utf8'));
+    await writeFile(join(ROOT, 'backend/dist/Code.paste.gs'), withSettings(code, mine));
+    console.log('backend/dist/Code.paste.gs  (your settings filled in: paste THIS one, and never commit it)');
+  }
 }

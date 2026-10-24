@@ -39,13 +39,13 @@ Apps Script cannot send HTTP error codes, so every answer is HTTP 200 with `ok` 
 
 ## The clock (a job every minute)
 
-For each order, `nextAction(order, now)` says what to do: `remind` once at 5 minutes after the claim, `revoke` at 10, `expire` for an unclaimed order past its pay window. Times live in `RULES` in `core/payments/upi.js`.
+For each order, `nextAction(order, now)` says what to do: `remind` once at 5 minutes after the claim, `revoke` at 10 (both are settings: `REMIND_AFTER_MINUTES` and `REVOKE_AFTER_MINUTES`; use 2 and 3 while testing), `expire` for an unclaimed order past its pay window. Times live in `RULES` in `core/payments/upi.js`.
 
 ## Finding the payment: Gmail
 
 - The backend runs as the Google account that receives the bank's credit alerts, so it can read them with no password or token (use a dedicated Gmail, not a personal mailbox: the script can read the whole account).
 - Every minute (only while an order is waiting) it searches for new mail from `BANK_SENDER`, runs `parseCreditEmail(text)`, then `matchCredit(credit, orders, usedUtrs)`, and settles the one order that matches.
-- **`parseCreditEmail` is written from common wordings, not from your bank's real emails.** Before launch: pay yourself Rs 1 a few times, save the emails, and add them as test cases in `tests/unit.mjs`. If the bank does not email for small credits, or emails late, this design needs another source.
+- **`parseCreditEmail` is tested against one real HDFC alert** (`tests/fixtures/hdfc-credit-email.txt`, from `alerts@hdfcbank.bank.in`: "Rs.1.00 has been successfully credited ... UPI Reference No.: ..."), plus common wordings of other banks. Another bank, or another kind of HDFC email, may word it differently: add a real sample as a test before relying on it. If the bank does not email for small credits, or emails late, this design needs another source.
 - Every email looked at is recorded in the Credits tab with its decision. A UTR settles at most one order.
 - Anything the code will not decide (no match, an amount that matches nothing) emails you; settle it by hand with `markPaid('ORD-XXXXXX', 'UTR')` after checking the bank statement.
 

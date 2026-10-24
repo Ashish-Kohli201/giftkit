@@ -3,7 +3,7 @@
   "version": "0.2.0",
   "private": true,
   "type": "module",
-  "description": "Spark products: pretty one-tap gift formats a customer fills in on their phone. Zero runtime dependencies.",
+  "description": "Notepark products: pretty one-tap gift formats a customer fills in on their phone. Zero runtime dependencies.",
   "scripts": {
     "dev": "node scripts/serve.mjs",
     "check": "node scripts/check.mjs",
@@ -14,7 +14,8 @@
     "build:backend": "node scripts/build-backend.mjs",
     "test:backend": "node tests/backend.mjs",
     "test:e2e": "node tests/e2e.mjs",
-    "dev:full": "node scripts/dev-full.mjs"
+    "dev:full": "node scripts/dev-full.mjs",
+    "build:paste": "node scripts/build-backend.mjs --settings backend/my-settings.json"
   },
   "devDependencies": {
     "jsqr": "^1.4.0",

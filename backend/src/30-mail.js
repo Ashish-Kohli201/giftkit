@@ -45,7 +45,7 @@ function mailLive_(order) {
   send_(order.id, order.email, `Your gift is ready (order ${order.id})`,
     `Hi,\n\nYour gift is ready. Here is the private link:\n\n${giftLink_(order.slug)}\n\n` +
     `We are checking your payment of ${rupees_(order.amount)}. If you have paid, you do not need to do anything: the link becomes permanent by itself. ` +
-    `If we cannot find the payment within 10 minutes the link is switched off, and we will write to you first.\n\n` +
+    `If we cannot find the payment within ${minutesText_(rules_().revokeAfterMs)} the link is switched off, and we will write to you first.\n\n` +
     `Questions? ${SUPPORT_()}, and quote order ${order.id}.\n\n${BRAND_()}`);
 }
 
@@ -59,7 +59,7 @@ function mailReminder_(order) {
   send_(order.id, order.email, `We cannot see your payment yet (order ${order.id})`,
     `Hi,\n\nWe cannot see your payment for order ${order.id} yet. If you have paid, it can take a few minutes to reach us and you do not need to do anything. ` +
     `If not, please pay exactly ${rupees_(order.amount)} to ${prop_('UPI_VPA', 'our UPI ID')} so your gift keeps working.\n\n` +
-    `The link will switch off in about 5 minutes if we still cannot find the payment. Questions? ${SUPPORT_()}.\n\n${BRAND_()}`);
+    `The link will switch off in about ${minutesText_(rules_().revokeAfterMs - rules_().remindAfterMs)} if we still cannot find the payment. Questions? ${SUPPORT_()}.\n\n${BRAND_()}`);
 }
 
 function mailRevoked_(order) {

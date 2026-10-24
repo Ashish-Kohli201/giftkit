@@ -58,7 +58,7 @@ function createOrder_(p) {
     return {
       orderId: order.id,
       amount,
-      upi: { vpa: requireProp_('UPI_VPA'), name: requireProp_('UPI_NAME'), minSeconds: minSeconds_(), payWindowSeconds: RULES.payWindowMs / 1000 },
+      upi: { vpa: requireProp_('UPI_VPA'), name: requireProp_('UPI_NAME'), minSeconds: minSeconds_(), payWindowSeconds: RULES.payWindowMs / 1000, remindAfterSeconds: rules_().remindAfterMs / 1000, revokeAfterSeconds: rules_().revokeAfterMs / 1000 },
     };
   });
 }

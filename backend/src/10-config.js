@@ -16,6 +16,20 @@ function requireProp_(name) {
 
 const now_ = () => new Date().getTime();
 
+/**
+ * The clock's timings. Defaults are 5 minutes to the reminder and 10 to the revoke; REMIND_AFTER_MINUTES and REVOKE_AFTER_MINUTES in the
+ * settings change them (2 and 3 are good while testing: the clock runs once a minute, so give it at least two looks before revoking).
+ */
+function rules_() {
+  const minutes = (name, fallback) => { const n = Number(prop_(name, '')); return n > 0 ? n : fallback; };
+  return {
+    ...RULES,
+    remindAfterMs: minutes('REMIND_AFTER_MINUTES', RULES.remindAfterMs / 60000) * 60000,
+    revokeAfterMs: minutes('REVOKE_AFTER_MINUTES', RULES.revokeAfterMs / 60000) * 60000,
+  };
+}
+const minutesText_ = (ms) => { const m = Math.max(1, Math.round(ms / 60000)); return `${m} minute${m === 1 ? '' : 's'}`; };
+
 /** Random lowercase letters and digits, from two UUIDs so it cannot be guessed. */
 function token_(length) {
   const pool = (Utilities.getUuid() + Utilities.getUuid() + Utilities.getUuid()).replace(/-/g, '');
@@ -23,7 +37,7 @@ function token_(length) {
 }
 
 const SITE_ = () => requireProp_('SITE_URL').replace(/\/$/, '');
-const BRAND_ = () => prop_('BRAND', 'Spark');
+const BRAND_ = () => prop_('BRAND', 'Notepark');
 const ownerEmail_ = () => prop_('OWNER_EMAIL', '') || Session.getEffectiveUser().getEmail();
 
 /** The private address of a gift. The storefront's host page reads ?s=<slug> and asks this backend for the gift. */

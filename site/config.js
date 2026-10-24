@@ -1,6 +1,6 @@
 // The storefront's settings. Change the brand here; nothing else in the site hardcodes it.
 export const config = {
-  brand: 'Spark',
+  brand: 'Notepark',
   // The backend: the address of the deployed Apps Script web app (backend/README.md), ending in /exec.
   // Leave it empty for DEMO MODE: the whole flow works, but nothing is paid, stored or sent.
   api: '',

@@ -35,7 +35,7 @@ function handle_(action, payload, viaGet) {
 
 function doGet(e) {
   const p = (e && e.parameter) || {};
-  if (!p.action) return respond_({ ok: true, service: 'spark-backend', time: now_() });
+  if (!p.action) return respond_({ ok: true, service: 'notepark-backend', time: now_() });
   return respond_(handle_(p.action, p, true));
 }
 
@@ -54,6 +54,8 @@ function setup() {
   for (const key of ['UPI_VPA', 'UPI_NAME', 'BANK_SENDER', 'SITE_URL']) if (!s[key] && !prop_(key, '')) throw new Error(`Fill in ${key} in 00-settings first.`);
   for (const [key, value] of Object.entries(s)) if (value) props.setProperty(key, value);
   if (!/^[a-z0-9._-]{2,}@[a-z][a-z0-9]+$/i.test(prop_('UPI_VPA', ''))) throw new Error('UPI_VPA does not look like a UPI ID (name@bank).');
+  const timing = rules_();
+  if (!(timing.remindAfterMs >= 60000 && timing.revokeAfterMs > timing.remindAfterMs)) throw new Error('REVOKE_AFTER_MINUTES must be bigger than REMIND_AFTER_MINUTES (and the reminder at least 1 minute).');
 
   if (!prop_('SHEET_ID', '')) props.setProperty('SHEET_ID', SpreadsheetApp.create(`${BRAND_()} backend`).getId());
   if (!prop_('FOLDER_ID', '')) props.setProperty('FOLDER_ID', DriveApp.createFolder(`${BRAND_()} gift files`).getId());

@@ -28,6 +28,8 @@ const el = (tag, attrs = {}, ...kids) => {
 };
 /** Append children, skipping the empty ones (a missing hint, an absent counter). */
 const put = (node, ...kids) => node.append(...kids.flat().filter((k) => k != null && k !== false));
+/** "2 minutes", "5 minutes": a length of time, in words. */
+const minutes = (seconds) => { const m = Math.max(1, Math.round(seconds / 60)); return `${m} minute${m === 1 ? '' : 's'}`; };
 const root = document.getElementById('builder');
 const saved = new Map(); // product id -> { values, media, step }: closing and reopening keeps what was typed
 let session = null;
@@ -428,7 +430,8 @@ export function openBuilder({ catalog, productId, config }) {
   /** Shows what to pay and where; resolves when the customer says they have paid, rejects if they cancel or the time runs out. */
   function upiSheet(order) {
     return new Promise((resolve, reject) => {
-      const policy = { minSeconds: RULES.minSeconds, payWindowSeconds: RULES.payWindowMs / 1000, ...order.upi };
+      const policy = { minSeconds: RULES.minSeconds, payWindowSeconds: RULES.payWindowMs / 1000, remindAfterSeconds: RULES.remindAfterMs / 1000, ...order.upi };
+      state.policy = policy; // the thank-you screen quotes the same times
       const uri = upiUri({ vpa: policy.vpa, name: policy.name, amountPaise: order.amount, orderId: order.orderId });
       const exact = `₹${(order.amount / 100).toFixed(2)}`;
       let left = policy.payWindowSeconds;
@@ -464,7 +467,7 @@ export function openBuilder({ catalog, productId, config }) {
         el('details', { class: 'upi-qr', open: !phoneLike }, el('summary', {}, phoneLike ? 'Paying from another phone? Scan this' : 'Scan with any UPI app'), qrSvg(uri)),
         el('div', { class: 'upi-clock' }, el('span', {}, 'Time left'), timeLeft, el('div', { class: 'upi-bar' }, bar)),
         paid,
-        el('p', { class: 'upi-fine' }, 'Your gift opens as soon as you tap this. If we cannot find your payment within 5 minutes we will remind you, and if it still has not arrived the link stops working.'));
+        el('p', { class: 'upi-fine' }, `Your gift opens as soon as you tap this. If we cannot find your payment within ${minutes(policy.remindAfterSeconds)} we will remind you, and if it still has not arrived the link stops working.`));
       root.append(sheetNode);
       sheetNode.querySelector('h2').focus({ preventScroll: true });
 
@@ -489,7 +492,7 @@ export function openBuilder({ catalog, productId, config }) {
     const say = {
       demo: ['That is how it feels.', 'This was a demo, so nothing was charged. With the backend connected, this is where your gift link opens and the bank check starts.'],
       paid: [`It is on its way${name ? `, with love for ${name}` : ''}.`, `Your private link is on its way to ${sentTo}. It stays alive for a full year.`],
-      provisional: ['Your gift is ready.', `It is open now. We are checking your payment: if we cannot find it within 5 minutes we will remind you, and if it still has not arrived the link stops working. Already paid? Do nothing, it becomes permanent by itself. The link is also on its way to ${sentTo}.`],
+      provisional: ['Your gift is ready.', `It is open now. We are checking your payment: if we cannot find it within ${minutes(state.policy?.remindAfterSeconds ?? RULES.remindAfterMs / 1000)} we will remind you, and if it still has not arrived the link stops working. Already paid? Do nothing, it becomes permanent by itself. The link is also on its way to ${sentTo}.`],
       revoked: ['We could not find your payment.', 'The link has been switched off. If you did pay, message us with the order number below and a screenshot of the payment and we will switch it straight back on.'],
     };
     const key = shop.demo ? 'demo' : provisional ? 'provisional' : result.status === 'revoked' ? 'revoked' : 'paid';

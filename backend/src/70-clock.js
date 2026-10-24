@@ -3,10 +3,11 @@
 
 function runClock_() {
   const now = now_();
+  const rules = rules_();
   const done = { reminded: 0, revoked: 0, expired: 0 };
   locked_(() => {
     for (const order of rows_('Orders')) {
-      const action = nextAction(order, now);
+      const action = nextAction(order, now, rules);
       if (action === 'expire') { patch_('Orders', order, { state: 'expired' }); log_(order.id, 'expired', ''); done.expired += 1; }
       if (action === 'remind') { patch_('Orders', order, { remindedAt: now }); mailReminder_(order); log_(order.id, 'reminded', ''); done.reminded += 1; }
       if (action === 'revoke') {

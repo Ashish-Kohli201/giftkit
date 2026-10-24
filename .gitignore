@@ -4,3 +4,6 @@ gifts/
 dist-gifts/
 .engine/
 tests/shots/
+# your own settings and the paste-ready script made from them
+backend/my-settings.json
+backend/dist/Code.paste.gs

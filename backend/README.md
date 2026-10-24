@@ -9,6 +9,8 @@ One Google Apps Script project is the whole server:
 - **email** to customers (their link, the reminder, the confirmation) and to you,
 - a **trigger every minute** that looks for payments, sends reminders and switches off links nobody paid for.
 
+While testing, the gifts cost Rs 2 (add-ons Rs 1) and the clock is 2 minutes to the reminder and 3 to the revoke; `npm run check` warns until the real prices are back in `products/*/product.json`.
+
 How a payment works is in [`docs/spark/UPI.md`](../docs/spark/UPI.md). The code is in `src/`, bundled with the shared rules into `dist/Code.gs`.
 
 ## What you need before you start
@@ -17,12 +19,13 @@ How a payment works is in [`docs/spark/UPI.md`](../docs/spark/UPI.md). The code 
 |---|---|---|
 | The Google account that **receives the bank's credit emails**. The script runs as this account | `shop@gmail.com` | you sign in with it |
 | Your **UPI ID** (the one customers pay) | `shop@okhdfcbank` | `UPI_VPA` |
-| The **name** shown in customers' UPI apps | `Spark Gifts` | `UPI_NAME` |
-| The address the bank sends **credit alerts from** (open one and check) | `alerts@hdfcbank.net` | `BANK_SENDER` |
+| The **name** shown in customers' UPI apps | `Notepark` | `UPI_NAME` |
+| The address(es) the bank sends **credit alerts from** (open one and check). HDFC now uses `alerts@hdfcbank.bank.in`; list the old `alerts@hdfcbank.net` too, comma separated | `alerts@hdfcbank.bank.in,alerts@hdfcbank.net` | `BANK_SENDER` |
 | Where the storefront is hosted, no trailing slash | `https://ashish-kohli201.github.io/giftkit` | `SITE_URL` |
+| Optional: how long to wait before the reminder and the revoke. Blank means 5 and 10 minutes; use **2 and 3 while testing** | `2`, `3` | `REMIND_AFTER_MINUTES`, `REVOKE_AFTER_MINUTES` |
 | Optional: a Telegram bot for alerts on your phone | token and chat id | `TELEGRAM_*` |
 
-And **three real bank emails** (see step 7).
+To save typing, `npm run build:paste` builds `dist/Code.paste.gs` with the values from your own `backend/my-settings.json` already filled in (neither file is committed). Paste that one.
 
 ## Set it up (about 15 minutes)
 
@@ -32,7 +35,7 @@ And **three real bank emails** (see step 7).
 4. **Run `setup`.** In the toolbar pick the function **setup** and press **Run**. Google asks you to allow access. Because this is your own script, it says "Google hasn't verified this app": choose **Advanced**, then **Go to (your project) (unsafe)**, then **Allow**. `setup` creates the sheet and the Drive folder, saves your settings and starts the every-minute trigger. Its log shows the sheet's link.
 5. **Run `selfTest`.** It writes a row, uploads a tiny picture to Drive the same way a customer's photo is uploaded, searches Gmail, sends you an email and checks the trigger. **Every line must say `OK`.** A `FAIL` line names the part that is wrong. Do not go on until it is clean.
 6. **Deploy the web app.** **Deploy**, **New deployment**, type **Web app**. Set **Execute as: Me** and **Who has access: Anyone**. Deploy and copy the **Web app URL** (it ends in `/exec`). Put it in [`site/config.js`](../site/config.js) as `api`, then publish the site.
-7. **Teach it your bank's wording.** The reader of bank emails is written from common wording, not from yours. Pay yourself Rs 1 three times from another UPI app. Open each alert email and send me the text (hide your account number). I will add them as tests and fix the reader if it misses any. Until then, the first real payments may be reported to you as "matched no order" (you will get an email), and you settle them with `markPaid`.
+7. **Check your bank's wording.** The reader of bank emails is tested against a real HDFC alert (`tests/fixtures/hdfc-credit-email.txt`: "Rs.1.00 has been successfully credited ... UPI Reference No.: ...", from `alerts@hdfcbank.bank.in`). Another bank, or a different HDFC email, may word it differently: send me the text (hide your account number) and I will add it as a test. A credit it cannot read is emailed to you as "matched no order", and you settle it with `markPaid`.
 8. **First real order.** Buy the cheapest gift on your own site with a second phone, pay the exact amount, tap "I have paid", and watch: the email with the link, then (within a minute or two of the bank email) the confirmation.
 
 After changing the code later, rebuild (`npm run build:backend`), paste again, then **Deploy**, **Manage deployments**, edit the deployment and choose **New version**. The URL stays the same.
