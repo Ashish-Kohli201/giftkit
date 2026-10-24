@@ -18,7 +18,7 @@ const tell = (event, extra = {}) => {
 
 async function readJson(url) {
   const res = await fetch(url);
-  if (!res.ok) throw new Error(`Could not load ${url} (${res.status})`);
+  if (!res.ok) throw Object.assign(new Error(`Could not load ${url} (${res.status})`), { status: res.status });
   return res.json();
 }
 
@@ -53,7 +53,8 @@ try {
   console.error(err);
   tell('error', { message: String(err.message || err) });
   const p = document.createElement('p');
-  p.textContent = preview ? String(err.message || err) : 'This gift cannot be opened right now.';
+  // 410 Gone is how the backend says a gift has been switched off (a payment that never arrived, or a refund)
+  p.textContent = preview ? String(err.message || err) : err.status === 410 ? 'This gift is no longer available.' : 'This gift cannot be opened right now.';
   p.style.cssText = 'color:#fff;font:16px system-ui;padding:24px;text-align:center';
   root.replaceChildren(p);
 }

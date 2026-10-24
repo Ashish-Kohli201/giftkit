@@ -6,6 +6,8 @@ import { createPhone } from './lib/preview.js';
 import { createShop } from './lib/api.js';
 import { shrinkImage } from './lib/image.js';
 import { rupees } from './lib/catalog.js';
+import { qrSvg } from './lib/qr.js';
+import { upiUri, RULES } from '../core/payments/upi.js';
 import { buzz, confetti, reduced, tween } from './lib/motion.js';
 
 const SKINS = {
@@ -40,6 +42,7 @@ export function openBuilder({ catalog, productId, config }) {
   const fields = new Map(); // option key -> { setError(msg) }
   let shownPrice = priceFor(product, normalizeOptions(product, {}).options);
   let previewTimer;
+  const timers = {}; // intervals that must stop when the builder closes: the UPI countdown and the thank-you status check
 
   // ---------------------------------------------------------------- the frame
   root.hidden = false;
@@ -79,6 +82,8 @@ export function openBuilder({ catalog, productId, config }) {
   session = { destroy };
 
   function destroy() {
+    clearInterval(timers.upi);
+    clearInterval(timers.status);
     saved.set(product.id, { values: state.values, media: state.media, step: state.step });
     clearTimeout(previewTimer);
     phone.destroy();
@@ -401,8 +406,8 @@ export function openBuilder({ catalog, productId, config }) {
     try {
       const contact = { phone: `+91${phoneDigits}`, email: state.contact.email.trim() };
       const draft = await ensureDraft();
-      const order = await shop.createOrder(draft, { options, contact });
-      const result = await shop.pay(order, { contact });
+      const order = await shop.createOrder(draft, { options, contact, quote: total() });
+      const result = await shop.pay(order, { contact, ui: { upi: upiSheet } });
       done(result, contact);
     } catch (e) {
       state.showFailure(e.message || 'Something went wrong. Nothing was charged. Please try again.');
@@ -413,35 +418,112 @@ export function openBuilder({ catalog, productId, config }) {
     }
   }
 
+  // ---------------------------------------------------------------- paying by UPI: the sheet with the QR and "I have paid"
+  /** Shows what to pay and where; resolves when the customer says they have paid, rejects if they cancel or the time runs out. */
+  function upiSheet(order) {
+    return new Promise((resolve, reject) => {
+      const policy = { minSeconds: RULES.minSeconds, payWindowSeconds: RULES.payWindowMs / 1000, ...order.upi };
+      const uri = upiUri({ vpa: policy.vpa, name: policy.name, amountPaise: order.amount, orderId: order.orderId });
+      const exact = `₹${(order.amount / 100).toFixed(2)}`;
+      let left = policy.payWindowSeconds;
+      let waited = 0;
+      const clock = (n) => `${Math.floor(n / 60)}:${String(n % 60).padStart(2, '0')}`;
+      const finish = (fn, value) => { clearInterval(timers.upi); sheetNode.remove(); fn(value); };
+
+      const copy = (text, button) => {
+        navigator.clipboard?.writeText(text).then(() => { button.textContent = 'Copied'; setTimeout(() => { button.textContent = 'Copy'; }, 1500); }, () => {});
+        buzz();
+      };
+      const copyButton = (text) => el('button', { class: 'btn btn-quiet btn-small', type: 'button', onclick: (e) => copy(text, e.currentTarget) }, 'Copy');
+      const phoneLike = matchMedia('(pointer: coarse)').matches;
+      const timeLeft = el('b', {}, clock(left));
+      const bar = el('i', { class: 'upi-bar-fill' });
+      const paid = el('button', { class: 'btn btn-ink btn-big', type: 'button', disabled: true, onclick: () => { buzz([20, 40, 20]); finish(resolve); } });
+      // "I have paid" stays off for a few seconds: paying takes about that long, a mindless tap does not
+      const showPaid = () => {
+        const wait = policy.minSeconds - waited;
+        paid.replaceChildren(wait > 0 ? `I have paid (in ${wait}s)` : 'I have paid');
+        paid.disabled = wait > 0;
+      };
+      showPaid();
+
+      const sheetNode = el('section', { class: 'b-upi', role: 'dialog', 'aria-label': 'Pay by UPI' },
+        el('button', { class: 'b-icon b-upi-close', type: 'button', 'aria-label': 'Cancel the payment', onclick: () => finish(reject, new Error('The payment was not completed.')) }, el('span', { class: 'x', 'aria-hidden': 'true' })),
+        el('h2', { tabindex: '-1' }, `Pay ${exact}`),
+        el('p', { class: 'b-hint' }, 'Pay exactly this amount with any UPI app. The extra paise (if any) are how we find your payment.'),
+        el('a', { class: 'btn btn-gold btn-big', href: uri }, 'Open my UPI app', el('span', { class: 'arrow', 'aria-hidden': 'true' })),
+        el('p', { class: 'upi-tip' }, 'Nothing opened? Copy the UPI ID below, or open this page in Chrome or Safari. Instagram sometimes blocks payment apps.'),
+        el('div', { class: 'upi-id' }, el('span', {}, 'UPI ID'), el('b', {}, policy.vpa), copyButton(policy.vpa)),
+        el('div', { class: 'upi-id' }, el('span', {}, 'Amount'), el('b', {}, exact), copyButton((order.amount / 100).toFixed(2))),
+        el('details', { class: 'upi-qr', open: !phoneLike }, el('summary', {}, phoneLike ? 'Paying from another phone? Scan this' : 'Scan with any UPI app'), qrSvg(uri)),
+        el('div', { class: 'upi-clock' }, el('span', {}, 'Time left'), timeLeft, el('div', { class: 'upi-bar' }, bar)),
+        paid,
+        el('p', { class: 'upi-fine' }, 'Your gift opens as soon as you tap this. If we cannot find your payment within 5 minutes we will remind you, and if it still has not arrived the link stops working.'));
+      root.append(sheetNode);
+      sheetNode.querySelector('h2').focus({ preventScroll: true });
+
+      timers.upi = setInterval(() => {
+        left -= 1;
+        waited += 1;
+        timeLeft.textContent = clock(Math.max(0, left));
+        bar.style.transform = `scaleX(${Math.max(0, left) / policy.payWindowSeconds})`;
+        showPaid();
+        if (left <= 0) finish(reject, new Error('The payment time ran out. Nothing was charged. Please try again.'));
+      }, 1000);
+    });
+  }
+
   // ---------------------------------------------------------------- the end
   function done(result, contact) {
     saved.delete(product.id);
     const name = state.values.recipient;
     const options = previewOptions();
-    // paid and confirmed, or paid on screen but not yet confirmed by the bank alert: the second must never look like a failure
+    const provisional = result.status === 'provisional' && !shop.demo;
     const pending = result.status === 'pending';
-    const headline = shop.demo ? 'That is how it feels.'
-      : pending ? (result.review ? 'We are checking your payment.' : 'We are confirming your payment.')
-        : `It is on its way${name ? `, with love for ${name}` : ''}.`;
-    const body = shop.demo
-      ? 'This was a demo, so nothing was charged. With the backend connected, this is the moment the private link lands on your WhatsApp.'
-      : pending
-        ? `Your private link will arrive on ${contact.phone} on WhatsApp as soon as the bank confirms it. This can take a few minutes. If it has not come in 15 minutes, message us with the order number below and we will sort it out.`
-        : `Your private link is on its way to ${contact.phone} on WhatsApp. It stays alive for a full year.`;
+    const say = {
+      demo: ['That is how it feels.', 'This was a demo, so nothing was charged. With the backend connected, this is where your gift link opens and the bank check starts.'],
+      paid: [`It is on its way${name ? `, with love for ${name}` : ''}.`, `Your private link is on its way to ${contact.phone} on WhatsApp. It stays alive for a full year.`],
+      provisional: ['Your gift is ready.', `It is open now. We are checking your payment: if we cannot find it within 5 minutes we will remind you, and if it still has not arrived the link stops working. Already paid? Do nothing, it becomes permanent by itself. The link is also on its way to ${contact.phone} on WhatsApp.`],
+      pending: [result.review ? 'We are checking your payment.' : 'We are confirming your payment.', `Your private link will arrive on ${contact.phone} on WhatsApp as soon as the bank confirms it. This can take a few minutes. If it has not come in 15 minutes, message us with the order number below and we will sort it out.`],
+      revoked: ['We could not find your payment.', 'The link has been switched off. If you did pay, message us with the order number below and a screenshot of the payment and we will switch it straight back on.'],
+    };
+    const key = shop.demo ? 'demo' : provisional ? 'provisional' : pending ? 'pending' : 'paid';
+    const title = el('h2', { tabindex: '-1' }, say[key][0]);
+    const body = el('p', {}, say[key][1]);
+    const link = result.link ? el('p', { class: 'link-box' }, result.link) : null;
     const play = el('button', { class: 'btn btn-gold btn-big', type: 'button', onclick: () => player(product, options, state.media) }, 'Play it now');
     const screen = el('section', { class: 'b-done' },
       el('div', { class: 'tick', 'aria-hidden': 'true' }, el('span')),
-      el('h2', { tabindex: '-1' }, headline),
-      el('p', {}, body),
+      title, body,
       result.orderId && !shop.demo ? el('p', { class: 'order-no' }, `Order ${result.orderId}`) : null,
-      result.link ? el('p', { class: 'link-box' }, result.link) : null,
+      link,
       play,
       el('button', { class: 'btn btn-quiet', type: 'button', onclick: () => { state.values = {}; state.media = {}; state.step = 0; closeBuilder(); } }, 'Make another'));
     root.append(screen);
     root.classList.add('is-done');
-    screen.querySelector('h2').focus({ preventScroll: true });
+    title.focus({ preventScroll: true });
     if (!pending) confetti();
     buzz([30, 50, 30]);
+
+    // while the payment is still being checked, keep asking: it turns permanent, or it is switched off, and the customer should see which
+    if (provisional || pending) {
+      timers.status = setInterval(async () => {
+        try {
+          const now = await shop.status(result.orderId);
+          if (now.status === 'paid' || now.status === 'ready' || now.status === 'delivered') {
+            title.textContent = say.paid[0];
+            body.textContent = say.paid[1];
+            clearInterval(timers.status);
+          } else if (now.status === 'revoked') {
+            title.textContent = say.revoked[0];
+            body.textContent = say.revoked[1];
+            play.hidden = true;
+            screen.querySelector('.link-box')?.remove();
+            clearInterval(timers.status);
+          }
+        } catch { /* a missed check is fine, the next one asks again */ }
+      }, 5000);
+    }
   }
 
   render(1);

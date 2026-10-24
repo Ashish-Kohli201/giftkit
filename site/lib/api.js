@@ -5,7 +5,10 @@
 //   const draft = await shop.createDraft(productId);                      -> { id, token }
 //   const file  = await shop.uploadFile(draft, blob, 'image', onProgress) -> { id, type, url }
 //   const order = await shop.createOrder(draft, { options, contact })     -> { orderId, ... }
-//   const done  = await shop.pay(order, { contact })                      -> { status: 'paid' | 'pending', link, orderId }
+//   const done  = await shop.pay(order, { contact, ui })                  -> { status: 'paid' | 'provisional' | 'pending', link, orderId }
+//   const now   = await shop.status(orderId)                              -> { status, link }   (the thank-you screen keeps asking)
+//
+// `ui.upi(order)` is the screen that shows the UPI QR and waits for the customer to say "I have paid" (the builder provides it).
 //
 // DEMO MODE (config.api is empty): files stay on this phone as blob: URLs, "payment" is a short pause and no link exists.
 // REAL MODE: the calls follow the API table in docs/spark/BACKEND.md. The price is never sent: the server works it out.
@@ -27,8 +30,16 @@ function createDemoShop() {
       for (const p of [0.3, 0.7, 1]) { onProgress?.(p); await sleep(120); }
       return { id: newId('m'), type, url: URL.createObjectURL(file) };
     },
-    async createOrder(_draft, { options }) { return { orderId: newId('o'), options }; },
-    async pay(order) { await sleep(1600); return { status: 'paid', link: '', orderId: order.orderId }; },
+    // quote: the price, only so the demo has an amount to show. The real backend ignores anything like it and prices the order itself.
+    async createOrder(_draft, { quote }) {
+      return { orderId: newId('o'), amount: quote, upi: { vpa: 'demo@upi', name: 'Demo only - no money moves', minSeconds: 2, payWindowSeconds: 300 } };
+    },
+    async pay(order, { ui }) {
+      await ui.upi(order);
+      await sleep(900);
+      return { status: 'provisional', link: '', orderId: order.orderId };
+    },
+    async status() { return { status: 'provisional', link: '' }; },
   };
 }
 
@@ -63,15 +74,22 @@ function createRealShop(base, config) {
       await put(slot.uploadUrl, file, onProgress);
       return { id: slot.id, type, url: URL.createObjectURL(file) };
     },
+    status: (orderId) => call(`/api/orders/${orderId}/status`),
     createOrder: (draft, { options, contact }) => call('/api/orders', { method: 'POST', headers: auth(draft), body: JSON.stringify({ draftId: draft.id, options, contact }) }),
     /**
      * Takes the payment with the configured provider (config.payments.provider: 'youpi' or 'razorpay'), then asks the backend
      * whether the order is confirmed. The backend decides, from the provider's signed webhook; the browser's own "success" never does.
      * Result: { status: 'paid', link } | { status: 'pending', review } (paid on screen, not confirmed yet), always with orderId.
      */
-    async pay(order, { contact }) {
-      const provider = config.payments?.provider ?? 'youpi';
+    async pay(order, { contact, ui }) {
+      const provider = config.payments?.provider ?? 'upi';
       let review = false;
+      if (provider === 'upi') {
+        // the customer pays the exact amount to our UPI ID and says so; the backend opens the link on trust and checks the bank's email
+        await ui.upi(order);
+        const claim = await call(`/api/orders/${order.orderId}/claim`, { method: 'POST' });
+        return { ...claim, orderId: order.orderId };
+      }
       if (provider === 'youpi') {
         const outcome = await payWithYoupi({ ...config.payments.youpi, order, contact, brand: config.brand });
         review = outcome === 'review';

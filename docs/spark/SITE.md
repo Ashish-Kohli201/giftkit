@@ -29,7 +29,7 @@ Every call to a server goes through `createShop(config)`:
 | `createDraft` | `POST /api/drafts` | local id |
 | `uploadFile` | `POST /api/drafts/:id/uploads`, then `PUT` to the signed URL | the file stays on the phone as a `blob:` URL |
 | `createOrder` | `POST /api/orders` (the server prices it; the browser sends no price) | local id |
-| `pay` | opens the configured gateway (YouPI by default, Razorpay optional), then polls `GET /api/orders/:id/status` until the backend has confirmed it; if not in time, the customer sees "we are confirming your payment" | a short pause, no charge, no link |
+| `pay` | default: the UPI pay sheet (QR, I have paid), then POST /api/orders/:id/claim opens the link at once (see UPI.md). Alternatives: YouPI or Razorpay, then polls `GET /api/orders/:id/status` until the backend has confirmed it; if not in time, the customer sees "we are confirming your payment" | a short pause, no charge, no link |
 
 Set `api`, `payments` and `supportWhatsapp` in `site/config.js`. Payments are covered in `docs/spark/PAYMENTS.md`. Real mode follows `docs/spark/BACKEND.md` but has not been run against a live backend or Razorpay yet.
 

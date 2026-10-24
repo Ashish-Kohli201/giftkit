@@ -1,5 +1,7 @@
 # Payments with YouPI-PG
 
+> The default payment path is now paying our own UPI ID with provisional delivery: see docs/spark/UPI.md. This page covers the YouPI-PG alternative (payments.provider youpi).
+
 We take payments through a self-hosted [YouPI-PG](https://github.com/youpi-pg/YouPI-PG) gateway: a UPI QR and app buttons on the phone, paid straight into our own bank account, no gateway fee. This page is the integration, and the things we have to get right because of how YouPI knows a payment arrived.
 
 ## Read this first: what YouPI can and cannot promise

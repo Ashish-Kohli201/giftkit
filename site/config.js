@@ -5,7 +5,10 @@ export const config = {
   api: '',
   // How a customer pays (used when `api` is set).
   payments: {
-    provider: 'youpi', // 'youpi' (self-hosted UPI gateway, see docs/spark/PAYMENTS.md) or 'razorpay'
+    // 'upi'      pay our own UPI ID, the gift opens at once and the backend checks the bank email (docs/spark/UPI.md)
+    // 'youpi'    a self-hosted YouPI-PG gateway (docs/spark/PAYMENTS.md)
+    // 'razorpay' Razorpay Checkout
+    provider: 'upi',
     // Your YouPI checkout portal: its address (https, no trailing slash) and the PUBLIC merchant key from its admin panel.
     // The webhook secret is a different thing: it lives only on the backend and must never appear in this repo or this site.
     youpi: { host: '', key: '' },

@@ -130,6 +130,14 @@ try {
     await page.fill('#f-phone', '98765 43210');
     await shot(page, `${id}-pay`);
     await page.locator('.b-next').click();
+    await page.waitForSelector('.b-upi', { timeout: 6000 });
+    check(/Pay \u20B9\d+\.\d\d/.test(await page.locator('.b-upi h2').innerText()), 'the pay sheet shows the exact amount');
+    check(await page.locator('.b-upi svg path').count() === 1, 'the pay sheet shows a QR code');
+    check(await page.locator('.b-upi a[href^="upi://pay?"]').count() === 1, 'there is a button that opens the UPI app');
+    check(await page.locator('.b-upi .btn-ink').isDisabled(), '"I have paid" is off for the first few seconds');
+    await shot(page, `${id}-upi`);
+    await page.waitForFunction(() => !document.querySelector('.b-upi .btn-ink').disabled, null, { timeout: 8000 });
+    await page.locator('.b-upi .btn-ink').click();
     await page.waitForSelector('.b-done', { timeout: 8000 });
     check(true, 'demo payment completes and the thank-you screen appears');
     await shot(page, `${id}-done`);
@@ -231,6 +239,100 @@ try {
       check(expectText.test(await t.page.locator('.b-failure').innerText()), `${mode}: the customer is told (${await t.page.locator('.b-failure').innerText()})`);
       check(await t.page.locator('.b-done').count() === 0 && await t.page.locator('.b-next').isEnabled(), `${mode}: no thank-you screen, and they can try again`);
     }
+    await t.ctx.close();
+  }
+
+  // ---------------------------------------------------------------- real mode with UPI and provisional delivery
+  async function upiPage({ statusAfterClaim = 'paid', minSeconds = 1, payWindowSeconds = 300 } = {}) {
+    const t = await newPage(browser, SCREENS[0]);
+    t.requests = [];
+    await t.page.route('**/site/config.js', (route) => route.fulfill({ contentType: 'text/javascript', body: `export const config = { brand: 'Spark', api: '${BASE}/stub', supportWhatsapp: '', payments: { provider: 'upi' } };` }));
+    await t.page.route('**/stub/**', async (route) => {
+      const req = route.request();
+      const path = new URL(req.url()).pathname.replace('/stub', '');
+      t.requests.push({ method: req.method(), path, body: req.postData() });
+      const json = (body) => route.fulfill({ contentType: 'application/json', body: JSON.stringify(body) });
+      if (path === '/api/drafts') return json({ id: 'd1', token: 'tok' });
+      if (path === '/api/orders') return json({ orderId: 'ord_777', amount: 14937, upi: { vpa: 'shop@okhdfcbank', name: 'Spark Gifts', minSeconds, payWindowSeconds } });
+      if (path === '/api/orders/ord_777/claim') return json({ status: 'provisional', link: 'https://gifts.example/g/live1' });
+      if (path === '/api/orders/ord_777/status') return json({ status: statusAfterClaim });
+      return json({});
+    });
+    return t;
+  }
+
+  console.log('\n[real mode: UPI, link opens at once, the bank check confirms]');
+  {
+    const t = await upiPage({ statusAfterClaim: 'paid' });
+    await toPayStep(t.page);
+    await t.page.locator('.b-next').click();
+    await t.page.waitForSelector('.b-upi');
+    const href = await t.page.locator('.b-upi a[href^="upi://pay?"]').getAttribute('href');
+    const q = new URL(href.replace('upi://pay', 'http://x/pay')).searchParams;
+    check(q.get('pa') === 'shop@okhdfcbank' && q.get('am') === '149.37' && q.get('tr') === 'ord_777', `the UPI link is the server's UPI ID, unique amount and order (${q.get('pa')}, ${q.get('am')})`);
+    check((await t.page.locator('.b-upi').innerText()).includes('149.37'), 'the exact amount is on screen');
+    const order = t.requests.find((r) => r.path === '/api/orders');
+    check(order && !/amount|price|quote/i.test(order.body), 'the order request carries no price from the browser');
+    await t.page.waitForFunction(() => !document.querySelector('.b-upi .btn-ink').disabled, null, { timeout: 5000 });
+    await t.page.locator('.b-upi .btn-ink').click();
+    await t.page.waitForSelector('.b-done', { timeout: 8000 });
+    const done = await t.page.locator('.b-done').innerText();
+    check(/gift is ready/i.test(done) && /5 minutes/.test(done) && /gifts\.example\/g\/live1/.test(done), 'tapping "I have paid" opens the gift at once, with the 5-minute warning');
+    check(t.requests.some((r) => r.method === 'POST' && r.path === '/api/orders/ord_777/claim'), 'the backend was told the customer says they have paid');
+    await t.page.waitForFunction(() => /on its way/i.test(document.querySelector('.b-done h2')?.textContent ?? ''), null, { timeout: 9000 });
+    check(true, 'when the bank check confirms, the screen turns to "it is on its way"');
+    check(t.problems.length === 0, `no console errors${t.problems.length ? ` (${t.problems[0]})` : ''}`);
+    await t.ctx.close();
+  }
+
+  console.log('\n[real mode: UPI, the payment never arrives]');
+  {
+    const t = await upiPage({ statusAfterClaim: 'revoked' });
+    await toPayStep(t.page);
+    await t.page.locator('.b-next').click();
+    await t.page.waitForFunction(() => !document.querySelector('.b-upi .btn-ink')?.disabled, null, { timeout: 5000 });
+    await t.page.locator('.b-upi .btn-ink').click();
+    await t.page.waitForSelector('.b-done', { timeout: 8000 });
+    await t.page.waitForFunction(() => /could not find your payment/i.test(document.querySelector('.b-done h2')?.textContent ?? ''), null, { timeout: 9000 });
+    const done = await t.page.locator('.b-done').innerText();
+    check(/switched off/.test(done) && /ord_777/.test(done), 'a revoked link says so, with the order number to quote');
+    check(await t.page.locator('.b-done .link-box').count() === 0 && await t.page.locator('.b-done .btn-gold').isHidden(), 'the link and "Play it now" are gone');
+    await t.ctx.close();
+  }
+
+  console.log('\n[real mode: UPI, time runs out or the customer cancels]');
+  {
+    const t = await upiPage({ payWindowSeconds: 3, minSeconds: 1 });
+    await toPayStep(t.page);
+    await t.page.locator('.b-next').click();
+    await t.page.waitForSelector('.b-upi');
+    await t.page.waitForSelector('.b-failure:not(:empty)', { timeout: 8000 });
+    check(/ran out/.test(await t.page.locator('.b-failure').innerText()) && await t.page.locator('.b-upi').count() === 0, 'when the time runs out the sheet closes and says nothing was charged');
+    check(!t.requests.some((r) => r.path.endsWith('/claim')), 'no claim was made');
+    await t.ctx.close();
+    const c = await upiPage({});
+    await toPayStep(c.page);
+    await c.page.locator('.b-next').click();
+    await c.page.waitForSelector('.b-upi');
+    await c.page.locator('.b-upi-close').click();
+    await c.page.waitForSelector('.b-failure:not(:empty)');
+    check(/not completed/.test(await c.page.locator('.b-failure').innerText()) && !c.requests.some((r) => r.path.endsWith('/claim')), 'cancelling closes the sheet and claims nothing');
+    await c.ctx.close();
+  }
+
+  // ---------------------------------------------------------------- the page a recipient opens
+  console.log('\n[a recipient opens the gift]');
+  {
+    const t = await newPage(browser, SCREENS[0]);
+    const gift = { product: 'envelope', options: { recipient: 'Meera', sender: 'Ashish', title: 'Happy Birthday, {{recipient}}!', message: 'A real message for {{recipient}}.', skin: 'nightsky' }, media: {} };
+    await t.page.route('**/gifts/live.json', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify(gift) }));
+    await t.page.route('**/gifts/off.json', (route) => route.fulfill({ status: 410, contentType: 'application/json', body: '{}' }));
+    await t.page.goto(`${BASE}/host/index.html?gift=${encodeURIComponent(`${BASE}/gifts/live.json`)}`);
+    await t.page.waitForSelector('[data-part="env-address"]');
+    check((await t.page.locator('[data-part="env-address"]').innerText()).includes('Meera'), 'a live gift opens, addressed to the recipient');
+    await t.page.goto(`${BASE}/host/index.html?gift=${encodeURIComponent(`${BASE}/gifts/off.json`)}`);
+    await t.page.waitForSelector('#gift-root p');
+    check((await t.page.textContent('#gift-root p')).includes('no longer available'), 'a switched-off gift (410) says it is no longer available');
     await t.ctx.close();
   }
 

@@ -138,4 +138,81 @@ test('price: computed from the manifest only, a client-sent price is ignored', (
   n++; console.log('  ok  youpi: a payment settles an order only for the right order, the exact priced amount and a bank reference');
 }
 
+// ---------------------------------------------------------------- payments: UPI with provisional delivery
+{
+  const { RULES, upiUri, uniqueAmount, matchCredit, parseCreditEmail, nextAction, linkIsLive } = await import('../core/payments/upi.js');
+
+  const uri = upiUri({ vpa: 'shop@okhdfcbank', name: 'Spark Gifts', amountPaise: 14937, orderId: 'o_1' });
+  const q = new URL(uri.replace('upi://pay', 'http://x/pay')).searchParams;
+  assert.ok(uri.startsWith('upi://pay?'));
+  assert.deepEqual([q.get('pa'), q.get('pn'), q.get('am'), q.get('cu'), q.get('tr')], ['shop@okhdfcbank', 'Spark Gifts', '149.37', 'INR', 'o_1']);
+  assert.throws(() => upiUri({ vpa: 'nope', name: 'x', amountPaise: 100, orderId: 'o' }), /UPI ID/);
+  assert.throws(() => upiUri({ vpa: 'shop@okhdfcbank', name: 'x', amountPaise: 1.5, orderId: 'o' }), /paise/);
+  assert.equal(new URL(upiUri({ vpa: 'shop@okhdfcbank', name: 'A&B = "C"', amountPaise: 100, orderId: 'o' }).replace('upi://pay', 'http://x/pay')).searchParams.get('pn'), 'A&B = "C"');
+  n++; console.log('  ok  upi: the payment link carries the exact amount and survives awkward names; bad ids and amounts are refused');
+
+  assert.equal(uniqueAmount(14900, []), 14900);
+  assert.equal(uniqueAmount(14900, [14900]), 14901);
+  assert.equal(uniqueAmount(14900, [14900, 14901, 14903]), 14902);
+  assert.equal(uniqueAmount(14900, Array.from({ length: 100 }, (_, i) => 14900 + i)), null);
+  n++; console.log('  ok  upi: every open order gets its own amount, at most 99 paise above the price');
+
+  const orders = [
+    { id: 'a', amountPaise: 14900, state: 'provisional', createdAt: 0 },
+    { id: 'b', amountPaise: 14901, state: 'awaiting_payment', createdAt: 0 },
+    { id: 'c', amountPaise: 19900, state: 'paid', createdAt: 0 },
+    { id: 'd', amountPaise: 12900, state: 'revoked', createdAt: 0 },
+    { id: 'e', amountPaise: 12950, state: 'revoked', createdAt: 0 },
+  ];
+  assert.deepEqual(matchCredit({ amountPaise: 14900, utr: '111111111111', at: 1000 }, orders), { orderId: 'a', restore: false });
+  assert.deepEqual(matchCredit({ amountPaise: 14901, utr: '111111111112', at: 1000 }, orders), { orderId: 'b', restore: false });
+  assert.equal(matchCredit({ amountPaise: 19900, utr: '1', at: 1000 }, orders).orderId, null, 'an already-paid order is not settled twice');
+  assert.equal(matchCredit({ amountPaise: 14902, utr: '111111111113', at: 1000 }, orders).orderId, null, 'an unknown amount matches nothing');
+  assert.equal(matchCredit({ amountPaise: 14900, utr: '111111111111', at: 1000 }, orders, ['111111111111']).orderId, null, 'one payment never settles two orders');
+  assert.equal(matchCredit({ amountPaise: 14900, at: 1000 }, orders).orderId, null, 'no UTR, no match');
+  assert.deepEqual(matchCredit({ amountPaise: 12900, utr: '111111111114', at: 5000 }, orders), { orderId: 'd', restore: true }, 'a late payment brings a revoked order back');
+  assert.equal(matchCredit({ amountPaise: 12950, utr: '111111111115', at: RULES.restoreWindowMs + 1 }, orders).orderId, null, 'too late is left to a person');
+  assert.match(matchCredit({ amountPaise: 14900, utr: '2', at: 1000 }, [...orders, { id: 'z', amountPaise: 14900, state: 'awaiting_payment', createdAt: 0 }]).reason, /more than one/);
+  n++; console.log('  ok  upi: a bank credit settles exactly one order, or nothing; repeats, ties and unknown amounts need a person');
+
+  assert.deepEqual(parseCreditEmail('Dear Customer, Rs. 149.37 has been credited to your a/c XX1234 on 22-10-26 by UPI. UPI Ref No 629512345678.'), { amountPaise: 14937, utr: '629512345678' });
+  assert.deepEqual(parseCreditEmail('INR 1,299.00 received via UPI. UTR: 410123456789012'), { amountPaise: 129900, utr: '410123456789012' });
+  assert.deepEqual(parseCreditEmail('₹ 149 credited. RRN 629512345678'), { amountPaise: 14900, utr: '629512345678' });
+  assert.equal(parseCreditEmail('Your OTP is 123456. Rs. 149.00 will be debited'), null);
+  assert.equal(parseCreditEmail('Rs. 149.37 credited to your account'), null, 'no reference, no guess');
+  n++; console.log('  ok  upi: credit emails in the usual wordings give an amount and a bank reference; anything unclear gives nothing');
+
+  const base = { state: 'provisional', claimedAt: 1000, createdAt: 0 };
+  assert.equal(nextAction(base, 1000 + RULES.remindAfterMs - 1), null);
+  assert.equal(nextAction(base, 1000 + RULES.remindAfterMs), 'remind');
+  assert.equal(nextAction({ ...base, remindedAt: 5 }, 1000 + RULES.remindAfterMs + 10), null, 'the reminder is sent once');
+  assert.equal(nextAction({ ...base, remindedAt: 5 }, 1000 + RULES.revokeAfterMs), 'revoke');
+  assert.equal(nextAction(base, 1000 + RULES.revokeAfterMs), 'revoke', 'even if the reminder job was late');
+  assert.equal(nextAction({ state: 'awaiting_payment', createdAt: 0 }, RULES.payWindowMs), null);
+  assert.equal(nextAction({ state: 'awaiting_payment', createdAt: 0 }, RULES.payWindowMs + 60000), 'expire');
+  assert.equal(nextAction({ state: 'paid', createdAt: 0 }, 1e12), null);
+  assert.deepEqual(['paid', 'provisional', 'awaiting_payment', 'revoked', 'expired'].map((state) => linkIsLive({ state })), [true, true, false, false, false]);
+  n++; console.log('  ok  upi: the clock reminds once after 5 minutes, revokes at 10, frees unpaid amounts, and only paid or provisional links open');
+}
+
+// ---------------------------------------------------------------- the QR code really decodes to the payment link
+{
+  const { default: jsQR } = await import('jsqr');
+  const { qrMatrix } = await import('../site/lib/qr.js');
+  const { upiUri } = await import('../core/payments/upi.js');
+  const text = upiUri({ vpa: 'shop@okhdfcbank', name: 'Spark Gifts', amountPaise: 14937, orderId: 'ord_8f3k2' });
+  const grid = qrMatrix(text);
+  const scale = 6, border = 4, size = (grid.length + border * 2) * scale;
+  const pixels = new Uint8ClampedArray(size * size * 4).fill(255);
+  grid.forEach((row, r) => row.forEach((dark, c) => {
+    if (!dark) return;
+    for (let y = 0; y < scale; y++) for (let x = 0; x < scale; x++) {
+      const i = (((r + border) * scale + y) * size + (c + border) * scale + x) * 4;
+      pixels[i] = pixels[i + 1] = pixels[i + 2] = 0;
+    }
+  }));
+  assert.equal(jsQR(pixels, size, size)?.data, text);
+  n++; console.log(`  ok  qr: a ${grid.length}x${grid.length} code decodes back to exactly the payment link`);
+}
+
 console.log(`\n${n} tests passed`);
