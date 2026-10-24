@@ -41,7 +41,7 @@ check(chunk.ok && chunk.done && chunk.id, `the picture reaches Drive and is reco
 const placed = (await post('createOrder', { draftId: draft.id, token: draft.token, amount: 1, options: { recipient: 'Live Check', message: 'Hello', photos: [chunk.id] }, contact: { email } })).json;
 check(placed.ok && placed.orderId, `an order is placed: ${placed.orderId}`);
 const cake = JSON.parse((await import('node:fs')).readFileSync(new URL('../products/cake/product.json', import.meta.url), 'utf8'));
-check(placed.amount >= cake.price.base && placed.amount < cake.price.base + 100, `the SERVER priced it from the manifest, ignoring the amount we sent (${placed.amount / 100} rupees)`);
+check(placed.amount <= cake.price.base && placed.amount > cake.price.base - 100, `the SERVER priced it from the manifest, ignoring the amount we sent (${placed.amount / 100} rupees)`);
 check(placed.upi?.vpa?.includes('@') && placed.upi.remindAfterSeconds > 0, `the UPI details and timings come back (${placed.upi?.vpa}, remind ${placed.upi?.remindAfterSeconds}s, revoke ${placed.upi?.revokeAfterSeconds}s)`);
 
 // FIRST thing after placing the order: "I have paid" is refused for the first seconds. (Do this before anything slow: after about 15 seconds the

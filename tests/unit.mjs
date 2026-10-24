@@ -133,10 +133,15 @@ test('price: computed from the manifest only, a client-sent price is ignored', (
   n++; console.log('  ok  upi: the payment link carries the exact amount and survives awkward names; bad ids and amounts are refused');
 
   assert.equal(uniqueAmount(14900, []), 14900);
-  assert.equal(uniqueAmount(14900, [14900]), 14901);
-  assert.equal(uniqueAmount(14900, [14900, 14901, 14903]), 14902);
-  assert.equal(uniqueAmount(14900, Array.from({ length: 100 }, (_, i) => 14900 + i)), null);
-  n++; console.log('  ok  upi: every open order gets its own amount, at most 99 paise above the price');
+  assert.equal(uniqueAmount(14900, [14900]), 14899, 'the next order pays one paisa LESS');
+  assert.equal(uniqueAmount(14900, [14900, 14899, 14897]), 14898);
+  assert.equal(uniqueAmount(14900, Array.from({ length: 100 }, (_, i) => 14900 - i)), null);
+  assert.equal(uniqueAmount(14900, [14901, 14902]), 14900, 'amounts above the price are never handed out or minded');
+  assert.equal(uniqueAmount(50, []), 50);
+  assert.equal(uniqueAmount(50, Array.from({ length: 50 }, (_, i) => 50 - i)), null, 'a cheap price runs out of slots at one paisa (the amount is never 0)');
+  assert.equal(uniqueAmount(1, []), 1);
+  assert.equal(uniqueAmount(1, [1]), null);
+  n++; console.log('  ok  upi: every open order gets its own amount, at most 99 paise below the price, never zero');
 
   const orders = [
     { id: 'a', amountPaise: 14900, state: 'provisional', createdAt: 0 },
@@ -176,7 +181,7 @@ test('price: computed from the manifest only, a client-sent price is ignored', (
   assert.deepEqual(reservedAmounts(mix, 1000), [100, 101, 102]);
   assert.deepEqual(reservedAmounts(mix, RULES.restoreWindowMs + 1), [100, 101], 'a revoked order frees its amount after the restore window');
   assert.ok(isOpen(mix[2], 1000) && !isOpen(mix[3], 1000));
-  assert.equal(uniqueAmount(100, reservedAmounts(mix, 1000)), 103, 'a new order skips a revoked order amount');
+  assert.equal(uniqueAmount(100, reservedAmounts(mix, 1000)), 99, 'a new order skips the amounts held by waiting, provisional and revoked orders');
   n++; console.log('  ok  upi: amounts stay reserved for revoked orders for a day, so one payment can never match two orders');
 
   const base = { state: 'provisional', claimedAt: 1000, createdAt: 0 };

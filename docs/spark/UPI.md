@@ -24,7 +24,7 @@ It is built: the site (`site/builder.js`, `site/lib/api.js`, `site/lib/qr.js`), 
 
 ## Why the amount is unique
 
-The bank's email says "Rs 149.37 credited" and a reference number (UTR), not who paid. So **no two open orders may have the same amount**: `uniqueAmount(basePaise, takenAmounts)` adds the smallest free number of paise (0 to 99) to the price. A credit of exactly that amount can only be one order (`matchCredit`). If all 100 are taken the backend answers 503 "lots of people paying right now, try again in a minute".
+The bank's email says "Rs 149.37 credited" and a reference number (UTR), not who paid. So **no two open orders may have the same amount**: `uniqueAmount(basePaise, takenAmounts)` takes the smallest free number of paise (0 to 99) OFF the price: 29.00, then 28.99, 28.98 ... (a small discount looks better than a surcharge, and it never reaches zero). A credit of exactly that amount can only be one order (`matchCredit`). If all 100 are taken the backend answers 503 "lots of people paying right now, try again in a minute".
 
 ## What the site calls (see `site/lib/api.js`, `backend/src/50-orders.js`)
 

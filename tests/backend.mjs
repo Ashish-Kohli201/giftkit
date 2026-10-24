@@ -250,7 +250,7 @@ await test('an order nobody pays for expires and frees its amount; open orders a
   const a = order(b, { email: 'a@example.com' }).placed;
   const c = order(b, { email: 'c@example.com' }).placed;
   const d = order(b, { email: 'd@example.com' }).placed;
-  assert.deepEqual([a.amount, c.amount, d.amount], [CAKE, CAKE + 1, CAKE + 2]);
+  assert.deepEqual([a.amount, c.amount, d.amount], [CAKE, CAKE - 1, CAKE - 2]);
   b.advance(7 * MIN);
   b.tick();
   assert.equal(orderRow(b, a.orderId).state, 'expired');

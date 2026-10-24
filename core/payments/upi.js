@@ -16,7 +16,7 @@ export const RULES = Object.freeze({
   remindAfterMs: 5 * 60 * 1000,      // after "I have paid": nothing found yet, send a reminder
   revokeAfterMs: 10 * 60 * 1000,     // after "I have paid": still nothing, switch the link off
   restoreWindowMs: 24 * 60 * 60 * 1000, // a payment this late still settles a revoked order
-  maxAmountOffsetPaise: 99,          // the unique amount is at most 99 paise above the price
+  maxAmountOffsetPaise: 99,          // the unique amount is at most 99 paise BELOW the price (a discount looks better than a surcharge)
 });
 
 const VPA = /^[a-z0-9._-]{2,}@[a-z][a-z0-9]{1,}$/i;
@@ -43,14 +43,16 @@ export const isOpen = (order, now) => order.state === 'awaiting_payment' || orde
 export const reservedAmounts = (orders, now) => orders.filter((o) => isOpen(o, now)).map((o) => o.amountPaise);
 
 /**
- * The amount THIS order will pay: the price, plus the smallest number of paise (0 to 99) that no other open order is using.
- * Two open orders can never share an amount, so a credit of that amount can only mean one order.
+ * The amount THIS order will pay: the price, or the price less the smallest number of paise (1 to 99) that no other open order is using:
+ * 29.00, then 28.99, 28.98 ... Two open orders can never share an amount, so a credit of that amount can only mean one order.
+ * The amount never reaches zero: the discount stops one paisa short of it.
  * @param takenPaise  amounts (in paise) no new order may use: reservedAmounts(orders, now)
- * @returns the amount in paise, or null if all 100 are taken (ask the customer to wait a minute)
+ * @returns the amount in paise, or null if every slot is taken (ask the customer to wait a minute)
  */
 export function uniqueAmount(basePaise, takenPaise = []) {
   const taken = new Set(takenPaise);
-  for (let offset = 0; offset <= RULES.maxAmountOffsetPaise; offset++) if (!taken.has(basePaise + offset)) return basePaise + offset;
+  const deepest = Math.min(RULES.maxAmountOffsetPaise, basePaise - 1);
+  for (let offset = 0; offset <= deepest; offset++) if (!taken.has(basePaise - offset)) return basePaise - offset;
   return null;
 }
 

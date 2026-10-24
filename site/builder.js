@@ -469,7 +469,7 @@ export function openBuilder({ catalog, productId, config }) {
       const sheetNode = el('section', { class: 'b-upi', role: 'dialog', 'aria-label': 'Pay by UPI' },
         el('button', { class: 'b-icon b-upi-close', type: 'button', 'aria-label': 'Cancel the payment', onclick: () => finish(reject, new Error('The payment was not completed.')) }, el('span', { class: 'x', 'aria-hidden': 'true' })),
         el('h2', { tabindex: '-1' }, `Pay ${exact}`),
-        el('p', { class: 'b-hint' }, 'Pay exactly this amount with any UPI app. The extra paise (if any) are how we find your payment.'),
+        el('p', { class: 'b-hint' }, 'Pay exactly this amount with any UPI app. The paise are how we find your payment.'),
         el('a', { class: 'btn btn-gold btn-big', href: uri }, 'Open my UPI app', el('span', { class: 'arrow', 'aria-hidden': 'true' })),
         el('p', { class: 'upi-tip' }, 'Nothing opened? Copy the UPI ID below, or open this page in Chrome or Safari. Instagram sometimes blocks payment apps.'),
         el('div', { class: 'upi-id' }, el('span', {}, 'UPI ID'), el('b', {}, policy.vpa), copyButton(policy.vpa)),
