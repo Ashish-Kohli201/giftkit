@@ -60,7 +60,7 @@ export async function startEmulator({ port, siteUrl }) {
     if (url.pathname === '/ctl/tick') { return json(res, 200, { ok: true, result: backend.tick() }); }
     if (url.pathname === '/ctl/state') {
       return json(res, 200, {
-        orders: backend.sheet('Orders'), media: backend.sheet('Media'), credits: backend.sheet('Credits'),
+        orders: backend.sheet('Orders'), drafts: backend.sheet('Drafts'), media: backend.sheet('Media'), credits: backend.sheet('Credits'),
         outbox: backend.world.outbox, files: [...backend.world.files.values()].map((f) => ({ ...f, bytes: f.bytes.length })),
       });
     }

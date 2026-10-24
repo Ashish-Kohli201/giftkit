@@ -273,7 +273,8 @@ export function openBuilder({ catalog, productId, config }) {
 
   // ---------------------------------------------------------------- files
   const kb = (n) => (n > 1048576 ? `${(n / 1048576).toFixed(1)} MB` : `${Math.max(1, Math.round(n / 1024))} KB`);
-  async function ensureDraft() { state.draft ??= await shop.createDraft(product.id); return state.draft; }
+  // one draft per gift, even when several uploads ask for it at the same moment (they all wait for the same request)
+  function ensureDraft() { state.draftRequest ??= shop.createDraft(product.id).then((draft) => { state.draft = draft; return draft; }); return state.draftRequest; }
 
   function imageGrid(option, set) {
     const max = option.max ?? 6;
@@ -296,18 +297,22 @@ export function openBuilder({ catalog, productId, config }) {
       input.value = '';
       if (!files.length) { errorOf('Please choose pictures from your gallery.'); return; }
       errorOf('');
-      for (const file of files) {
-        const token = { key: option.key };
-        state.pending.push(token);
-        paint();
-        try {
-          const blob = await shrinkImage(file);
-          const up = await shop.uploadFile(await ensureDraft(), blob, 'image');
-          state.media[up.id] = { type: 'image', url: up.url };
-          set([...(state.values[option.key] ?? []), up.id]);
-          pushPreview(false);
-        } catch (e) { errorOf(e.message); }
-        state.pending.splice(state.pending.indexOf(token), 1);
+      // each upload takes a few seconds, so three go at once; they are added in the order they were chosen
+      const tokens = files.map(() => ({ key: option.key }));
+      state.pending.push(...tokens);
+      paint();
+      const BATCH = 3;
+      for (let i = 0; i < files.length; i += BATCH) {
+        const batch = files.slice(i, i + BATCH);
+        const results = await Promise.all(batch.map(async (file) => {
+          try {
+            const blob = await shrinkImage(file);
+            return await shop.uploadFile(await ensureDraft(), blob, 'image');
+          } catch (e) { errorOf(e.message); return null; }
+        }));
+        for (const up of results) if (up) { state.media[up.id] = { type: 'image', url: up.url }; set([...(state.values[option.key] ?? []), up.id]); }
+        for (const token of tokens.slice(i, i + BATCH)) state.pending.splice(state.pending.indexOf(token), 1);
+        pushPreview(false);
         paint();
       }
     });

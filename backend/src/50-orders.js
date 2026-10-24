@@ -13,7 +13,7 @@ function product_(id) {
 
 function createDraft_(p) {
   const product = product_(p.productId);
-  const draft = add_('Drafts', { id: `d_${token_(8)}`, token: token_(24), productId: product.id, createdAt: now_() });
+  const draft = locked_(() => add_('Drafts', { id: `d_${token_(8)}`, token: token_(24), productId: product.id, createdAt: now_() }));
   return { id: draft.id, token: draft.token };
 }
 

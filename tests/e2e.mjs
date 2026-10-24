@@ -162,6 +162,31 @@ try {
   await gone.ctx.close();
   await second.ctx.close();
 
+  console.log('\n[several photos at once]');
+  {
+    const before = await state();
+    const many = await phone();
+    await many.page.goto(`${SITE}/site/`);
+    await many.page.waitForSelector('.card');
+    await many.page.locator('.card [data-make="cake"]').click();
+    await many.page.waitForSelector('.b-step h2');
+    await many.page.fill('#f-recipient', 'Meera');
+    await many.page.locator('.b-next').click();
+    await many.page.locator('.starter').first().click();
+    await many.page.locator('.b-next').click();
+    await many.page.waitForTimeout(450);
+    const files = Array.from({ length: 5 }, (_, i) => ({ name: `p${i}.png`, mimeType: 'image/png', buffer: PNG }));
+    await many.page.locator('.b-step input[type=file]').setInputFiles(files);
+    await many.page.waitForFunction(() => document.querySelectorAll('.tile img').length === 5, null, { timeout: 30000 });
+    const after = await state();
+    const fresh = after.media.slice(before.media.length);
+    check(fresh.length === 5, 'all five photos reached the backend');
+    check(new Set(fresh.map((m) => m.draftId)).size === 1 && after.drafts.length === before.drafts.length + 1, 'they all belong to ONE draft (overlapping uploads did not each start their own)');
+    check(new Set(fresh.map((m) => m.id)).size === 5 && new Set(after.media.map((m) => m._row)).size === after.media.length, 'every file has its own id and its own row');
+    check(many.problems.length === 0, 'no console errors');
+    await many.ctx.close();
+  }
+
   console.log('\n[the browser talks to the backend the way Apps Script allows]');
   // a plain browser context with no request interception (interception can swallow the preflight and hide the very problem we test for)
   const probe = { ctx: await browser.newContext() };

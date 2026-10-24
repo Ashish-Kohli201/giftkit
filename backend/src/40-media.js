@@ -68,7 +68,8 @@ function uploadChunk_(p) {
   }
   const fileId = JSON.parse(res.getContentText()).id;
   DriveApp.getFileById(fileId).setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-  const media = add_('Media', { id: `m_${token_(10)}`, draftId: up.draftId, type: up.type, driveId: fileId, bytes: up.bytes, mime: up.mime, createdAt: now_() });
+  // photos upload several at a time: the sheet write is serialised so two finishing together cannot take the same row
+  const media = locked_(() => add_('Media', { id: `m_${token_(10)}`, draftId: up.draftId, type: up.type, driveId: fileId, bytes: up.bytes, mime: up.mime, createdAt: now_() }));
   cache.remove(p.uploadId);
   return { done: true, id: media.id };
 }

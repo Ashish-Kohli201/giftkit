@@ -25,11 +25,14 @@ const shot = async (page, name) => { if (process.env.SHOTS) { await page.waitFor
 
 async function newPage(browser, viewport) {
   const ctx = await browser.newContext({ viewport, hasTouch: true, isMobile: true });
+  // these tests are about DEMO MODE: whatever site/config.js points at, they must never reach a real backend
+  await ctx.route('**/site/config.js', (route) => route.fulfill({ contentType: 'text/javascript', body: "export const config = { brand: 'Notepark', api: '', delivery: { whatsapp: false } };" }));
   const page = await ctx.newPage();
   const problems = [];
   const external = [];
   page.on('console', (m) => { if (m.type() === 'error') problems.push(m.text()); });
   page.on('pageerror', (e) => problems.push(e.message));
+  page.on('request', (r) => { if (r.url().includes('script.google.com')) problems.push(`a demo test reached the real backend: ${r.url()}`); });
   page.on('request', (r) => { if (!r.url().startsWith(BASE) && !/^(data|blob):/.test(r.url())) external.push(r.url()); });
   page.on('dialog', (d) => { problems.push(`native dialog: ${d.message()}`); d.dismiss(); });
   return { ctx, page, problems, external };
